@@ -1,0 +1,252 @@
+package dao;
+
+import model.Event;
+import util.DBConfig;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import static util.DBConfig.getConnection;
+
+public class EventDAO {
+
+    /**
+     * Inserts an event into the database.
+     *
+     * @param event The event to be stored.
+     * @return True if the event is inserted successfully, false otherwise.
+     */
+    public boolean insertEvent(Event event) {
+        boolean isInserted = false;
+        String sql = "INSERT INTO events (category, title, description, start_time, end_time, time_zone, target_class, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+
+        try (Connection conn = DBConfig.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            // Set parameters for the SQL query
+            ps.setString(1, event.getCategory());
+            ps.setString(2, event.getTitle());
+            ps.setString(3, event.getDescription());
+            ps.setString(4, event.getStartTime());
+            ps.setString(5, event.getEndTime());
+            ps.setString(6, event.getTimeZone());
+            ps.setString(7, event.getTargetClass());
+            ps.setString(8, event.getCreatedBy());
+
+            // Execute the query
+            int rows = ps.executeUpdate();
+            if (rows > 0) {
+                isInserted = true;
+            }
+        } catch (SQLException e) {
+            System.err.println("Error inserting event into the database: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return isInserted;
+    }
+
+    public boolean deleteEventById(String eventId) {
+        boolean isDeleted = false;
+        String sql = "DELETE FROM events WHERE id = ?";
+
+        try (Connection conn = DBConfig.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, eventId);
+
+            int rows = ps.executeUpdate();
+            if (rows > 0) {
+                isDeleted = true;
+            }
+        } catch (SQLException e) {
+            System.err.println("Error deleting event from the database: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return isDeleted;
+    }
+
+    public Event getEventById(int eventId) {
+    Event event = null;
+    String sql = "SELECT * FROM events WHERE id = ?";
+
+    try (Connection conn = DBConfig.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+        ps.setInt(1, eventId);  // Use setInt
+
+        try (ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) {
+                event = new Event();
+                event.setCategory(rs.getString("category"));
+                event.setId(rs.getString("id"));  // If your Event id is String, keep this or convert to int
+                event.setTitle(rs.getString("title"));
+                event.setDescription(rs.getString("description"));
+                event.setStartTime(rs.getString("start_time"));
+                event.setEndTime(rs.getString("end_time"));
+                event.setTimeZone(rs.getString("time_zone"));
+                event.setTargetClass(rs.getString("target_class"));
+            }
+        }
+    } catch (SQLException e) {
+        System.err.println("Error retrieving event from the database: " + e.getMessage());
+        e.printStackTrace();
+    }
+
+    return event;
+}
+
+
+    public boolean requestDeleteEvent(String eventId) {
+        boolean isUpdated = false;
+        String sql = "UPDATE events SET status = 'cancellation requested' WHERE id = ?";
+
+        try (Connection conn = DBConfig.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, eventId);
+
+            int rows = ps.executeUpdate();
+            if (rows > 0) {
+                isUpdated = true;
+            }
+        } catch (SQLException e) {
+            System.err.println("Error updating event status: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return isUpdated;
+    }
+
+    public List<Event> getEventsByCreator(String email) {
+        List<Event> events = new ArrayList<>();
+        String sql = "SELECT * FROM events WHERE created_by = ?";
+
+        try (Connection conn = DBConfig.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, email);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Event e = new Event();
+                    e.setId(rs.getString("id"));
+                    e.setCategory(rs.getString("category")); // ADD THIS
+                    e.setTitle(rs.getString("title"));
+                    e.setStartTime(rs.getString("start_time"));
+                    e.setEndTime(rs.getString("end_time"));
+                    e.setCreatedBy(rs.getString("created_by"));
+                    events.add(e);
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error fetching teacher events: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return events;
+    }
+
+    public void updateEventWithClassroom(int eventId, int classroomId) throws SQLException {
+        String sql = "UPDATE events SET classroom_id = ? WHERE id = ?";
+        try (Connection conn = DBConfig.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, classroomId);
+            stmt.setInt(2, eventId);
+            stmt.executeUpdate();
+        }
+    }
+
+    public List<Map<String, Object>> getAllEventDetails() {
+        List<Map<String, Object>> events = new ArrayList<>();
+        String sql = "SELECT e.id, e.title, e.category, e.description, e.start_time, e.end_time, "
+                + "e.target_class, e.created_by, c.name AS classroom_name "
+                + "FROM events e LEFT JOIN classroom c ON e.classroom_id = c.id";
+
+        try (Connection conn = DBConfig.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                Map<String, Object> map = new HashMap<>();
+                map.put("id", rs.getString("id"));
+                map.put("title", rs.getString("title"));
+                map.put("category", rs.getString("category"));
+                map.put("description", rs.getString("description"));
+                map.put("start_time", rs.getString("start_time"));
+                map.put("end_time", rs.getString("end_time"));
+                map.put("target_class", rs.getString("target_class"));
+                map.put("created_by", rs.getString("created_by"));
+                map.put("classroom_name", rs.getString("classroom_name"));
+                events.add(map);
+                System.out.println("Fetching event list...");
+                System.out.println("Total rows fetched: " + events.size());
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return events;
+
+    }
+    public List<Event> getAllEvents() {
+        List<Event> events = new ArrayList<>();
+        String sql = "SELECT category, title, description, start_time, end_time, created_by FROM events";
+
+        try (Connection conn = DBConfig.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                Event event = new Event();
+                
+                event.setCategory(rs.getString("category"));
+                event.setTitle(rs.getString("title"));
+                event.setDescription(rs.getString("description"));
+                event.setStartTime(rs.getString("start_time"));
+                event.setEndTime(rs.getString("end_time"));
+                event.setCreatedBy(rs.getString("created_by"));
+                events.add(event);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return events;
+    }
+    public int insertEventAndReturnId(Event event) {
+    int generatedId = -1;
+    try (Connection conn = getConnection()) {
+        String sql = "INSERT INTO events (category, title, description, start_time, end_time, time_zone, created_by, target_class) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+        stmt.setString(1, event.getCategory());
+        stmt.setString(2, event.getTitle());
+        stmt.setString(3, event.getDescription());
+        stmt.setString(4, event.getStartTime());
+        stmt.setString(5, event.getEndTime());
+        stmt.setString(6, event.getTimeZone());
+        stmt.setString(7, event.getCreatedBy());
+        stmt.setString(8, event.getTargetClass());
+
+        int affectedRows = stmt.executeUpdate();
+        if (affectedRows > 0) {
+            ResultSet rs = stmt.getGeneratedKeys();
+            if (rs.next()) {
+                generatedId = rs.getInt(1);
+            }
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+    return generatedId;
+}
+
+public void insertEventParticipant(int eventId, String studentIC) {
+    try (Connection conn = getConnection()) {
+        String sql = "INSERT INTO event_participants (event_id, student_ic) VALUES (?, ?)";
+        PreparedStatement stmt = conn.prepareStatement(sql);
+        stmt.setInt(1, eventId);
+        stmt.setString(2, studentIC);
+        stmt.executeUpdate();
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+
+}
+
+
+}
