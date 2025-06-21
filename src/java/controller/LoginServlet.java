@@ -60,7 +60,14 @@ public class LoginServlet extends HttpServlet {
                 Parent parent = parentDAO.getParentByEmail(email);
 
                 if (parent != null) {
-                    session.setAttribute("parent", parent);
+                    // Compare entered password with DB password
+                    if (password.equals(parent.getPassword())) {
+                        session.setAttribute("parent", parent); // ✅ Password now included in session
+                    } else {
+                        request.setAttribute("errorMessage", "Incorrect password.");
+                        request.getRequestDispatcher("login.jsp").forward(request, response);
+                        return;
+                    }
                 } else {
                     request.setAttribute("errorMessage", "Parent details not found.");
                     request.getRequestDispatcher("login.jsp").forward(request, response);

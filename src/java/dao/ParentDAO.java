@@ -32,28 +32,31 @@ public class ParentDAO {
     }
 
     public Parent getParentByEmail(String email) {
-        Parent parent = null;
-        String query = "SELECT id, name, email, contact_number, profile_picture FROM parent WHERE email = ?";
+    Parent parent = null;
+    String query = "SELECT id, name, email, contact_number, profile_picture, password FROM parent WHERE email = ?";
 
-        try (Connection connection = DBConfig.getConnection(); PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+    try (Connection connection = DBConfig.getConnection();
+         PreparedStatement preparedStatement = connection.prepareStatement(query)) {
 
-            preparedStatement.setString(1, email);
-            ResultSet resultSet = preparedStatement.executeQuery();
+        preparedStatement.setString(1, email);
+        ResultSet resultSet = preparedStatement.executeQuery();
 
-            if (resultSet.next()) {
-                parent = new Parent();
-                parent.setId(resultSet.getInt("id"));
-                parent.setName(resultSet.getString("name"));
-                parent.setEmail(resultSet.getString("email"));
-                parent.setContactNumber(resultSet.getString("contact_number"));
-                parent.setProfilePicture(resultSet.getString("profile_picture"));
-            }
-        } catch (SQLException e) {
-            System.err.println("SQL error in getParentByEmail: " + e.getMessage());
-            e.printStackTrace();
+        if (resultSet.next()) {
+            parent = new Parent();
+            parent.setId(resultSet.getInt("id"));
+            parent.setName(resultSet.getString("name"));
+            parent.setEmail(resultSet.getString("email"));
+            parent.setContactNumber(resultSet.getString("contact_number"));
+            parent.setProfilePicture(resultSet.getString("profile_picture"));
+            parent.setPassword(resultSet.getString("password")); // ✅ Add this line
         }
-        return parent;
+    } catch (SQLException e) {
+        System.err.println("SQL error in getParentByEmail: " + e.getMessage());
+        e.printStackTrace();
     }
+    return parent;
+}
+
 
     public List<Student> getChildrenByParentEmail(String email) {
         List<Student> children = new ArrayList<>();

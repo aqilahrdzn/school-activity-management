@@ -42,41 +42,44 @@
     </head>
     <body>
 
-        
-<%
-    // Get session and check login
-    Parent parent = (Parent) session.getAttribute("parent");
-    if (parent == null) {
-        response.sendRedirect(request.getContextPath() + "/login.jsp");
-        return;
-    }
 
-    // Retrieve success parameter as boolean
-    boolean success = "true".equals(request.getParameter("success"));
+        <%
+            // Get session and check login
+            Parent parent = (Parent) session.getAttribute("parent");
+            if (parent == null) {
+                response.sendRedirect(request.getContextPath() + "/login.jsp");
+                return;
+            }
 
-    // Load children from DAO by parent ID
-    StudentDAO studentDAO = new StudentDAO();
-    List<Student> children = studentDAO.getStudentsByParentId(parent.getId());
+            // Retrieve success parameter as boolean
+            boolean success = "true".equals(request.getParameter("success"));
 
-    // Set children as request attribute if you want to use JSTL or EL in JSP later
-    request.setAttribute("children", children);
+            // Load children from DAO by parent ID
+            StudentDAO studentDAO = new StudentDAO();
+            List<Student> children = studentDAO.getStudentsByParentId(parent.getId());
 
-    // Optional: count totals
-    int totalParents = 0;
-    int totalStudents = 0;
-    try (Connection conn = DBConfig.getConnection()) {
-        try (PreparedStatement stmt = conn.prepareStatement("SELECT COUNT(*) AS total FROM parent"); // changed from teachers to parent
-             ResultSet rs = stmt.executeQuery()) {
-            if (rs.next()) totalParents = rs.getInt("total");
-        }
-        try (PreparedStatement stmt = conn.prepareStatement("SELECT COUNT(*) AS total FROM student");
-             ResultSet rs = stmt.executeQuery()) {
-            if (rs.next()) totalStudents = rs.getInt("total");
-        }
-    } catch (SQLException e) {
-        e.printStackTrace();
-    }
-%>
+            // Set children as request attribute if you want to use JSTL or EL in JSP later
+            request.setAttribute("children", children);
+
+            // Optional: count totals
+            int totalParents = 0;
+            int totalStudents = 0;
+            try (Connection conn = DBConfig.getConnection()) {
+                try (PreparedStatement stmt = conn.prepareStatement("SELECT COUNT(*) AS total FROM parent"); // changed from teachers to parent
+                         ResultSet rs = stmt.executeQuery()) {
+                    if (rs.next()) {
+                        totalParents = rs.getInt("total");
+                    }
+                }
+                try (PreparedStatement stmt = conn.prepareStatement("SELECT COUNT(*) AS total FROM student"); ResultSet rs = stmt.executeQuery()) {
+                    if (rs.next()) {
+                        totalStudents = rs.getInt("total");
+                    }
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        %>
 
 
         <div class="container-scroller">
@@ -287,8 +290,11 @@
                             <div class="col-md-6 grid-margin stretch-card">
                                 <div class="card">
                                     <div class="card-body">
-                                        <% if ("true".equals(success)) { %>
+                                        <!-- Show message -->
+                                        <% if ("true".equals(request.getParameter("success"))) { %>
                                         <p style="color: green;">Profile updated successfully!</p>
+                                        <% } else if (request.getParameter("error") != null) {%>
+                                        <p style="color: red;"><%= request.getParameter("error")%></p>
                                         <% }%>
                                         <h4 class="card-title">Update Account</h4>
                                         <form class="forms-sample" action="../UpdateParentProfileServlet" method="post" enctype="multipart/form-data">
@@ -300,6 +306,21 @@
                                             <div class="form-group">
                                                 <label for="email">Email:</label>
                                                 <input type="email" class="form-control" id="email" name="email" value="<%= parent.getEmail() != null ? parent.getEmail() : ""%>" required>
+                                            </div>
+                                            <!-- Add Password Fields -->
+                                            <div class="form-group">
+                                                <label for="oldPassword">Old Password:</label>
+                                                <input type="password" class="form-control" id="oldPassword" name="oldPassword" placeholder="Enter your current password">
+                                            </div>
+
+                                            <div class="form-group">
+                                                <label for="newPassword">New Password:</label>
+                                                <input type="password" class="form-control" id="newPassword" name="newPassword" placeholder="Enter new password">
+                                            </div>
+
+                                            <div class="form-group">
+                                                <label for="confirmPassword">Confirm New Password:</label>
+                                                <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" placeholder="Re-enter new password">
                                             </div>
                                             <div class="form-group">
                                                 <label for="profilePic">Profile Picture:</label>

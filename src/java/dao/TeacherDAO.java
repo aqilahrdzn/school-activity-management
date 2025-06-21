@@ -11,29 +11,32 @@ public class TeacherDAO {
 
     // Get teacher details by email (including profile picture)
     public Teacher getTeacherDetails(String email) {
-        String query = "SELECT * FROM teachers WHERE email = ?";
-        try (Connection connection = DBConfig.getConnection(); PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+    String query = "SELECT * FROM teachers WHERE email = ?";
+    try (Connection connection = DBConfig.getConnection();
+         PreparedStatement preparedStatement = connection.prepareStatement(query)) {
 
-            preparedStatement.setString(1, email);
-            ResultSet resultSet = preparedStatement.executeQuery();
+        preparedStatement.setString(1, email);
+        ResultSet resultSet = preparedStatement.executeQuery();
 
-            if (resultSet.next()) {
-                Teacher teacher = new Teacher();
-                teacher.setId(resultSet.getInt("id"));
-                teacher.setName(resultSet.getString("name"));
-                teacher.setEmail(resultSet.getString("email"));
-                teacher.setContactNumber(resultSet.getString("contact_number"));
-                teacher.setRole(resultSet.getString("role"));
-                teacher.setProfilePicture(resultSet.getString("profile_picture")); // ✅ Still included
-                teacher.setIsGuruKelas(resultSet.getString("is_guru_kelas"));// ✅ Still included
-                teacher.setKelas(resultSet.getString("kelas"));
-                return teacher;
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
+        if (resultSet.next()) {
+            Teacher teacher = new Teacher();
+            teacher.setId(resultSet.getInt("id"));
+            teacher.setName(resultSet.getString("name"));
+            teacher.setEmail(resultSet.getString("email"));
+            teacher.setContactNumber(resultSet.getString("contact_number"));
+            teacher.setRole(resultSet.getString("role"));
+            teacher.setProfilePicture(resultSet.getString("profile_picture"));
+            teacher.setIsGuruKelas(resultSet.getString("is_guru_kelas"));
+            teacher.setKelas(resultSet.getString("kelas"));
+            teacher.setPassword(resultSet.getString("password")); // ✅ IMPORTANT: add this
+            return teacher;
         }
-        return null;
+    } catch (SQLException e) {
+        e.printStackTrace();
     }
+    return null;
+}
+
 
     // Insert a new teacher (including optional profile picture)
     public boolean insertTeacher(Teacher teacher) {

@@ -210,7 +210,7 @@
                                 <i class="mdi mdi-power"></i>
                             </a>
                         </li>
-                        
+
                     </ul>
                     <button class="navbar-toggler navbar-toggler-right d-lg-none align-self-center" type="button" data-toggle="offcanvas">
                         <span class="mdi mdi-menu"></span>
@@ -290,44 +290,75 @@
                             </nav>
                         </div>
                         <div class="row">
-                            <div class="col-md-6 grid-margin stretch-card">
-                                <div class="card">
-                                    <div class="card-body">
-                                        <% if (success) { %>
-                                        <p style="color: green;">Profile updated successfully!</p>
-                                        <% }%>
-                                        <h4 class="card-title">Update Account</h4>
-                                        <form class="forms-sample" action="../UpdateTeacherProfileServlet" method="post" enctype="multipart/form-data">
+    <div class="col-md-6 grid-margin stretch-card">
+        <div class="card">
+            <div class="card-body">
+                <% if (request.getParameter("success") != null) { %>
+                    <p style="color: green;">Profile updated successfully!</p>
+                <% } else if (request.getParameter("error") != null) { %>
+                    <p style="color: red;"><%= request.getParameter("error") %></p>
+                <% } %>
 
-                                            <div class="form-group">
-                                                <label for="name">Name:</label>
-                                                <input type="text" class="form-control" id="name" name="name" value="<%= teacher.getName()%>"required>
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="email">Email:</label>
-                                                <input type="email" class="form-control" id="email" name="email" value="<%= teacher.getEmail()%>" required>
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="profilePic">Profile Picture:</label>
-                                                <!-- Removed 'required' to make it optional -->
-                                                <input type="file" class="form-control" id="profilePic" name="profilePic" accept="image/*">
-                                            </div>
+                <h4 class="card-title">Update Account</h4>
+                <form class="forms-sample" action="../UpdateTeacherProfileServlet" method="post" enctype="multipart/form-data" autocomplete="off">
 
-                                            <% if (teacher.getProfilePicture() != null) {%>
-                                            <img src="profile_pics/<%= teacher.getProfilePicture()%>" width="100" height="100" alt="Profile Picture" />
-                                            <% } else { %>
-                                            <img src="assets/images/faces/default.jpg" width="100" height="100" alt="Default Picture" />
-                                            <% }%>
+                    <!-- View-only Name -->
+                    <div class="form-group">
+                        <label for="name">Name:</label>
+                        <input type="text" class="form-control" id="name" name="name" value="<%= teacher.getName() %>" readonly>
+                    </div>
+
+                    <!-- Editable Phone Number -->
+                    <div class="form-group">
+                        <label for="phone">Phone Number:</label>
+                        <input type="text" class="form-control" id="phone" name="phone" value="<%= teacher.getContactNumber() %>" required>
+                    </div>
+
+                    <!-- Editable Email -->
+                    <div class="form-group">
+                        <label for="email">Email:</label>
+                        <input type="email" class="form-control" id="email" name="email" value="<%= teacher.getEmail() %>" required>
+                    </div>
+
+                    <!-- Old Password (required if new password is filled) -->
+                    <div class="form-group">
+                        <label for="oldPassword">Old Password:</label>
+                        <input type="password" class="form-control" id="oldPassword" name="oldPassword" placeholder="Enter your current password">
+                    </div>
+
+                    <!-- New Password -->
+                    <div class="form-group">
+                        <label for="newPassword">New Password:</label>
+                        <input type="password" class="form-control" id="newPassword" name="newPassword" placeholder="Enter new password">
+                    </div>
+
+                    <!-- Confirm New Password -->
+                    <div class="form-group">
+                        <label for="confirmPassword">Confirm New Password:</label>
+                        <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" placeholder="Re-enter new password">
+                    </div>
+
+                    <!-- Profile Picture Upload -->
+                    <div class="form-group">
+                        <label for="profilePic">Profile Picture:</label>
+                        <input type="file" class="form-control" id="profilePic" name="profilePic" accept="image/*">
+                    </div>
+
+                    <!-- Show Existing Picture -->
+                    <% if (teacher.getProfilePicture() != null) { %>
+                        <img src="profile_pics/<%= teacher.getProfilePicture() %>" width="100" height="100" alt="Profile Picture" />
+                    <% } else { %>
+                        <img src="assets/images/faces/default.jpg" width="100" height="100" alt="Default Picture" />
+                    <% } %>
+
+                    <button type="submit" class="btn btn-gradient-primary me-2">Update Account</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 
 
-                                            <button type="submit" class="btn btn-gradient-primary me-2">Update Account</button>
-
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
-
-                        </div>
                     </div>
                     <!-- content-wrapper ends -->
                     <!-- partial:../../partials/_footer.html -->

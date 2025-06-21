@@ -30,8 +30,6 @@ public class UpdateParentProfileServlet extends HttpServlet {
             throws ServletException, IOException {
 
         request.setCharacterEncoding("UTF-8");
-        response.setContentType("text/html;charset=UTF-8");
-
         HttpSession session = request.getSession();
         Parent parent = (Parent) session.getAttribute("parent");
 
@@ -42,34 +40,53 @@ public class UpdateParentProfileServlet extends HttpServlet {
 
         String name = request.getParameter("name");
         String email = request.getParameter("email");
-        Part filePart = request.getPart("profilePic");
+        String oldPassword = request.getParameter("oldPassword");
+        String newPassword = request.getParameter("newPassword");
+        String confirmPassword = request.getParameter("confirmPassword");
 
+        boolean updatePassword = false;
+
+        // Password Validation First
+        if (!isEmpty(oldPassword) || !isEmpty(newPassword) || !isEmpty(confirmPassword)) {
+            if (isEmpty(oldPassword) || isEmpty(newPassword) || isEmpty(confirmPassword)) {
+                response.sendRedirect("parent/updateAccPr.jsp?error=All password fields are required.");
+                return;
+            }
+            if (!oldPassword.equals(parent.getPassword())) {
+                response.sendRedirect("parent/updateAccPr.jsp?error=Old password is incorrect.");
+                return;
+            }
+            if (!newPassword.equals(confirmPassword)) {
+                response.sendRedirect("parent/updateAccPr.jsp?error=New password and confirm password do not match.");
+                return;
+            }
+            updatePassword = true;
+        }
+
+        // Profile Picture
+        Part filePart = request.getPart("profilePic");
         String fileName = null;
         String savedFileName = null;
 
         String uploadPath = getServletContext().getRealPath("") + File.separator + UPLOAD_DIR;
         File uploadDir = new File(uploadPath);
-        if (!uploadDir.exists()) {
-            uploadDir.mkdirs();
-        }
+        if (!uploadDir.exists()) uploadDir.mkdirs();
 
-        if (filePart != null && filePart.getSize() > 0 && filePart.getSubmittedFileName() != null && !filePart.getSubmittedFileName().isEmpty()) {
+        if (filePart != null && filePart.getSize() > 0 && filePart.getSubmittedFileName() != null) {
             fileName = Paths.get(filePart.getSubmittedFileName()).getFileName().toString();
             fileName = fileName.replaceAll("[^a-zA-Z0-9\\.\\-_]", "_");
             savedFileName = "parent_" + parent.getId() + "_" + System.currentTimeMillis() + "_" + fileName;
 
-            // Delete old profile picture if it's not default
+            // Remove old profile pic
             String oldPic = parent.getProfilePicture();
             if (oldPic != null && !oldPic.equals("default.jpg")) {
                 File oldFile = new File(uploadPath + File.separator + oldPic);
-                if (oldFile.exists()) {
-                    oldFile.delete();
-                }
+                if (oldFile.exists()) oldFile.delete();
             }
 
             try (InputStream fileContent = filePart.getInputStream()) {
-                File newFile = new File(uploadPath + File.separator + savedFileName);
-                Files.copy(fileContent, newFile.toPath());
+                File file = new File(uploadPath + File.separator + savedFileName);
+                Files.copy(fileContent, file.toPath());
             } catch (IOException e) {
                 e.printStackTrace();
                 response.getWriter().println("Failed to save the profile picture.");
@@ -78,46 +95,38 @@ public class UpdateParentProfileServlet extends HttpServlet {
         }
 
         try (Connection conn = DBConfig.getConnection()) {
-            String sql;
-            PreparedStatement stmt;
+            StringBuilder sql = new StringBuilder("UPDATE parent SET name=?, email=?");
+            if (savedFileName != null) sql.append(", profile_picture=?");
+            if (updatePassword) sql.append(", password=?");
+            sql.append(" WHERE id=?");
 
-            if (savedFileName != null) {
-                sql = "UPDATE parent SET name=?, email=?, profile_picture=? WHERE id=?";
-                stmt = conn.prepareStatement(sql);
-                stmt.setString(1, name);
-                stmt.setString(2, email);
-                stmt.setString(3, savedFileName);
-                stmt.setInt(4, parent.getId());
-            } else {
-                sql = "UPDATE parent SET name=?, email=? WHERE id=?";
-                stmt = conn.prepareStatement(sql);
-                stmt.setString(1, name);
-                stmt.setString(2, email);
-                stmt.setInt(3, parent.getId());
-            }
+            PreparedStatement stmt = conn.prepareStatement(sql.toString());
+            int idx = 1;
+            stmt.setString(idx++, name);
+            stmt.setString(idx++, email);
+            if (savedFileName != null) stmt.setString(idx++, savedFileName);
+            if (updatePassword) stmt.setString(idx++, newPassword);
+            stmt.setInt(idx, parent.getId());
 
             stmt.executeUpdate();
             stmt.close();
 
-            // Update session object
+            // Update session
             parent.setName(name);
             parent.setEmail(email);
-            if (savedFileName != null) {
-                parent.setProfilePicture(savedFileName);
-            }
+            if (savedFileName != null) parent.setProfilePicture(savedFileName);
+            if (updatePassword) parent.setPassword(newPassword);
             session.setAttribute("parent", parent);
 
-            StudentDAO studentDAO = new StudentDAO();
-            List<Student> children = studentDAO.getStudentsByParentId(parent.getId());
-            request.setAttribute("children", children);
-
-// Forward to JSP to show updated info and children list
-            request.setAttribute("success", true); // pass success flag as request attribute
-            response.sendRedirect(request.getContextPath() + "/parent/updateAccPr.jsp");
+            response.sendRedirect("parent/updateAccPr.jsp?success=true");
 
         } catch (Exception e) {
             e.printStackTrace();
-            response.getWriter().println("Update failed. Please try again.");
+            response.sendRedirect("parent/updateAccPr.jsp?error=Update failed.");
         }
+    }
+
+    private boolean isEmpty(String s) {
+        return s == null || s.trim().isEmpty();
     }
 }

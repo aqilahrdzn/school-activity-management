@@ -20,7 +20,6 @@ import java.sql.PreparedStatement;
     maxRequestSize = 1024 * 1024 * 50
 )
 public class UpdateTeacherProfileServlet extends HttpServlet {
-
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
@@ -33,9 +32,36 @@ public class UpdateTeacherProfileServlet extends HttpServlet {
             return;
         }
 
-        String name = request.getParameter("name");
+        // Get form inputs
         String email = request.getParameter("email");
+        String phone = request.getParameter("phone");
+        String oldPassword = request.getParameter("oldPassword");
+        String newPassword = request.getParameter("newPassword");
+        String confirmPassword = request.getParameter("confirmPassword");
 
+        boolean updatePassword = false;
+
+        // ✅ STEP 1: Check password early
+        if (!isEmpty(oldPassword) || !isEmpty(newPassword) || !isEmpty(confirmPassword)) {
+            if (isEmpty(oldPassword) || isEmpty(newPassword) || isEmpty(confirmPassword)) {
+                response.sendRedirect("teacher/updateAccTc.jsp?error=All password fields are required.");
+                return;
+            }
+
+            if (!oldPassword.equals(teacher.getPassword())) {
+                response.sendRedirect("teacher/updateAccTc.jsp?error=Old password is incorrect.");
+                return;
+            }
+
+            if (!newPassword.equals(confirmPassword)) {
+                response.sendRedirect("teacher/updateAccTc.jsp?error=New password and confirmation do not match.");
+                return;
+            }
+
+            updatePassword = true;
+        }
+
+        // ✅ STEP 2: Handle profile picture (only proceed if password is OK)
         Part filePart = request.getPart("profilePic");
         String fileName = null;
         String savedFileName = null;
@@ -46,10 +72,10 @@ public class UpdateTeacherProfileServlet extends HttpServlet {
 
         if (filePart != null && filePart.getSize() > 0 && filePart.getSubmittedFileName() != null) {
             fileName = Paths.get(filePart.getSubmittedFileName()).getFileName().toString();
-            fileName = fileName.replaceAll("[^a-zA-Z0-9\\.\\-_]", "_"); // Sanitize filename
+            fileName = fileName.replaceAll("[^a-zA-Z0-9\\.\\-_]", "_");
             savedFileName = "teacher_" + teacher.getId() + "_" + System.currentTimeMillis() + "_" + fileName;
 
-            // Delete old profile picture (if not default)
+            // Delete old picture if needed
             String oldPic = teacher.getProfilePicture();
             if (oldPic != null && !oldPic.equals("default.jpg")) {
                 File oldFile = new File(uploadPath + File.separator + oldPic);
@@ -67,34 +93,37 @@ public class UpdateTeacherProfileServlet extends HttpServlet {
         }
 
         try (Connection conn = DBConfig.getConnection()) {
-            String sql;
-            PreparedStatement stmt;
+            StringBuilder sql = new StringBuilder("UPDATE teachers SET email=?, contact_number=?");
+            if (savedFileName != null) sql.append(", profile_picture=?");
+            if (updatePassword) sql.append(", password=?");
+            sql.append(" WHERE id=?");
 
-            if (savedFileName != null) {
-                sql = "UPDATE teachers SET name=?, email=?, profile_picture=? WHERE id=?";
-                stmt = conn.prepareStatement(sql);
-                stmt.setString(1, name);
-                stmt.setString(2, email);
-                stmt.setString(3, savedFileName);
-                stmt.setInt(4, teacher.getId());
-            } else {
-                sql = "UPDATE teachers SET name=?, email=? WHERE id=?";
-                stmt = conn.prepareStatement(sql);
-                stmt.setString(1, name);
-                stmt.setString(2, email);
-                stmt.setInt(3, teacher.getId());
-            }
+            PreparedStatement stmt = conn.prepareStatement(sql.toString());
+            int index = 1;
+            stmt.setString(index++, email);
+            stmt.setString(index++, phone);
+            if (savedFileName != null) stmt.setString(index++, savedFileName);
+            if (updatePassword) stmt.setString(index++, newPassword);
+            stmt.setInt(index, teacher.getId());
 
             stmt.executeUpdate();
-            teacher.setName(name);
+
+            // ✅ Update session teacher
             teacher.setEmail(email);
+            teacher.setContactNumber(phone);
             if (savedFileName != null) teacher.setProfilePicture(savedFileName);
+            if (updatePassword) teacher.setPassword(newPassword);
             session.setAttribute("teacher", teacher);
+
             response.sendRedirect("teacher/updateAccTc.jsp?success=true");
 
         } catch (Exception e) {
             e.printStackTrace();
-            response.getWriter().println("Update failed. Please try again.");
+            response.sendRedirect("teacher/updateAccTc.jsp?error=Update failed. Please try again.");
         }
+    }
+
+    private boolean isEmpty(String s) {
+        return s == null || s.trim().isEmpty();
     }
 }
