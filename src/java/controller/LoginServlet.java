@@ -15,6 +15,25 @@ import java.io.IOException;
 public class LoginServlet extends HttpServlet {
 
     @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+        // ✅ Handle logout
+        String action = request.getParameter("action");
+        if ("logout".equals(action)) {
+            HttpSession session = request.getSession(false); // Don't create new session
+            if (session != null) {
+                session.invalidate(); // Destroy session
+            }
+            response.sendRedirect(request.getContextPath() + "/login.jsp");
+            return;
+        }
+
+        // Optionally, redirect to login.jsp for any non-POST access
+        response.sendRedirect(request.getContextPath() + "/login.jsp");
+    }
+
+    @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
@@ -98,5 +117,6 @@ public class LoginServlet extends HttpServlet {
             request.setAttribute("errorMessage", "Invalid email or password.");
             request.getRequestDispatcher("login.jsp").forward(request, response);
         }
+
     }
 }

@@ -360,7 +360,7 @@
                                                     <p><strong>End Time:</strong> <%= eventEnd%></p>
                                                     <!-- Hidden inputs to send values in the request -->
                                                     <input type="hidden" name="eventTitle" value="<%= eventTitle%>" />
-                                                    <input type="datetime-local" name="eventStart" value="<%= eventStart%>" readonly />
+                                                    
                                                     <input type="hidden" name="eventEndTime" value="<%= eventEnd%>" />
                                                     <input type="hidden" name="eventId" value="<%= (eventId != null) ? eventId : ""%>" />
 

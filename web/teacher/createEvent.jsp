@@ -278,8 +278,14 @@
                                     <h4 class="card-title">Create New Event/Activity</h4>
                                     <h2>Google Calendar</h2>
                                     <div class="iframe-container">
-                                        <iframe src="https://calendar.google.com/calendar/embed?src=aqilah031103060404%40gmail.com&ctz=Asia%2FKuala_Lumpur" frameborder="0" scrolling="no"></iframe>
+                                        <iframe 
+                                            src="https://calendar.google.com/calendar/embed?src=aqilah031103060404%40gmail.com&ctz=Asia%2FKuala_Lumpur" 
+                                            style="border:0; width: 1000px; height: 500px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);" 
+                                            frameborder="0" 
+                                            scrolling="no">
+                                        </iframe>
                                     </div>
+
                                     <form class="forms-sample" action="../EventController" method="post">
                                         <div class="form-group">
                                             <label for="category">Event Category:</label>
@@ -289,283 +295,319 @@
                                                 <option value="external">External/Off-School Event</option>
                                                 <option value="payment">Payment-Required Event</option>
                                             </select>
-                                            <%
-                                                String successParam = request.getParameter("success");
-                                                String category = request.getParameter("category");
-                                                boolean success = "true".equals(successParam);
+                                        </div>
+                                        <div class="form-group" id="payment-amount-section" >
+                                            <label for="paymentAmount">Payment Amount (RM):</label>
+                                            <input type="number" id="paymentAmount" name="paymentAmount" step="0.01" min="0" placeholder="e.g., 10.50">
+                                        </div>
+                                        <%
+                                            String successParam = request.getParameter("success");
+                                            String category = request.getParameter("category");
+                                            boolean success = "true".equals(successParam);
 
-                                                if (success) {
+                                            if (success) {
+                                        %>
+                                        <div id="popup" style="background-color: #d4edda; color: #155724; padding: 15px; border: 1px solid #c3e6cb; border-radius: 5px; margin-top: 20px;">
+                                            Event successfully created!
+                                            <%
+                                                if ("school".equals(category)) {
                                             %>
-                                            <div id="popup" style="background-color: #d4edda; color: #155724; padding: 15px; border: 1px solid #c3e6cb; border-radius: 5px; margin-top: 20px;">
-                                                Event successfully created!
-                                                <%
-                                                    if ("school".equals(category)) {
-                                                %>
-                                                <button type="button" onclick="window.location.href = 'bookingVenue.jsp'" style="padding: 8px 12px; background-color: #007bff; color: white; border: none; border-radius: 4px;">Book Now</button>
-                                                <%
-                                                    }
-                                                %>
-                                            </div>
+                                            <button type="button" onclick="window.location.href = 'bookingVenue.jsp'" style="padding: 8px 12px; background-color: #007bff; color: white; border: none; border-radius: 4px;">Book Now</button>
                                             <%
                                                 }
                                             %>
+                                        </div>
+                                        <%
+                                            }
+                                        %>
 
-                                            <div class="form-group">
-                                                <label for="title">Event Title:</label>
-                                                <input type="text" id="title" name="title" required>
+                                        <div class="form-group">
+                                            <label for="title">Event Title:</label>
+                                            <input type="text" id="title" name="title" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="description">Event Description:</label>
+                                            <textarea id="description" name="description" rows="4" cols="50"></textarea>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="startTime">Start Time (YYYY-MM-DDTHH:mm:ss):</label>
+                                            <input type="text" id="startTime" name="startTime" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="endTime">End Time (YYYY-MM-DDTHH:mm:ss):</label>
+                                            <input type="text" id="endTime" name="endTime" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="timeZone">Time Zone:</label>
+                                            <input type="text" id="timeZone" name="timeZone" value="Asia/Kuala_Lumpur" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <input type="radio" id="selectByClass" name="selectType" value="class" onclick="toggleSelection()" checked>
+                                            <label for="selectByClass">Select by Class</label>
+                                        </div>
+                                        <div class="form-group">
+                                            <input type="radio" id="selectIndividually" name="selectType" value="individual" onclick="toggleSelection()">
+                                            <label for="selectIndividually">Select Individually</label>
+                                        </div>
+                                        <div class="form-group">
+                                            <input type="radio" id="selectBySport" name="selectType" value="sport" onclick="toggleSelection()">
+                                            <label for="selectBySport">Select by Sport Team</label>
+                                        </div>
+                                        <div class="form-group">
+                                            <input type="radio" id="selectByUniform" name="selectType" value="uniform" onclick="toggleSelection()">
+                                            <label for="selectByUniform">Select by Uniform Unit</label>
+                                        </div>
+                                        <div id="class-selection" style="margin-top:10px;">
+                                            <label>Choose Class(es):</label>
+                                            <div class="checkbox-grid">
+                                                <label><input type="checkbox" name="classDropdown" value="1 Makkah"> 1 Makkah</label><br>
+                                                <label><input type="checkbox" name="classDropdown" value="1 Madinah"> 1 Madinah</label><br>
+                                                <label><input type="checkbox" name="classDropdown" value="2 Makkah"> 2 Makkah</label><br>
+                                                <label><input type="checkbox" name="classDropdown" value="2 Madinah"> 2 Madinah</label><br>
+                                                <label><input type="checkbox" name="classDropdown" value="3 Makkah"> 3 Makkah</label><br>
+                                                <label><input type="checkbox" name="classDropdown" value="3 Madinah"> 3 Madinah</label><br>
+                                                <label><input type="checkbox" name="classDropdown" value="4 Makkah"> 4 Makkah</label><br>
+                                                <label><input type="checkbox" name="classDropdown" value="4 Madinah"> 4 Madinah</label><br>
+                                                <label><input type="checkbox" name="classDropdown" value="5 Makkah"> 5 Makkah</label><br>
+                                                <label><input type="checkbox" name="classDropdown" value="5 Madinah"> 5 Madinah</label><br>
+                                                <label><input type="checkbox" name="classDropdown" value="6 Makkah"> 6 Makkah</label><br>
+                                                <label><input type="checkbox" name="classDropdown" value="6 Madinah"> 6 Madinah</label>
                                             </div>
-                                            <div class="form-group">
-                                                <label for="description">Event Description:</label>
-                                                <textarea id="description" name="description" rows="4" cols="50"></textarea>
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="startTime">Start Time (YYYY-MM-DDTHH:mm:ss):</label>
-                                                <input type="text" id="startTime" name="startTime" required>
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="endTime">End Time (YYYY-MM-DDTHH:mm:ss):</label>
-                                                <input type="text" id="endTime" name="endTime" required>
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="timeZone">Time Zone:</label>
-                                                <input type="text" id="timeZone" name="timeZone" value="Asia/Kuala_Lumpur" required>
-                                            </div>
-                                            <div class="form-group">
-                                                <input type="radio" id="selectByClass" name="selectType" value="class" onclick="toggleSelection()" checked>
-                                                <label for="selectByClass">Select by Class</label>
-                                            </div>
-                                            <div class="form-group">
-                                                <input type="radio" id="selectIndividually" name="selectType" value="individual" onclick="toggleSelection()">
-                                                <label for="selectIndividually">Select Individually</label>
-                                            </div>
-                                            <div class="form-group">
-                                                <input type="radio" id="selectBySport" name="selectType" value="sport" onclick="toggleSelection()">
-                                                <label for="selectBySport">Select by Sport Team</label>
-                                            </div>
-                                            <div class="form-group">
-                                                <input type="radio" id="selectByUniform" name="selectType" value="uniform" onclick="toggleSelection()">
-                                                <label for="selectByUniform">Select by Uniform Unit</label>
-                                            </div>
-                                            <div id="class-selection" style="margin-top:10px;">
-                                                <label>Choose Class(es):</label>
-                                                <div class="checkbox-grid">
-                                                    <label><input type="checkbox" name="classDropdown" value="1 Makkah"> 1 Makkah</label><br>
-                                                    <label><input type="checkbox" name="classDropdown" value="1 Madinah"> 1 Madinah</label><br>
-                                                    <label><input type="checkbox" name="classDropdown" value="2 Makkah"> 2 Makkah</label><br>
-                                                    <label><input type="checkbox" name="classDropdown" value="2 Madinah"> 2 Madinah</label><br>
-                                                    <label><input type="checkbox" name="classDropdown" value="3 Makkah"> 3 Makkah</label><br>
-                                                    <label><input type="checkbox" name="classDropdown" value="3 Madinah"> 3 Madinah</label><br>
-                                                    <label><input type="checkbox" name="classDropdown" value="4 Makkah"> 4 Makkah</label><br>
-                                                    <label><input type="checkbox" name="classDropdown" value="4 Madinah"> 4 Madinah</label><br>
-                                                    <label><input type="checkbox" name="classDropdown" value="5 Makkah"> 5 Makkah</label><br>
-                                                    <label><input type="checkbox" name="classDropdown" value="5 Madinah"> 5 Madinah</label><br>
-                                                    <label><input type="checkbox" name="classDropdown" value="6 Makkah"> 6 Makkah</label><br>
-                                                    <label><input type="checkbox" name="classDropdown" value="6 Madinah"> 6 Madinah</label>
-                                                </div>
-                                            </div>
-                                            <div id="individual-selection" style="display:none; margin-top:10px;">
-                                                <label for="icInput">Student IC Number:</label>
-                                                <input type="text" id="icInput" name="icInput" placeholder="Enter IC number">
-                                                <button type="button" onclick="addStudentByIC()">Add Student</button>
-                                            </div>
-
-                                            <div id="sport-selection" style="display:none; margin-top:10px;">
-                                                <label for="sportDropdown">Choose Sport Team:</label>
-                                                <select id="sportDropdown" name="sportDropdown">
-                                                    <option value="">-- Select Team --</option>
-                                                    <option value="Red Team">Red Team</option>
-                                                    <option value="Yellow Team">Yellow Team</option>
-                                                    <option value="Green Team">Green Team</option>
-                                                    <option value="Blue Team">Blue Team</option>
-                                                </select>
-                                            </div>
-
-                                            <div id="uniform-selection" style="display:none; margin-top:10px;">
-                                                <label for="uniformDropdown">Choose Uniform Unit:</label>
-                                                <select id="uniformDropdown" name="uniformDropdown">
-                                                    <option value="">-- Select Unit --</option>
-                                                    <option value="Tunas Puteri">Tunas Puteri</option>
-                                                    <option value="Puteri Islam">Puteri Islam</option>
-                                                    <option value="Tunas Kadet Remaja Sekolah">Tunas Kadet Remaja Sekolah</option>
-                                                    <option value="Pengakap">Pengakap</option>
-                                                </select>
-                                            </div>
-
-                                            <div id="selected-students">
+                                        </div>
+                                        <div id="individual-selection" style="display:none; margin-top:10px;">
+                                            <label for="icInput">Student IC Number:</label>
+                                            <input type="text" id="icInput" name="icInput" placeholder="Enter IC number">
+                                            <button type="button" onclick="addStudentByIC()">Add Student</button>
+                                            <div id="selected-students" style="color: black">
                                                 <p>No students selected.</p>
                                             </div>
-                                            <script>
-                                                function toggleSelection() {
-                                                    const selectedRadio = document.querySelector('input[name="selectType"]:checked');
-                                                    if (!selectedRadio)
-                                                        return;
+                                        </div>
 
-                                                    const selectionType = selectedRadio.value;
+                                        <div id="sport-selection" style="display:none; margin-top:10px;">
+                                            <label for="sportDropdown">Choose Sport Team:</label>
+                                            <select id="sportDropdown" name="sportDropdown">
+                                                <option value="">-- Select Team --</option>
+                                                <option value="Red Team">Red Team</option>
+                                                <option value="Yellow Team">Yellow Team</option>
+                                                <option value="Green Team">Green Team</option>
+                                                <option value="Blue Team">Blue Team</option>
+                                            </select>
+                                        </div>
 
-                                                    document.getElementById("class-selection").style.display = (selectionType === "class") ? "block" : "none";
-                                                    document.getElementById("individual-selection").style.display = (selectionType === "individual") ? "block" : "none";
-                                                    document.getElementById("sport-selection").style.display = (selectionType === "sport") ? "block" : "none";
-                                                    document.getElementById("uniform-selection").style.display = (selectionType === "uniform") ? "block" : "none";
+                                        <div id="uniform-selection" style="display:none; margin-top:10px;">
+                                            <label for="uniformDropdown">Choose Uniform Unit:</label>
+                                            <select id="uniformDropdown" name="uniformDropdown">
+                                                <option value="">-- Select Unit --</option>
+                                                <option value="Tunas Puteri">Tunas Puteri</option>
+                                                <option value="Puteri Islam">Puteri Islam</option>
+                                                <option value="Tunas Kadet Remaja Sekolah">Tunas Kadet Remaja Sekolah</option>
+                                                <option value="Pengakap">Pengakap</option>
+                                            </select>
+                                        </div>
 
-                                                    // Clear individual selection list when switching modes
-                                                    if (selectionType !== "individual") {
-                                                        selectedStudents.clear();
-                                                        document.getElementById("selected-students").innerHTML = "<p>No students selected.</p>";
-                                                        // Remove all hidden IC inputs
-                                                        document.querySelectorAll('.hidden-ic-input').forEach(input => input.remove());
-                                                    }
+
+                                        <script>
+                                            function toggleSelection() {
+                                                const selectedRadio = document.querySelector('input[name="selectType"]:checked');
+                                                if (!selectedRadio)
+                                                    return;
+
+                                                const selectionType = selectedRadio.value;
+
+                                                document.getElementById("class-selection").style.display = (selectionType === "class") ? "block" : "none";
+                                                document.getElementById("individual-selection").style.display = (selectionType === "individual") ? "block" : "none";
+                                                document.getElementById("sport-selection").style.display = (selectionType === "sport") ? "block" : "none";
+                                                document.getElementById("uniform-selection").style.display = (selectionType === "uniform") ? "block" : "none";
+
+                                                // Clear individual selection list when switching modes
+                                                if (selectionType !== "individual") {
+                                                    selectedStudents.clear();
+                                                    document.getElementById("selected-students").innerHTML = "<p>No students selected.</p>";
+                                                    // Remove all hidden IC inputs
+                                                    document.querySelectorAll('.hidden-ic-input').forEach(input => input.remove());
                                                 }
+                                            }
+                                            function togglePaymentField() {
+                                                // Run this after the DOM is fully loaded
+                                                document.addEventListener("DOMContentLoaded", function () {
+                                                    const categorySelect = document.getElementById("event-category");
+                                                    const paymentSection = document.getElementById("payment-amount-section");
 
+                                                    // Initially hide the payment amount section
+                                                    paymentSection.style.display = "none";
 
-                                                const selectedStudents = new Set(); // Stores ICs to prevent duplicates in UI
-
-                                                function addStudentByIC() {
-                                                    const ic = document.getElementById("icInput").value.trim().replace(/-/g, ""); // Remove hyphens
-                                                    if (ic === "") {
-                                                        alert("Please enter an IC number.");
-                                                        return;
-                                                    }
-
-                                                    if (selectedStudents.has(ic)) {
-                                                        alert("Student already added.");
-                                                        return;
-                                                    }
-
-                                                    fetch('<%= request.getContextPath()%>/EventController?action=getStudentByIC&ic=' + encodeURIComponent(ic))
-                                                            .then(response => {
-                                                                if (!response.ok) {
-                                                                    // Check for specific status or content to differentiate "not found"
-                                                                    if (response.status === 404 || response.headers.get('Content-Type').includes('application/json') && response.status === 200) {
-                                                                        return response.json(); // Still try to parse JSON for message
-                                                                    }
-                                                                    throw new Error("Network response was not ok: " + response.statusText);
-                                                                }
-                                                                return response.json();
-                                                            })
-                                                            .then(data => {
-                                                                console.log("DEBUG: Response from server:", data);
-
-                                                                if (data && data.success && data.name && data.ic) {
-                                                                    updateStudentList(data.name, data.ic);
-                                                                    document.getElementById("icInput").value = ""; // Clear input field
-                                                                } else {
-                                                                    alert(data.message || "Student not found.");
-                                                                }
-                                                            })
-                                                            .catch(error => {
-                                                                console.error("Fetch error:", error);
-                                                                alert("Error retrieving student info. Please check the IC number and try again.");
-                                                            });
-                                                }
-
-                                                function updateStudentList(name, ic) {
-                                                    if (!name || !ic || selectedStudents.has(ic))
-                                                        return;
-
-                                                    selectedStudents.add(ic);
-
-                                                    const listDiv = document.getElementById("selected-students");
-                                                    let ul = document.getElementById("student-ul");
-                                                    if (!ul) {
-                                                        // Clear the "No students selected." paragraph and create the UL
-                                                        listDiv.innerHTML = "<strong>Selected Students:</strong><ul id='student-ul'></ul>";
-                                                        ul = document.getElementById("student-ul");
-                                                    }
-
-                                                    const li = document.createElement("li");
-                                                    li.style.display = 'flex'; // Use flexbox for alignment
-                                                    li.style.alignItems = 'center';
-                                                    li.style.marginBottom = '5px';
-
-                                                    // UI Checkbox (for display and removal)
-                                                    const checkbox = document.createElement("input");
-                                                    checkbox.type = "checkbox";
-                                                    checkbox.name = "selected-students-ui"; // Different name to avoid direct submission
-                                                    checkbox.checked = true;
-                                                    checkbox.style.marginRight = '10px';
-                                                    checkbox.addEventListener('change', function () {
-                                                        if (!this.checked) {
-                                                            removeStudent(ic, li);
+                                                    // Listen for changes in the dropdown
+                                                    categorySelect.addEventListener("change", function () {
+                                                        if (categorySelect.value === "payment") {
+                                                            paymentSection.style.display = "block";
+                                                        } else {
+                                                            paymentSection.style.display = "none";
                                                         }
                                                     });
+                                                });
+                                            }
 
-                                                    const textSpan = document.createElement("span");
-                                                    textSpan.textContent = `Name: ${name}, IC: ${ic}`;
+                                            // Call the function here
+                                            togglePaymentField();
 
-                                                    li.appendChild(checkbox);
-                                                    li.appendChild(textSpan);
-                                                    ul.appendChild(li); // Append the list item to the UL
+                                            const selectedStudents = new Set(); // Stores ICs to prevent duplicates in UI
 
-                                                    // Hidden Input (for form submission)
-                                                    const hiddenInput = document.createElement("input");
-                                                    hiddenInput.type = "hidden";
-                                                    hiddenInput.name = "selectedICs"; // This name *will* be sent to the servlet
-                                                    hiddenInput.value = ic;
-                                                    hiddenInput.className = "hidden-ic-input"; // Add a class for easy selection
-                                                    listDiv.appendChild(hiddenInput); // Add to listDiv to be part of the form
+                                            function addStudentByIC() {
+                                                const ic = document.getElementById("icInput").value.trim().replace(/-/g, ""); // Remove hyphens
+                                                if (ic === "") {
+                                                    alert("Please enter an IC number.");
+                                                    return;
                                                 }
 
-                                                function removeStudent(ic, listItem) {
-                                                    selectedStudents.delete(ic);
-                                                    listItem.remove(); // Remove from UI
+                                                if (selectedStudents.has(ic)) {
+                                                    alert("Student already added.");
+                                                    return;
+                                                }
 
-                                                    // Remove the corresponding hidden input
-                                                    const hiddenInputs = document.querySelectorAll(`.hidden-ic-input[value="${ic}"]`);
-                                                    hiddenInputs.forEach(input => input.remove());
+                                                fetch('<%= request.getContextPath()%>/EventController?action=getStudentByIC&ic=' + encodeURIComponent(ic))
+                                                        .then(response => {
+                                                            if (!response.ok) {
+                                                                // Check for specific status or content to differentiate "not found"
+                                                                if (
+                                                                        response.status === 404 ||
+                                                                        (response.headers.get('Content-Type').includes('application/json') && response.status === 200)
+                                                                        ) {
+                                                                    return response.json(); // Still try to parse JSON for message
+                                                                }
+                                                                throw new Error("Network response was not ok: " + response.statusText);
+                                                            }
+                                                            return response.json();
+                                                        })
+                                                        .then(data => {
+                                                            console.log("DEBUG: Response from server:", data);
 
-                                                    // If no students left, show "No students selected."
-                                                    const ul = document.getElementById("student-ul");
-                                                    if (!ul || ul.children.length === 0) {
-                                                        document.getElementById("selected-students").innerHTML = "<p>No students selected.</p>";
+                                                            if (data && data.success && data.name && data.ic) {
+                                                                updateStudentList(data.name, data.ic);
+                                                                // Do not clear the IC input field
+                                                                // document.getElementById("icInput").value = "";
+                                                            } else {
+                                                                alert(data.message || "Student not found.");
+                                                            }
+                                                        })
+                                                        .catch(error => {
+                                                            console.error("Fetch error:", error);
+                                                            alert("Error retrieving student info. Please check the IC number and try again.");
+                                                        });
+                                            }
+
+
+                                            function updateStudentList(name, ic) {
+                                                if (!name || !ic || selectedStudents.has(ic))
+                                                    return;
+
+                                                selectedStudents.add(ic);
+
+                                                const listDiv = document.getElementById("selected-students");
+                                                let ul = document.getElementById("student-ul");
+                                                if (!ul) {
+                                                    // Clear the "No students selected." paragraph and create the UL
+                                                    listDiv.innerHTML = "<strong>Selected Students:</strong><ul id='student-ul'></ul>";
+                                                    ul = document.getElementById("student-ul");
+                                                }
+
+                                                const li = document.createElement("li");
+                                                li.style.display = 'flex'; // Use flexbox for alignment
+                                                li.style.alignItems = 'center';
+                                                li.style.marginBottom = '5px';
+
+                                                // UI Checkbox (for display and removal)
+                                                const checkbox = document.createElement("input");
+                                                checkbox.type = "checkbox";
+                                                checkbox.name = "selected-students-ui"; // Different name to avoid direct submission
+                                                checkbox.checked = true;
+                                                checkbox.style.marginRight = '10px';
+                                                checkbox.addEventListener('change', function () {
+                                                    if (!this.checked) {
+                                                        removeStudent(ic, li);
                                                     }
+                                                });
+
+                                                const textSpan = document.createElement("span");
+                                                console.log("DEBUG: name =", name, "| ic =", ic);
+
+                                                textSpan.textContent = "Name:" + name, ",\n IC:" + ic;
+
+                                                li.appendChild(checkbox);
+                                                li.appendChild(textSpan);
+                                                ul.appendChild(li); // Append the list item to the UL
+
+                                                // Hidden Input (for form submission)
+                                                const hiddenInput = document.createElement("input");
+                                                hiddenInput.type = "hidden";
+                                                hiddenInput.name = "selectedICs"; // This name *will* be sent to the servlet
+                                                hiddenInput.value = ic;
+                                                hiddenInput.className = "hidden-ic-input"; // Add a class for easy selection
+                                                listDiv.appendChild(hiddenInput); // Add to listDiv to be part of the form
+                                            }
+
+                                            function removeStudent(ic, listItem) {
+                                                selectedStudents.delete(ic);
+                                                listItem.remove(); // Remove from UI
+
+                                                // Remove the corresponding hidden input
+                                                const hiddenInputs = document.querySelectorAll(`.hidden-ic-input[value="${ic}"]`);
+                                                hiddenInputs.forEach(input => input.remove());
+
+                                                // If no students left, show "No students selected."
+                                                const ul = document.getElementById("student-ul");
+                                                if (!ul || ul.children.length === 0) {
+                                                    document.getElementById("selected-students").innerHTML = "<p>No students selected.</p>";
                                                 }
+                                            }
 
-                                                // Initialize toggleSelection on page load to set initial state
-                                                document.addEventListener('DOMContentLoaded', toggleSelection);
-                                            </script>
-                                            <button type="submit" class="btn btn-gradient-primary me-2">Submit</button>
-                                        </div>
-                                    </form>
+                                            // Initialize toggleSelection on page load to set initial state
+                                            document.addEventListener('DOMContentLoaded', toggleSelection);
+                                        </script>
+                                        <button type="submit" class="btn btn-gradient-primary me-2">Submit</button>
                                 </div>
+                                </form>
                             </div>
-
                         </div>
+
                     </div>
-                    <!-- content-wrapper ends -->
-                    <!-- partial:../../partials/_footer.html -->
-                    <footer class="footer">
-                        <div class="d-sm-flex justify-content-center justify-content-sm-between">
-                            <span class="text-muted text-center text-sm-left d-block d-sm-inline-block">Copyright © 2023 <a href="https://www.bootstrapdash.com/" target="_blank">BootstrapDash</a>. All rights reserved.</span>
-                            <span class="float-none float-sm-right d-block mt-1 mt-sm-0 text-center">Hand-crafted & made with <i class="mdi mdi-heart text-danger"></i></span>
-                        </div>
-                    </footer>
-                    <!-- partial -->
                 </div>
-                <!-- main-panel ends -->
+                <!-- content-wrapper ends -->
+                <!-- partial:../../partials/_footer.html -->
+                <footer class="footer">
+                    <div class="d-sm-flex justify-content-center justify-content-sm-between">
+                        <span class="text-muted text-center text-sm-left d-block d-sm-inline-block">Copyright © 2023 <a href="https://www.bootstrapdash.com/" target="_blank">BootstrapDash</a>. All rights reserved.</span>
+                        <span class="float-none float-sm-right d-block mt-1 mt-sm-0 text-center">Hand-crafted & made with <i class="mdi mdi-heart text-danger"></i></span>
+                    </div>
+                </footer>
+                <!-- partial -->
             </div>
-            <!-- page-body-wrapper ends -->
+            <!-- main-panel ends -->
         </div>
-        <!-- container-scroller -->
-        <!-- plugins:js -->
-        <script src="../assets/vendors/js/vendor.bundle.base.js"></script>
-        <!-- endinject -->
-        <!-- Plugin js for this page -->
-        <script src="../assets/vendors/select2/select2.min.js"></script>
-        <script src="../assets/vendors/typeahead.js/typeahead.bundle.min.js"></script>
-        <!-- End plugin js for this page -->
-        <!-- inject:js -->
-        <script src="../assets/js/off-canvas.js"></script>
-        <script src="../assets/js/misc.js"></script>
-        <script src="../assets/js/settings.js"></script>
-        <script src="../assets/js/todolist.js"></script>
-        <script src="../assets/js/jquery.cookie.js"></script>
-        <!-- endinject -->
-        <!-- Custom js for this page -->
-        <script src="../assets/js/file-upload.js"></script>
-        <script src="../assets/js/typeahead.js"></script>
-        <script src="../assets/js/select2.js"></script>
+        <!-- page-body-wrapper ends -->
+    </div>
+    <!-- container-scroller -->
+    <!-- plugins:js -->
+    <script src="../assets/vendors/js/vendor.bundle.base.js"></script>
+    <!-- endinject -->
+    <!-- Plugin js for this page -->
+    <script src="../assets/vendors/select2/select2.min.js"></script>
+    <script src="../assets/vendors/typeahead.js/typeahead.bundle.min.js"></script>
+    <!-- End plugin js for this page -->
+    <!-- inject:js -->
+    <script src="../assets/js/off-canvas.js"></script>
+    <script src="../assets/js/misc.js"></script>
+    <script src="../assets/js/settings.js"></script>
+    <script src="../assets/js/todolist.js"></script>
+    <script src="../assets/js/jquery.cookie.js"></script>
+    <!-- endinject -->
+    <!-- Custom js for this page -->
+    <script src="../assets/js/file-upload.js"></script>
+    <script src="../assets/js/typeahead.js"></script>
+    <script src="../assets/js/select2.js"></script>
 
-        <!-- End custom js for this page -->
-    </body>
+
+
+    <!-- End custom js for this page -->
+</body>
 </html>
 

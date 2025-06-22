@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Handles operations for student data.
+ * Handles database operations for the Student entity.
  */
 public class StudentDAO {
 
@@ -53,19 +53,19 @@ public class StudentDAO {
                 if (rs.next()) {
                     String studentName = rs.getString("student_name");
                     String studentClass = rs.getString("class");
-                    return new Student(studentClass, studentName, icNumber);
+                    // Assuming a constructor Student(class, name, ic) exists
+                    return new Student(studentClass, studentName, icNumber); 
                 }
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return null; // Return null if no record is found
+        return null;
     }
 
     public void linkChildToParent(String childIc, int parentId) {
         String query = "UPDATE student SET parent_id = ? WHERE ic_number = ?";
         try (Connection connection = DBConfig.getConnection(); PreparedStatement preparedStatement = connection.prepareStatement(query)) {
-
             preparedStatement.setInt(1, parentId);
             preparedStatement.setString(2, childIc);
             preparedStatement.executeUpdate();
@@ -95,16 +95,15 @@ public class StudentDAO {
     public List<Student> getStudentsByParentId(int parentId) {
         List<Student> students = new ArrayList<>();
         String sql = "SELECT * FROM student WHERE parent_id = ?";
-
         try (Connection conn = DBConfig.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
-
             stmt.setInt(1, parentId);
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     Student student = new Student();
-                    student.setStudentName(rs.getString("student_name")); // Adjust column names accordingly
-                    student.setStudentClass(rs.getString("class")); // Adjust column names accordingly
-                    // Set other fields as needed, e.g., student ID, IC, etc.
+                    student.setId(rs.getInt("id"));
+                    student.setStudentName(rs.getString("student_name"));
+                    student.setIcNumber(rs.getString("ic_number"));
+                    student.setStudentClass(rs.getString("class"));
                     students.add(student);
                 }
             }
@@ -126,7 +125,7 @@ public class StudentDAO {
                 student.setIcNumber(rs.getString("ic_number"));
                 student.setSportTeam(rs.getString("sport_team"));
                 student.setUniformUnit(rs.getString("uniform_unit"));
-                student.setStudentClass(rs.getString("class")); // Important for authorization check
+                student.setStudentClass(rs.getString("class"));
                 return student;
             }
         } catch (SQLException e) {
@@ -154,11 +153,9 @@ public class StudentDAO {
     public List<Student> getStudentsByEvent(int eventId) {
         List<Student> students = new ArrayList<>();
         String sql = "SELECT s.* FROM student s "
-                + "JOIN event_participants ep ON s.ic_number = ep.student_ic "
-                + "WHERE ep.event_id = ?";
-
+                   + "JOIN event_participants ep ON s.ic_number = ep.student_ic "
+                   + "WHERE ep.event_id = ?";
         try (Connection conn = DBConfig.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
-
             stmt.setInt(1, eventId);
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
@@ -177,11 +174,10 @@ public class StudentDAO {
         }
         return students;
     }
-
+    
     public String getParentEmailByIc(String icNumber) {
         String sql = "SELECT p.email FROM student s JOIN parent p ON s.parent_id = p.id WHERE s.ic_number = ?";
         try (Connection conn = DBConfig.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
-
             stmt.setString(1, icNumber);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -191,30 +187,26 @@ public class StudentDAO {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return null; // return null if not found
+        return null;
     }
 
     public Student getStudentByIC(String icNumber) {
         Student student = null;
-        // This query fetches all student details
         String query = "SELECT id, class, student_name, ic_number, sport_team, uniform_unit FROM student WHERE ic_number = ?";
-
         try (Connection con = DBConfig.getConnection(); PreparedStatement ps = con.prepareStatement(query)) {
             ps.setString(1, icNumber);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     student = new Student();
                     student.setId(rs.getInt("id"));
-                    student.setStudentClass(rs.getString("class")); // Use 'class' as per your schema
+                    student.setStudentClass(rs.getString("class"));
                     student.setStudentName(rs.getString("student_name"));
                     student.setIcNumber(rs.getString("ic_number"));
                     student.setSportTeam(rs.getString("sport_team"));
                     student.setUniformUnit(rs.getString("uniform_unit"));
-
-                    // --- NEW: Fetch parent's email using the existing method ---
-                    String parentEmail = getParentEmailByIc(icNumber); // Call your existing method
+                    
+                    String parentEmail = getParentEmailByIc(icNumber);
                     student.setParentEmail(parentEmail);
-                    // --- END NEW ---
                 }
             }
         } catch (SQLException e) {
@@ -245,46 +237,174 @@ public class StudentDAO {
         }
         return students;
     }
-    public boolean promoteStudents() {
-    String selectQuery = "SELECT id, class FROM student";
-    String updateQuery = "UPDATE student SET class = ? WHERE id = ?";
-    try (
-        Connection conn = DBConfig.getConnection();
-        PreparedStatement selectStmt = conn.prepareStatement(selectQuery);
-        PreparedStatement updateStmt = conn.prepareStatement(updateQuery);
-        ResultSet rs = selectStmt.executeQuery()
-    ) {
-        while (rs.next()) {
-            int id = rs.getInt("id");
-            String studentClass = rs.getString("class");
 
-            String[] parts = studentClass.split(" ", 2); // Split into [year, name]
-            if (parts.length == 2) {
-                try {
-                    int year = Integer.parseInt(parts[0]);
-                    if (year < 6) { // Promote only if year < 6
-                        year++; // Increment year
-                        String newClass = year + " " + parts[1];
-                        updateStmt.setString(1, newClass);
-                        updateStmt.setInt(2, id);
-                        updateStmt.addBatch();
-                    } else {
-                        // Optional: delete or archive students who finished Year 6
-                        // You can implement this if needed
-                    }
-                } catch (NumberFormatException e) {
-                    // Skip if class format is incorrect
-                    continue;
+    // --- NEW METHODS REQUIRED BY EVENTCONTROLLER ---
+
+    /**
+     * Retrieves a list of all student IC numbers for a given list of class names.
+     * Required by EventController for adding participants by class.
+     *
+     * @param classesList A list of class names (e.g., ["1 Makkah", "1 Madinah"]).
+     * @return A List of student IC numbers.
+     */
+    public List<String> getStudentICsByClasses(List<String> classesList) {
+        List<String> ics = new ArrayList<>();
+        if (classesList == null || classesList.isEmpty()) {
+            return ics;
+        }
+        // Build the SQL query with the correct number of placeholders
+        StringBuilder sql = new StringBuilder("SELECT ic_number FROM student WHERE class IN (");
+        for (int i = 0; i < classesList.size(); i++) {
+            sql.append("?").append(i < classesList.size() - 1 ? "," : "");
+        }
+        sql.append(")");
+
+        try (Connection conn = DBConfig.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
+            for (int i = 0; i < classesList.size(); i++) {
+                stmt.setString(i + 1, classesList.get(i));
+            }
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    ics.add(rs.getString("ic_number"));
                 }
             }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
-        updateStmt.executeBatch();
-        return true;
-    } catch (Exception e) {
-        e.printStackTrace();
-        return false;
+        return ics;
     }
-}
 
+    /**
+     * Retrieves a list of all student IC numbers for a given sport team.
+     * Required by EventController.
+     *
+     * @param sportTeam The name of the sport team.
+     * @return A List of student IC numbers.
+     */
+    public List<String> getStudentICsBySport(String sportTeam) {
+        List<String> ics = new ArrayList<>();
+        String sql = "SELECT ic_number FROM student WHERE sport_team = ?";
+        try (Connection conn = DBConfig.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, sportTeam);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    ics.add(rs.getString("ic_number"));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return ics;
+    }
 
+    /**
+     * Retrieves a list of all student IC numbers for a given uniform unit.
+     * Required by EventController.
+     *
+     * @param uniformUnit The name of the uniform unit.
+     * @return A List of student IC numbers.
+     */
+    public List<String> getStudentICsByUniform(String uniformUnit) {
+        List<String> ics = new ArrayList<>();
+        String sql = "SELECT ic_number FROM student WHERE uniform_unit = ?";
+        try (Connection conn = DBConfig.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, uniformUnit);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    ics.add(rs.getString("ic_number"));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return ics;
+    }
+
+    /**
+     * Retrieves full Student objects for a given list of IC numbers.
+     * Required by EventController to get participant details for PDF generation.
+     *
+     * @param icList A list of student IC numbers.
+     * @return A List of Student objects.
+     */
+    public List<Student> getStudentsByICs(List<String> icList) {
+        List<Student> students = new ArrayList<>();
+        if (icList == null || icList.isEmpty()) {
+            return students;
+        }
+        // Build the SQL query with the correct number of placeholders
+        StringBuilder sql = new StringBuilder("SELECT * FROM student WHERE ic_number IN (");
+        for (int i = 0; i < icList.size(); i++) {
+            sql.append("?").append(i < icList.size() - 1 ? "," : "");
+        }
+        sql.append(")");
+        
+        try (Connection conn = DBConfig.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
+            for (int i = 0; i < icList.size(); i++) {
+                stmt.setString(i + 1, icList.get(i));
+            }
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Student student = new Student();
+                    student.setId(rs.getInt("id"));
+                    student.setStudentName(rs.getString("student_name"));
+                    student.setIcNumber(rs.getString("ic_number"));
+                    student.setStudentClass(rs.getString("class"));
+                    student.setSportTeam(rs.getString("sport_team"));
+                    student.setUniformUnit(rs.getString("uniform_unit"));
+                    students.add(student);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return students;
+    }
+
+    // --- END NEW METHODS ---
+
+    public boolean promoteStudents() {
+        String selectQuery = "SELECT id, class FROM student";
+        String updateQuery = "UPDATE student SET class = ? WHERE id = ?";
+        try (
+            Connection conn = DBConfig.getConnection();
+            PreparedStatement selectStmt = conn.prepareStatement(selectQuery);
+            PreparedStatement updateStmt = conn.prepareStatement(updateQuery);
+            ResultSet rs = selectStmt.executeQuery()
+        ) {
+            conn.setAutoCommit(false); // Start transaction
+            
+            while (rs.next()) {
+                int id = rs.getInt("id");
+                String studentClass = rs.getString("class");
+
+                if (studentClass == null) continue;
+
+                String[] parts = studentClass.split(" ", 2);
+                if (parts.length == 2) {
+                    try {
+                        int year = Integer.parseInt(parts[0]);
+                        if (year < 6) { // Promote students from Year 1 to 5
+                            year++;
+                            String newClass = year + " " + parts[1];
+                            updateStmt.setString(1, newClass);
+                            updateStmt.setInt(2, id);
+                            updateStmt.addBatch();
+                        }
+                        // Students in Year 6 are not promoted (they "graduate")
+                    } catch (NumberFormatException e) {
+                        // Skip if the class format is incorrect (e.g., "Tadika")
+                        continue;
+                    }
+                }
+            }
+            updateStmt.executeBatch();
+            conn.commit(); // Commit transaction
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            // Consider rolling back transaction in a real-world scenario
+            return false;
+        }
+    }
 }

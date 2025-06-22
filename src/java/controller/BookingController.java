@@ -59,7 +59,7 @@ public class BookingController extends HttpServlet {
             EventDAO eventDAO = new EventDAO();
             eventDAO.updateEventWithClassroom(Integer.parseInt(eventId), classroomId);
 
-            response.sendRedirect(request.getContextPath() + "/teacher/EventList.jsp");
+            response.sendRedirect(request.getContextPath() + "/teacher/eventList.jsp");
 
         } catch (Exception e) {
             e.printStackTrace();

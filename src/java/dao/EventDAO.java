@@ -209,31 +209,49 @@ public class EventDAO {
         return events;
     }
     public int insertEventAndReturnId(Event event) {
-    int generatedId = -1;
-    try (Connection conn = getConnection()) {
-        String sql = "INSERT INTO events (category, title, description, start_time, end_time, time_zone, created_by, target_class) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-        PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-        stmt.setString(1, event.getCategory());
-        stmt.setString(2, event.getTitle());
-        stmt.setString(3, event.getDescription());
-        stmt.setString(4, event.getStartTime());
-        stmt.setString(5, event.getEndTime());
-        stmt.setString(6, event.getTimeZone());
-        stmt.setString(7, event.getCreatedBy());
-        stmt.setString(8, event.getTargetClass());
+        // MODIFICATION: Update the SQL query to include the new column
+        String sql = "INSERT INTO events (category, title, description, start_time, end_time, time_zone, created_by, target_class, payment_amount) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        int eventId = -1;
 
-        int affectedRows = stmt.executeUpdate();
-        if (affectedRows > 0) {
-            ResultSet rs = stmt.getGeneratedKeys();
-            if (rs.next()) {
-                generatedId = rs.getInt(1);
+        try (Connection conn = DBConfig.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+
+            ps.setString(1, event.getCategory());
+            ps.setString(2, event.getTitle());
+            ps.setString(3, event.getDescription());
+            ps.setString(4, event.getStartTime());
+            ps.setString(5, event.getEndTime());
+            ps.setString(6, event.getTimeZone());
+            ps.setString(7, event.getCreatedBy());
+            ps.setString(8, event.getTargetClass());
+            ps.setDouble(9, event.getPaymentAmount());
+
+            // --- MODIFICATION START ---
+            // Set the payment amount. If it's 0.0 (or not a payment event),
+            // you can choose to set it as NULL or 0.0 in the DB.
+            if (event.getPaymentAmount() > 0) {
+                ps.setDouble(9, event.getPaymentAmount());
+            } else {
+                // Sets the database column to NULL if there is no payment amount.
+                ps.setNull(9, java.sql.Types.DECIMAL); 
             }
+            // --- MODIFICATION END ---
+            
+            int affectedRows = ps.executeUpdate();
+
+            if (affectedRows > 0) {
+                try (ResultSet rs = ps.getGeneratedKeys()) {
+                    if (rs.next()) {
+                        eventId = rs.getInt(1); // Get the auto-generated event ID
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            // Handle exceptions properly
         }
-    } catch (Exception e) {
-        e.printStackTrace();
+        return eventId;
     }
-    return generatedId;
-}
 
 public void insertEventParticipant(int eventId, String studentIC) {
     try (Connection conn = getConnection()) {

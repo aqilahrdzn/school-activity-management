@@ -45,6 +45,33 @@ import java.sql.SQLException;
 @WebServlet("/EventController")
 public class EventController extends HttpServlet {
 
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        String action = request.getParameter("action");
+        if ("getStudentByIC".equals(action)) {
+            String ic = request.getParameter("ic");
+            // Assuming you have a StudentDAO with this method
+            StudentDAO studentDAO = new StudentDAO();
+            Student student = studentDAO.getStudentByIC(ic);
+
+            response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8");
+            PrintWriter out = response.getWriter();
+            JSONObject jsonResponse = new JSONObject();
+
+            if (student != null) {
+                jsonResponse.put("success", true);
+                jsonResponse.put("name", student.getStudentName());
+                jsonResponse.put("ic", student.getIcNumber());
+            } else {
+                jsonResponse.put("success", false);
+                jsonResponse.put("message", "Student with IC " + ic + " not found.");
+            }
+            out.print(jsonResponse.toString());
+            out.flush();
+        }
+    }
+
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String category = request.getParameter("event-category");
         String title = request.getParameter("title");
@@ -61,6 +88,20 @@ public class EventController extends HttpServlet {
         StudentDAO studentDAO = new StudentDAO(); // Initialize StudentDAO
 
         try {
+            // --- MODIFIED: Handle Payment Amount ---
+            double paymentAmount = 0.0;
+            if ("payment".equals(category)) {
+                String amountStr = request.getParameter("paymentAmount");
+                if (amountStr != null && !amountStr.trim().isEmpty()) {
+                    try {
+                        paymentAmount = Double.parseDouble(amountStr);
+                    } catch (NumberFormatException e) {
+                        // Optional: Handle invalid input, e.g., redirect with an error
+                        System.err.println("Invalid payment amount format: " + amountStr);
+                        // For simplicity, we'll proceed with 0.0, but you could show an error page.
+                    }
+                }
+            }
             // Create and store the event
             Event event = new Event();
             event.setCategory(category);
@@ -70,6 +111,8 @@ public class EventController extends HttpServlet {
             event.setEndTime(endTimeStr);
             event.setTimeZone(timeZone);
             event.setCreatedBy(createdBy);
+
+            event.setPaymentAmount(paymentAmount);
 
             String[] selectedClasses = request.getParameterValues("classDropdown");
             String[] selectedICsFromIndividual = request.getParameterValues("selectedICs"); // Get individual ICs from hidden inputs
@@ -82,6 +125,7 @@ public class EventController extends HttpServlet {
             int eventId = eventDAO.insertEventAndReturnId(event);
             if (eventId == -1) {
                 response.getWriter().println("Failed to store the event in the database.");
+                // Set session attribute
                 return;
             }
 
@@ -101,8 +145,7 @@ public class EventController extends HttpServlet {
                             List<String> ics = new ArrayList<>();
                             // Need to query StudentDAO to get ICs for this class
                             String sql = "SELECT ic_number FROM student WHERE class = ?";
-                            try (Connection conn = DBConfig.getConnection();
-                                 PreparedStatement stmt = conn.prepareStatement(sql)) {
+                            try (Connection conn = DBConfig.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
                                 stmt.setString(1, className);
                                 try (ResultSet rs = stmt.executeQuery()) {
                                     while (rs.next()) {
@@ -131,8 +174,7 @@ public class EventController extends HttpServlet {
                         participantDAO.addParticipantsBySport(sportTeam, eventId); // Use your existing method
                         // After adding by sport, retrieve all relevant student ICs for emailing
                         String sql = "SELECT ic_number FROM student WHERE sport_team = ?";
-                        try (Connection conn = DBConfig.getConnection();
-                             PreparedStatement stmt = conn.prepareStatement(sql)) {
+                        try (Connection conn = DBConfig.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
                             stmt.setString(1, sportTeam);
                             try (ResultSet rs = stmt.executeQuery()) {
                                 while (rs.next()) {
@@ -149,8 +191,7 @@ public class EventController extends HttpServlet {
                         participantDAO.addParticipantsByUniform(uniformUnit, eventId); // Use your existing method
                         // After adding by uniform, retrieve all relevant student ICs for emailing
                         String sql = "SELECT ic_number FROM student WHERE uniform_unit = ?";
-                        try (Connection conn = DBConfig.getConnection();
-                             PreparedStatement stmt = conn.prepareStatement(sql)) {
+                        try (Connection conn = DBConfig.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
                             stmt.setString(1, uniformUnit);
                             try (ResultSet rs = stmt.executeQuery()) {
                                 while (rs.next()) {
@@ -162,8 +203,21 @@ public class EventController extends HttpServlet {
                         }
                     }
                     break;
-            }
 
+            }
+            if ("school".equals(category)) {
+                // If the event category is School-Based, redirect to bookingClass.jsp
+                HttpSession session = request.getSession();
+                session.setAttribute("eventId", eventId);           // Store event ID
+                session.setAttribute("category", category);
+                session.setAttribute("eventTitle", title);
+                session.setAttribute("description", description);
+                session.setAttribute("eventStartTime", startTimeStr);
+                session.setAttribute("eventEndTime", endTimeStr);
+                session.setAttribute("timeZone", timeZone);
+                response.sendRedirect(request.getContextPath() + "/teacher/bookingClass.jsp?success=true&category=" + category);
+                return; // Optional: stop further execution
+            }
             // Send event to Google Calendar (your existing code)
             JSONObject eventJson = new JSONObject();
             eventJson.put("summary", title);
@@ -194,7 +248,6 @@ public class EventController extends HttpServlet {
             if (responseCode == HttpURLConnection.HTTP_OK) {
                 String fullPdfPath = null; // To store the path of the generated PDF
                 String pdfFileName = null; // To store the filename of the generated PDF
-
                 // --- NEW: Email and PDF Generation Logic ---
                 // This loop now processes the collected unique participant ICs
                 for (String studentIC : participantICsForEmailAndPDF) {
@@ -236,8 +289,7 @@ public class EventController extends HttpServlet {
 
                 // --- NEW: Save PDF to DB ---
                 if (fullPdfPath != null && pdfFileName != null) {
-                    try (Connection dbConnection = DBConfig.getConnection();
-                         InputStream fileInputStream = new FileInputStream(fullPdfPath)) {
+                    try (Connection dbConnection = DBConfig.getConnection(); InputStream fileInputStream = new FileInputStream(fullPdfPath)) {
                         String updateSQL = "UPDATE events SET surat_pengesahan=?, surat_blob=? WHERE id=?";
                         try (PreparedStatement ps = dbConnection.prepareStatement(updateSQL)) {
                             ps.setString(1, "confirmation_letters/" + pdfFileName); // Store a relative path if desired
@@ -253,7 +305,6 @@ public class EventController extends HttpServlet {
                 }
                 // --- END NEW: Save PDF to DB ---
 
-
                 request.setAttribute("success", true);
                 request.setAttribute("category", category);
                 HttpSession session = request.getSession();
@@ -262,7 +313,7 @@ public class EventController extends HttpServlet {
                 session.setAttribute("eventStartTime", startTimeStr);
                 session.setAttribute("eventEndTime", endTimeStr);
                 // Redirect back to the JSP, indicating success.
-                response.sendRedirect(request.getContextPath() + "/teacher/bookingClass.jsp?success=true&category=" + category);
+                response.sendRedirect(request.getContextPath() + "/teacher/eventList.jsp?success=true&category=" + category);
             } else {
                 BufferedReader br = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
                 StringBuilder errorResponse = new StringBuilder();
@@ -280,17 +331,15 @@ public class EventController extends HttpServlet {
         }
     }
 
-
     // --- NEW HELPER METHODS BELOW ---
-
     /**
      * Sends an email with a PDF attachment to the specified recipient.
      *
-     * @param recipientEmail    The email address of the parent.
-     * @param studentName       The name of the student.
-     * @param eventTitle        The title of the event.
-     * @param eventDescription  The description of the event.
-     * @param attachmentPath    The full file path to the PDF attachment.
+     * @param recipientEmail The email address of the parent.
+     * @param studentName The name of the student.
+     * @param eventTitle The title of the event.
+     * @param eventDescription The description of the event.
+     * @param attachmentPath The full file path to the PDF attachment.
      * @param attachmentFileName The name of the file to appear in the email.
      * @throws MessagingException If there's an error sending the email.
      */
@@ -351,17 +400,17 @@ public class EventController extends HttpServlet {
     /**
      * Generates a "Surat Pengesahan" (Confirmation Letter) in PDF format.
      *
-     * @param filePath           The full path where the PDF should be saved.
-     * @param eventTitle         The title of the event.
-     * @param eventDescription   The description of the event.
-     * @param startTimeStr       The start time of the event (YYYY-MM-DDTHH:mm:ss).
-     * @param endTimeStr         The end time of the event (YYYY-MM-DDTHH:mm:ss).
-     * @param studentName        The name of the student.
+     * @param filePath The full path where the PDF should be saved.
+     * @param eventTitle The title of the event.
+     * @param eventDescription The description of the event.
+     * @param startTimeStr The start time of the event (YYYY-MM-DDTHH:mm:ss).
+     * @param endTimeStr The end time of the event (YYYY-MM-DDTHH:mm:ss).
+     * @param studentName The name of the student.
      * @throws DocumentException If there's an error creating the PDF document.
-     * @throws IOException       If there's an I/O error (e.g., file writing).
+     * @throws IOException If there's an I/O error (e.g., file writing).
      */
     private void generateConfirmationLetter(String filePath, String eventTitle, String eventDescription,
-                                            String startTimeStr, String endTimeStr, String studentName)
+            String startTimeStr, String endTimeStr, String studentName)
             throws DocumentException, IOException { // Removed ParseException, using LocalDateTime
 
         Document document = new Document();
@@ -380,7 +429,6 @@ public class EventController extends HttpServlet {
         document.add(new Paragraph("Telefon: 09-2507086 | Faks: 09-2507087", bodyFont));
         document.add(new Paragraph("Emel: cbaa152.skkj@gmail.com", bodyFont));
         document.add(new Paragraph("_____________________________________________________________________________\n\n", bodyFont));
-
 
         // Title of the letter
         Paragraph titlePara = new Paragraph("SURAT KEBENARAN PENYERTAAN ACARA\n\n", titleFont);
@@ -456,9 +504,9 @@ public class EventController extends HttpServlet {
 
         Paragraph body3 = new Paragraph(
                 "Kebenaran anak/jagaan tuan/puan adalah penting dan diharapkan dapat memberikan manfaat kepada semua pihak.\n\n"
-                        + "Sekiranya terdapat sebarang pertanyaan atau memerlukan maklumat lanjut, sila hubungi pihak sekolah di talian 09-2507086.\n\n"
-                        + "Kerjasama dan perhatian tuan/puan dalam perkara ini amat kami hargai.\n\n"
-                        + "Sekian, terima kasih.\n\n", bodyFont);
+                + "Sekiranya terdapat sebarang pertanyaan atau memerlukan maklumat lanjut, sila hubungi pihak sekolah di talian 09-2507086.\n\n"
+                + "Kerjasama dan perhatian tuan/puan dalam perkara ini amat kami hargai.\n\n"
+                + "Sekian, terima kasih.\n\n", bodyFont);
         document.add(body3);
 
         // Closing
@@ -471,37 +519,6 @@ public class EventController extends HttpServlet {
         document.add(new Paragraph("GURU BESAR ", bodyFont));
         document.add(new Paragraph("SEKOLAH KEBANGSAAN KERAYONG JAYA", bodyFont));
 
-
         document.close();
-    }
-    // --- END NEW HELPER METHODS ---
-
-    // You might also need a `doGet` method for the `getStudentByIC` AJAX call from JSP
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        String action = request.getParameter("action");
-
-        if ("getStudentByIC".equals(action)) {
-            String ic = request.getParameter("ic");
-            StudentDAO studentDAO = new StudentDAO();
-            Student student = studentDAO.getStudentByIC(ic);
-
-            response.setContentType("application/json");
-            response.setCharacterEncoding("UTF-8");
-            JSONObject jsonResponse = new JSONObject();
-
-            if (student != null) {
-                jsonResponse.put("success", true);
-                jsonResponse.put("name", student.getStudentName()); // Use getStudentName
-                jsonResponse.put("ic", student.getIcNumber());
-                // Do NOT send parentEmail back to the client for security
-            } else {
-                jsonResponse.put("success", false);
-                jsonResponse.put("message", "Student not found or IC is incorrect.");
-            }
-            response.getWriter().write(jsonResponse.toString());
-        } else {
-            // Handle other GET requests or just ignore if not applicable
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Unknown action or GET request not supported.");
-        }
     }
 }

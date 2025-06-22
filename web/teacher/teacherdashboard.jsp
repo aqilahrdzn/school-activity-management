@@ -211,10 +211,11 @@
                             </div>
                         </li>
                         <li class="nav-item nav-logout d-none d-lg-block">
-                            <a class="nav-link" href="../login.jsp">
+                            <a class="nav-link" href="<%= request.getContextPath()%>/LoginServlet?action=logout">
                                 <i class="mdi mdi-power"></i>
                             </a>
                         </li>
+
 
                     </ul>
                     <button class="navbar-toggler navbar-toggler-right d-lg-none align-self-center" type="button" data-toggle="offcanvas">

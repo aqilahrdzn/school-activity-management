@@ -12,6 +12,7 @@ public class Event {
     private String posterPath;
     private String suratPengesahan;
     private String createdBy;
+    private double paymentAmount;
 
 public String getCreatedBy() {
     return createdBy;
@@ -121,5 +122,19 @@ public void setCreatedBy(String createdBy) {
      */
     public void setSuratPengesahan(String suratPengesahan) {
         this.suratPengesahan = suratPengesahan;
+    }
+
+    /**
+     * @return the paymentAmount
+     */
+    public double getPaymentAmount() {
+        return paymentAmount;
+    }
+
+    /**
+     * @param paymentAmount the paymentAmount to set
+     */
+    public void setPaymentAmount(double paymentAmount) {
+        this.paymentAmount = paymentAmount;
     }
 }
