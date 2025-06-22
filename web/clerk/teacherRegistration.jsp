@@ -4,6 +4,9 @@
     Author     : Lenovo
 --%>
 
+<%@page import="java.util.Arrays"%>
+<%@page import="java.util.List"%>
+<%@page import="dao.TeacherDAO"%>
 <%@page import="model.Teacher"%>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <!DOCTYPE html>
@@ -190,7 +193,7 @@
                 <!-- partial:../../partials/_sidebar.html -->
                 <nav class="sidebar sidebar-offcanvas" id="sidebar">
                     <ul class="nav">
-                         <li class="nav-item nav-profile">
+                        <li class="nav-item nav-profile">
                             <a href="#" class="nav-link">
                                 <div class="nav-profile-image">
                                     <img src="<%= (teacher != null && teacher.getProfilePicture() != null) ? "../profile_pics/" + teacher.getProfilePicture() : "../assets/images/faces/default.jpg"%>" alt="profile" />
@@ -240,7 +243,7 @@
                                 </ul>
                             </div>
                         </li>
-                        
+
                     </ul>
                 </nav>
                 <!-- partial -->
@@ -298,23 +301,26 @@
                                                     <input type="radio" name="is_guru_kelas" value="Yes" onchange="toggleClassDropdown()"> Yes
                                                     <input type="radio" name="is_guru_kelas" value="No" onchange="toggleClassDropdown()"> No
                                                 </div>
-
+                                                <%
+                                                    TeacherDAO teacherDAO = new TeacherDAO();
+                                                    List<String> allClasses = Arrays.asList("1 Makkah", "1 Madinah", "2 Makkah", "2 Madinah",
+                                                            "3 Makkah", "3 Madinah", "4 Makkah", "4 Madinah",
+                                                            "5 Makkah", "5 Madinah", "6 Makkah", "6 Madinah");
+                                                %>
                                                 <div class="form-group" id="classDropdown" style="display: none;">
                                                     <label for="kelas">Assign Class:</label>
                                                     <select class="form-control" id="kelas" name="kelas">
                                                         <option value="">--Select Class--</option>
-                                                        <option value="1 Makkah">1 Makkah</option>
-                                                        <option value="1 Madinah">1 Madinah</option>
-                                                        <option value="2 Makkah">2 Makkah</option>
-                                                        <option value="2 Madinah">2 Madinah</option>
-                                                        <option value="3 Makkah">3 Makkah</option>
-                                                        <option value="3 Madinah">3 Madinah</option>
-                                                        <option value="4 Makkah">4 Makkah</option>
-                                                        <option value="4 Madinah">4 Madinah</option>
-                                                        <option value="5 Makkah">5 Makkah</option>
-                                                        <option value="5 Madinah">5 Madinah</option>
-                                                        <option value="6 Makkah">6 Makkah</option>
-                                                        <option value="6 Madinah">6 Madinah</option>
+                                                        <%
+                                                            for (String cls : allClasses) {
+                                                                boolean assigned = teacherDAO.isClassAssignedToGuruKelas(cls);
+                                                        %>
+                                                        <option value="<%= cls%>" <%= assigned ? "disabled" : ""%>>
+                                                            <%= cls%> <%= assigned ? "" : ""%>
+                                                        </option>
+                                                        <%
+                                                            }
+                                                        %>
                                                     </select>
                                                 </div>
                                             </div>

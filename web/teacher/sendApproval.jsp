@@ -256,21 +256,22 @@
                                         <a class="nav-link" href="studentRegistration.jsp">Student Registration</a>
                                         <a class="nav-link" href="createEvent.jsp">Create Event/Activity</a>
                                         <a class="nav-link" href="bookingClass.jsp">Booking Event Venue</a>
-                                        <a class="nav-link" href="eventList.jsp">Event List</a>
                                         <a class="nav-link" href="updateAccTc.jsp">Update Account</a>
+                                       
                                     </li>
                                 </ul>
                             </div>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" data-bs-toggle="collapse" href="#charts" aria-expanded="false" aria-controls="charts">
-                                <span class="menu-title">Charts</span>
+                                <span class="menu-title">List</span>
                                 <i class="mdi mdi-chart-bar menu-icon"></i>
                             </a>
                             <div class="collapse" id="charts">
                                 <ul class="nav flex-column sub-menu">
                                     <li class="nav-item">
-                                        <a class="nav-link" href="../../pages/charts/chartjs.html">ChartJs</a>
+                                        <a class="nav-link" href="studentList.jsp">Student List</a>
+                                        <a class="nav-link" href="eventList.jsp">Event List</a>
                                     </li>
                                 </ul>
                             </div>

@@ -233,22 +233,22 @@
                                         <a class="nav-link" href="studentRegistration.jsp">Student Registration</a>
                                         <a class="nav-link" href="createEvent.jsp">Create Event/Activity</a>
                                         <a class="nav-link" href="bookingClass.jsp">Booking Event Venue</a>
-                                        <a class="nav-link" href="eventList.jsp">Event List</a>
                                         <a class="nav-link" href="updateAccTc.jsp">Update Account</a>
-                                        <a class="nav-link" href="studentList.jsp">Student List</a>
+                                       
                                     </li>
                                 </ul>
                             </div>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" data-bs-toggle="collapse" href="#charts" aria-expanded="false" aria-controls="charts">
-                                <span class="menu-title">Charts</span>
+                                <span class="menu-title">List</span>
                                 <i class="mdi mdi-chart-bar menu-icon"></i>
                             </a>
                             <div class="collapse" id="charts">
                                 <ul class="nav flex-column sub-menu">
                                     <li class="nav-item">
-                                        <a class="nav-link" href="../../pages/charts/chartjs.html">ChartJs</a>
+                                        <a class="nav-link" href="studentList.jsp">Student List</a>
+                                        <a class="nav-link" href="eventList.jsp">Event List</a>
                                     </li>
                                 </ul>
                             </div>
@@ -330,13 +330,17 @@
                                             <textarea id="description" name="description" rows="4" cols="50"></textarea>
                                         </div>
                                         <div class="form-group">
-                                            <label for="startTime">Start Time (YYYY-MM-DDTHH:mm:ss):</label>
-                                            <input type="text" id="startTime" name="startTime" required>
+                                            <label for="startTime">Start Time:</label>
+                                            <input type="datetime-local" id="startTime" name="startTime" required min="<%= java.time.LocalDateTime.now().toString().substring(0,16) %>">
+                                            <small>Format: YYYY-MM-DDTHH:mm (Browser will auto-format)</small>
                                         </div>
+
                                         <div class="form-group">
-                                            <label for="endTime">End Time (YYYY-MM-DDTHH:mm:ss):</label>
-                                            <input type="text" id="endTime" name="endTime" required>
+                                            <label for="endTime">End Time:</label>
+                                            <input type="datetime-local" id="endTime" name="endTime" required min="<%= java.time.LocalDateTime.now().toString().substring(0,16) %>">
+                                            <small>Format: YYYY-MM-DDTHH:mm (Browser will auto-format)</small>
                                         </div>
+
                                         <div class="form-group">
                                             <label for="timeZone">Time Zone:</label>
                                             <input type="text" id="timeZone" name="timeZone" value="Asia/Kuala_Lumpur" required>

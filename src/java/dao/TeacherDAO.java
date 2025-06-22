@@ -106,4 +106,22 @@ public class TeacherDAO {
             return false;
         }
     }
+    
+    public boolean isClassAssignedToGuruKelas(String kelas) {
+    boolean isAssigned = false;
+    String query = "SELECT COUNT(*) FROM teachers WHERE is_guru_kelas = 'Yes' AND kelas = ?";
+    try (Connection conn = DBConfig.getConnection();
+         PreparedStatement ps = conn.prepareStatement(query)) {
+        ps.setString(1, kelas);
+        try (ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) {
+                isAssigned = rs.getInt(1) > 0;
+            }
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+    return isAssigned;
+}
+
 }

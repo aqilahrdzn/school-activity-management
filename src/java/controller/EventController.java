@@ -40,6 +40,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.format.DateTimeParseException;
 // --- END NEW IMPORTS ---
 
 @WebServlet("/EventController")
@@ -79,6 +80,27 @@ public class EventController extends HttpServlet {
         String startTimeStr = request.getParameter("startTime");
         String endTimeStr = request.getParameter("endTime");
         String timeZone = request.getParameter("timeZone");
+        // Add ":00" to match full date-time if user only entered HH:mm
+        if (startTimeStr.length() == 16) {
+            startTimeStr += ":00";
+        }
+        if (endTimeStr.length() == 16) {
+            endTimeStr += ":00";
+        }
+
+// Validate that startTime is not in the past
+        try {
+            LocalDateTime now = LocalDateTime.now();
+            LocalDateTime startTime = LocalDateTime.parse(startTimeStr);
+            if (startTime.isBefore(now)) {
+                // Return an error response or redirect with error message
+                response.getWriter().println("Error: Start time cannot be in the past.");
+                return;
+            }
+        } catch (DateTimeParseException e) {
+            response.getWriter().println("Error: Invalid date/time format.");
+            return;
+        }
 
         String createdBy = (String) request.getSession().getAttribute("email");
         String selectionType = request.getParameter("selectType");
@@ -205,18 +227,13 @@ public class EventController extends HttpServlet {
                     break;
 
             }
-            if ("school".equals(category)) {
-                // If the event category is School-Based, redirect to bookingClass.jsp
-                HttpSession session = request.getSession();
-                session.setAttribute("eventId", eventId);           // Store event ID
-                session.setAttribute("category", category);
-                session.setAttribute("eventTitle", title);
-                session.setAttribute("description", description);
-                session.setAttribute("eventStartTime", startTimeStr);
-                session.setAttribute("eventEndTime", endTimeStr);
-                session.setAttribute("timeZone", timeZone);
-                response.sendRedirect(request.getContextPath() + "/teacher/bookingClass.jsp?success=true&category=" + category);
-                return; // Optional: stop further execution
+
+            // Ensure the seconds part is included (Google Calendar requires HH:mm:ss)
+            if (startTimeStr.length() == 16) {
+                startTimeStr += ":00"; // convert '2025-06-23T14:30' to '2025-06-23T14:30:00'
+            }
+            if (endTimeStr.length() == 16) {
+                endTimeStr += ":00";
             }
             // Send event to Google Calendar (your existing code)
             JSONObject eventJson = new JSONObject();
@@ -246,6 +263,20 @@ public class EventController extends HttpServlet {
 
             int responseCode = conn.getResponseCode();
             if (responseCode == HttpURLConnection.HTTP_OK) {
+                // ✅ Now safe to redirect or do logic like bookingClass.jsp
+                if ("school".equals(category)) {
+                    HttpSession session = request.getSession();
+                    session.setAttribute("eventId", eventId);
+                    session.setAttribute("category", category);
+                    session.setAttribute("eventTitle", title);
+                    session.setAttribute("description", description);
+                    session.setAttribute("eventStartTime", startTimeStr);
+                    session.setAttribute("eventEndTime", endTimeStr);
+                    session.setAttribute("timeZone", timeZone);
+                    response.sendRedirect(request.getContextPath() + "/teacher/bookingClass.jsp?success=true&category=" + category);
+                    return;
+                }
+
                 String fullPdfPath = null; // To store the path of the generated PDF
                 String pdfFileName = null; // To store the filename of the generated PDF
                 // --- NEW: Email and PDF Generation Logic ---
