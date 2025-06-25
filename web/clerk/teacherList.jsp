@@ -1,12 +1,25 @@
 <%-- 
-    Document   : teacherdashboard
-    Created on : May 6, 2025, 8:36:45 PM
+    Document   : TeacherList
+    Created on : Jun 19, 2025, 10:01:45 PM
     Author     : Lenovo
 --%>
+
+<%@page import="java.util.Set"%>
+<%@page import="java.util.HashSet"%>
+<%@page import="model.Student"%>
+<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@page import="java.util.HashMap"%>
+<%@page import="java.util.ArrayList"%>
+<%@page import="java.util.List"%>
+<%@page import="java.util.Map"%>
 <%@page import="model.Teacher"%>
 <%@page import="dao.TeacherDAO"%>
-<%@ page import="java.sql.*, util.DBConfig" %>
-<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@page import="java.sql.ResultSet"%>
+<%@page import="java.sql.PreparedStatement"%>
+<%@page import="util.DBConfig"%>
+<%@page import="java.sql.Connection"%>
+<%@page import="java.sql.SQLException"%>
+
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -21,8 +34,8 @@
         <link rel="stylesheet" href="../assets/vendors/font-awesome/css/font-awesome.min.css">
         <!-- endinject -->
         <!-- Plugin css for this page -->
-        <link rel="stylesheet" href="../assets/vendors/font-awesome/css/font-awesome.min.css" />
-        <link rel="stylesheet" href="../assets/vendors/bootstrap-datepicker/bootstrap-datepicker.min.css">
+        <link rel="stylesheet" href="../assets/vendors/select2/select2.min.css">
+        <link rel="stylesheet" href="../assets/vendors/select2-bootstrap-theme/select2-bootstrap.min.css">
         <!-- End plugin css for this page -->
         <!-- inject:css -->
         <!-- endinject -->
@@ -30,59 +43,93 @@
         <link rel="stylesheet" href="../assets/css/style.css">
         <!-- End layout styles -->
         <link rel="shortcut icon" href="../assets/images/favicon.png" />
+        <style>
+            .modal {
+                display: none;
+                position: fixed;
+                z-index: 1;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 100%;
+                overflow: auto;
+                background-color: rgba(0,0,0,0.4);
+            }
+            .modal-content {
+                background-color: #fefefe;
+                margin: 15% auto;
+                padding: 20px;
+                border: 1px solid #888;
+                width: 80%;
+                max-width: 500px;
+            }
+            .close {
+                color: #aaa;
+                float: right;
+                font-size: 28px;
+                font-weight: bold;
+            }
+            .close:hover,
+            .close:focus {
+                color: black;
+                text-decoration: none;
+                cursor: pointer;
+            }
+        </style>
     </head>
+
     <body>
         <%
-            String email = (String) session.getAttribute("email"); // Retrieve email from session
+            // Retrieve email from session, and any success/error messages
+            String email = (String) session.getAttribute("email");
+            String successMessage = request.getParameter("success");
+            String errorMessage = request.getParameter("error");
 
             TeacherDAO teacherDAO = new TeacherDAO();
             Teacher teacher = null;
 
             if (email != null) {
-                teacher = teacherDAO.getTeacherDetails(email); // Pass email to fetch details
+                teacher = teacherDAO.getTeacherDetails(email);
             }
 
-            // Add a check to handle cases where teacher is null (e.g., not logged in)
+            // Redirect to login if session is invalid or teacher not found
             if (teacher == null) {
-                // Redirect to login page or display an error message
                 response.sendRedirect(request.getContextPath() + "/login.jsp");
-                return; // Stop further processing of this JSP
+                return;
             }
-        %>
-        <%
-            int totalTeachers = 0;
-            int totalStudents = 0;
-            int totalParents = 0;
 
-            try (Connection conn = DBConfig.getConnection()) {
-                // Get total teachers
-                try (PreparedStatement stmt = conn.prepareStatement("SELECT COUNT(*) AS total FROM teachers"); ResultSet rs = stmt.executeQuery()) {
-                    if (rs.next()) {
-                        totalTeachers = rs.getInt("total");
-                    }
-                }
+            // Get list of teachers and assigned classes
+            List<Teacher> teacherList = teacherDAO.getTeachersByRole("teacher");
 
-                // Get total students
-                try (PreparedStatement stmt = conn.prepareStatement("SELECT COUNT(*) AS total FROM student"); ResultSet rs = stmt.executeQuery()) {
-                    if (rs.next()) {
-                        totalStudents = rs.getInt("total");
-                    }
-                }
-                try (PreparedStatement stmt = conn.prepareStatement("SELECT COUNT(*) AS total FROM parent"); ResultSet rs = stmt.executeQuery()) {
-                    if (rs.next()) {
-                        totalParents = rs.getInt("total");
-                    }
-                }
+            // Get selected year
+            String selectedYear = request.getParameter("selectedYear");
+            if (selectedYear == null) {
+                selectedYear = "2025"; // Default
+            }
 
-            } catch (SQLException e) {
-                e.printStackTrace();
+            // Define year options
+            String[] years = {"2025", "2026"};
+
+            // Define all classes from 1 Makkah to 6 Madinah
+            List<String> allClasses = new ArrayList<>();
+            for (int i = 1; i <= 6; i++) {
+                allClasses.add(i + " Makkah");
+                allClasses.add(i + " Madinah");
+            }
+
+            // Identify which classes are already assigned in this year
+            Set<String> assignedClassesThisYear = new HashSet<>();
+            for (Teacher t : teacherList) {
+                if (String.valueOf(t.getAssignedYear()).equals(selectedYear) && t.getKelas() != null) {
+                    assignedClassesThisYear.add(t.getKelas());
+                }
             }
         %>
         <div class="container-scroller">
-            <!-- partial:partials/_navbar.html -->
+            <!-- partial:../../partials/_navbar.html -->
             <nav class="navbar default-layout-navbar col-lg-12 col-12 p-0 fixed-top d-flex flex-row">
                 <div class="text-center navbar-brand-wrapper d-flex align-items-center justify-content-start">
-                    <a class="navbar-brand brand-logo" href="index.jsp"><img src="../assets/images/logo.svg" alt="logo" /></a>
+                    <a class="navbar-brand brand-logo" href="teacherdashboard.jsp"><img src="../assets/images/skkj_logo.jpg" width="1000" height="50" alt="logo" /></a>
                     <a class="navbar-brand brand-logo-mini" href="index.jsp"><img src="../assets/images/logo-mini.svg" alt="logo" /></a>
                 </div>
                 <div class="navbar-menu-wrapper d-flex align-items-stretch">
@@ -112,13 +159,10 @@
                                 <div class="dropdown-divider"></div>
                                 <a class="dropdown-item" href="../login.jsp">
                                     <i class="mdi mdi-logout me-2 text-primary"></i> Signout </a>
+
                             </div>
                         </li>
-                        <li class="nav-item d-none d-lg-block full-screen-link">
-                            <a class="nav-link">
-                                <i class="mdi mdi-fullscreen" id="fullscreen-button"></i>
-                            </a>
-                        </li>
+
                         <li class="nav-item dropdown">
                             <a class="nav-link count-indicator dropdown-toggle" id="messageDropdown" href="#" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="mdi mdi-email-outline"></i>
@@ -129,7 +173,7 @@
                                 <div class="dropdown-divider"></div>
                                 <a class="dropdown-item preview-item">
                                     <div class="preview-thumbnail">
-                                        <img src="assets/images/faces/face4.jpg" alt="image" class="profile-pic">
+                                        <img src="../../assets/images/faces/face4.jpg" alt="image" class="profile-pic">
                                     </div>
                                     <div class="preview-item-content d-flex align-items-start flex-column justify-content-center">
                                         <h6 class="preview-subject ellipsis mb-1 font-weight-normal">Mark send you a message</h6>
@@ -139,7 +183,7 @@
                                 <div class="dropdown-divider"></div>
                                 <a class="dropdown-item preview-item">
                                     <div class="preview-thumbnail">
-                                        <img src="assets/images/faces/face2.jpg" alt="image" class="profile-pic">
+                                        <img src="../../assets/images/faces/face2.jpg" alt="image" class="profile-pic">
                                     </div>
                                     <div class="preview-item-content d-flex align-items-start flex-column justify-content-center">
                                         <h6 class="preview-subject ellipsis mb-1 font-weight-normal">Cregh send you a message</h6>
@@ -149,7 +193,7 @@
                                 <div class="dropdown-divider"></div>
                                 <a class="dropdown-item preview-item">
                                     <div class="preview-thumbnail">
-                                        <img src="assets/images/faces/face3.jpg" alt="image" class="profile-pic">
+                                        <img src="../../assets/images/faces/face3.jpg" alt="image" class="profile-pic">
                                     </div>
                                     <div class="preview-item-content d-flex align-items-start flex-column justify-content-center">
                                         <h6 class="preview-subject ellipsis mb-1 font-weight-normal">Profile picture updated</h6>
@@ -208,15 +252,11 @@
                             </div>
                         </li>
                         <li class="nav-item nav-logout d-none d-lg-block">
-                            <a class="nav-link" href="#">
+                            <a class="nav-link" href="../login.jsp">
                                 <i class="mdi mdi-power"></i>
                             </a>
                         </li>
-                        <li class="nav-item nav-settings d-none d-lg-block">
-                            <a class="nav-link" href="#">
-                                <i class="mdi mdi-format-line-spacing"></i>
-                            </a>
-                        </li>
+
                     </ul>
                     <button class="navbar-toggler navbar-toggler-right d-lg-none align-self-center" type="button" data-toggle="offcanvas">
                         <span class="mdi mdi-menu"></span>
@@ -225,13 +265,14 @@
             </nav>
             <!-- partial -->
             <div class="container-fluid page-body-wrapper">
-                <!-- partial:partials/_sidebar.html -->
+                <!-- partial:../../partials/_sidebar.html -->
                 <nav class="sidebar sidebar-offcanvas" id="sidebar">
                     <ul class="nav">
                         <li class="nav-item nav-profile">
                             <a href="#" class="nav-link">
                                 <div class="nav-profile-image">
                                     <img src="<%= (teacher != null && teacher.getProfilePicture() != null) ? "../profile_pics/" + teacher.getProfilePicture() : "../assets/images/faces/default.jpg"%>" alt="profile" />
+
                                     <span class="login-status online"></span>
                                 </div>
 
@@ -242,14 +283,12 @@
                                 <i class="mdi mdi-bookmark-check text-success nav-profile-badge"></i>
                             </a>
                         </li>
-                        <!--            dashboard-->
                         <li class="nav-item">
-                            <a class="nav-link" href="clerkdashboard.jsp">
+                            <a class="nav-link" href="teacherdashboard.jsp">
                                 <span class="menu-title">Dashboard</span>
                                 <i class="mdi mdi-home menu-icon"></i>
                             </a>
                         </li>
-
 
                         <li class="nav-item">
                             <a class="nav-link" data-bs-toggle="collapse" href="#forms" aria-expanded="false" aria-controls="forms">
@@ -289,80 +328,107 @@
                 <div class="main-panel">
                     <div class="content-wrapper">
                         <div class="page-header">
-                            <h3 class="page-title">
-                                <span class="page-title-icon bg-gradient-primary text-white me-2">
-                                    <i class="mdi mdi-home"></i>
-                                </span> Dashboard
-                            </h3>
+                            <h3 class="page-title"> Form elements </h3>
                             <nav aria-label="breadcrumb">
-                                <ul class="breadcrumb">
-                                    <li class="breadcrumb-item active" aria-current="page">
-                                        <span></span>Overview <i class="mdi mdi-alert-circle-outline icon-sm text-primary align-middle"></i>
-                                    </li>
-                                </ul>
+                                <ol class="breadcrumb">
+                                    <li class="breadcrumb-item"><a href="#">Forms</a></li>
+                                    <li class="breadcrumb-item active" aria-current="page">Form elements</li>
+                                </ol>
                             </nav>
-                        </div>
-                        <!--                        total teacher-->
-                        <div class="row">
-                            <div class="col-md-4 stretch-card grid-margin">
-                                <div class="card bg-gradient-danger card-img-holder text-white">
-                                    <div class="card-body">
-
-                                        <h4 class="font-weight-normal mb-3">Total Teachers <i class="mdi mdi-account-multiple mdi-24px float-end"></i></h4>
-                                        <h2 class="mb-5"><%= totalTeachers%> Teachers</h2>
-                                        <h6 class="card-text">Updated in real-time</h6>
-                                    </div>
-                                </div>
-                            </div>
-                            <!--                            total teacher-->
-                            <div class="col-md-4 stretch-card grid-margin">
-                                <div class="card bg-gradient-info card-img-holder text-white">
-                                    <div class="card-body">
-
-                                        <h4 class="font-weight-normal mb-3">Total Students <i class="mdi mdi-account-multiple mdi-24px float-end"></i></h4>
-                                        <h2 class="mb-5"><%= totalStudents%> Students</h2>
-                                        <h6 class="card-text">Updated in real-time</h6>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-4 stretch-card grid-margin">
-                                <div class="card bg-gradient-success card-img-holder text-white">
-                                    <div class="card-body">
-
-                                        <h4 class="font-weight-normal mb-3">Total Registered Parents<i class="mdi mdi-account-multiple mdi-24px float-end"></i>
-                                        </h4>
-                                        <h2 class="mb-5"><%= totalParents%> Parents</h2>
-                                        <h6 class="card-text">Updated in real-time</h6>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-lg-6 grid-margin stretch-card">
-                                <div class="card">
-                                    <div class="card-body">
-                                        <h4 class="card-title">Event Created per Month</h4>
-                                        <canvas id="barChart" style="height:300px"></canvas>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="col-md-5 grid-margin stretch-card">
-                                <div class="card">
-                                    <div class="card-body">
-                                        <h4 class="card-title">Traffic Sources</h4>
-                                        <div class="doughnutjs-wrapper d-flex justify-content-center">
-                                            <canvas id="traffic-chart"></canvas>
-                                        </div>
-                                        <div id="traffic-chart-legend" class="rounded-legend legend-vertical legend-bottom-left pt-4"></div>
-                                    </div>
-                                </div>
-                            </div>
                         </div>
 
                     </div>
+                    <!-- Select Academic Year -->
+                    <form method="get" action="">
+                        <label for="year">Select Academic Year:</label>
+                        <select name="selectedYear" id="year" onchange="this.form.submit()" class="form-control" style="width: 200px;">
+                            <% for (String y : years) {%>
+                            <option value="<%= y%>" <%= y.equals(selectedYear) ? "selected" : ""%>><%= y%></option>
+                            <% } %>
+                        </select>
+                    </form>
+
+                    <!-- Display messages -->
+                    <% if (successMessage != null) {%>
+                    <div class="alert alert-success"><%= successMessage%></div>
+                    <% } %>
+                    <% if (errorMessage != null) {%>
+                    <div class="alert alert-danger"><%= errorMessage%></div>
+                    <% }%>
+
+                    <div class="row">
+                        <div class="col-12 grid-margin">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h4 class="card-title">Teacher List - <%= selectedYear%></h4>
+                                    <div class="table-responsive">
+                                        <table class="table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Name</th>
+                                                    <th>Email</th>
+                                                    <th>Contact Number</th>
+                                                    <th>Class (Year)</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <% for (Teacher t : teacherList) {
+                                                        boolean isThisYear = String.valueOf(t.getAssignedYear()).equals(selectedYear);
+                                                        String currentTeacherClass = isThisYear ? t.getKelas() : null;
+                                                %>
+                                                <tr>
+                                                    <td><%= t.getName()%></td>
+                                                    <td><%= t.getEmail()%></td>
+                                                    <td><%= t.getContactNumber()%></td>
+                                                    <td>
+                                                        <%= (t.getKelas() != null && !t.getKelas().isEmpty()) ? t.getKelas() : "N/A"%>
+                                                        (<%= t.getAssignedYear()%>)
+                                                    </td>
+                                                    <td>
+                                                        <div style="display: flex; gap: 5px;">
+                                                            <!-- Update Class Form -->
+                                                            <form action="<%= request.getContextPath()%>/ManageTeacherServlet" method="post">
+                                                                <input type="hidden" name="action" value="update">
+                                                                <input type="hidden" name="teacherId" value="<%= t.getId()%>">
+                                                                <input type="hidden" name="selectedYear" value="<%= selectedYear%>">
+
+                                                                <select class="form-control" name="kelas">
+                                                                    <option value="">-- Assign Class --</option>
+                                                                    <% for (String className : allClasses) {
+                                                                            boolean isAssigned = assignedClassesThisYear.contains(className);
+                                                                            boolean isAssignedToCurrentTeacher = className.equals(currentTeacherClass);
+                                                                            String disabled = (isAssigned && !isAssignedToCurrentTeacher) ? "disabled" : "";
+                                                                            String selected = isAssignedToCurrentTeacher ? "selected" : "";
+                                                                    %>
+                                                                    <option value="<%= className%>" <%= selected%> <%= disabled%>>
+                                                                        <%= className%> <%= (isAssigned && !isAssignedToCurrentTeacher) ? "(Assigned)" : ""%>
+                                                                    </option>
+                                                                    <% }%>
+                                                                </select>
+                                                                <button type="submit" class="btn btn-gradient-primary btn-sm">Update</button>
+                                                            </form>
+
+                                                            <!-- Delete Teacher Form -->
+                                                            <form action="<%= request.getContextPath()%>/ManageTeacherServlet" method="post">
+                                                                <input type="hidden" name="action" value="delete">
+                                                                <input type="hidden" name="teacherId" value="<%= t.getId()%>">
+                                                                <button type="submit" class="btn btn-gradient-danger btn-sm"
+                                                                        onclick="return confirm('Are you sure you want to delete this teacher?')">Delete</button>
+                                                            </form>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                <% }%>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     <!-- content-wrapper ends -->
-                    <!-- partial:partials/_footer.html -->
+                    <!-- partial:../../partials/_footer.html -->
                     <footer class="footer">
                         <div class="d-sm-flex justify-content-center justify-content-sm-between">
                             <span class="text-muted text-center text-sm-left d-block d-sm-inline-block">Copyright © 2023 <a href="https://www.bootstrapdash.com/" target="_blank">BootstrapDash</a>. All rights reserved.</span>
@@ -375,15 +441,13 @@
             </div>
             <!-- page-body-wrapper ends -->
         </div>
-        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-        <script src="<%= request.getContextPath()%>/assets/js/chart.js"></script>
+        <!-- container-scroller -->
         <!-- plugins:js -->
         <script src="../assets/vendors/js/vendor.bundle.base.js"></script>
         <!-- endinject -->
         <!-- Plugin js for this page -->
-        <script src="../assets/vendors/chart.js/chart.umd.js"></script>
-        <script src="../assets/vendors/bootstrap-datepicker/bootstrap-datepicker.min.js"></script>
+        <script src="../assets/vendors/select2/select2.min.js"></script>
+        <script src="../assets/vendors/typeahead.js/typeahead.bundle.min.js"></script>
         <!-- End plugin js for this page -->
         <!-- inject:js -->
         <script src="../assets/js/off-canvas.js"></script>
@@ -393,8 +457,13 @@
         <script src="../assets/js/jquery.cookie.js"></script>
         <!-- endinject -->
         <!-- Custom js for this page -->
-        <script src="../assets/js/dashboard.js"></script>
+        <script src="../assets/js/file-upload.js"></script>
+        <script src="../assets/js/typeahead.js"></script>
+        <script src="../assets/js/select2.js"></script>
+
         <!-- End custom js for this page -->
     </body>
 </html>
+
+
 

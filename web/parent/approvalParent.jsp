@@ -50,57 +50,63 @@
             boolean success = "true".equals(request.getParameter("success"));
         %>
         <%
-        String eventTitle = request.getParameter("eventTitle");
-        String studentIc = request.getParameter("studentIc");
+            String eventTitle = request.getParameter("eventTitle");
+            String studentIc = request.getParameter("studentIc");
 
-        if (eventTitle == null || studentIc == null) {
-            out.println("<p style='color:red;'>Error: Missing event title or student IC.</p>");
-            return;
-        }
-
-        Connection con = null;
-        PreparedStatement ps = null;
-        ResultSet rs = null;
-
-        int eventId = -1;
-        int parentId = -1;
-
-        try {
-            con = DBConfig.getConnection();
-
-            // Get parent_id from student table
-            ps = con.prepareStatement("SELECT parent_id FROM student WHERE ic_number = ?");
-            ps.setString(1, studentIc);
-            rs = ps.executeQuery();
-            if (rs.next()) {
-                parentId = rs.getInt("parent_id");
-            } else {
-                out.println("<p style='color:red;'>Error: No parent found for this student.</p>");
-                return;
-            }
-            rs.close();
-            ps.close();
-
-            // Get event_id from event table using eventTitle
-            ps = con.prepareStatement("SELECT id FROM events WHERE title = ?");
-            ps.setString(1, eventTitle);
-            rs = ps.executeQuery();
-            if (rs.next()) {
-                eventId = rs.getInt("id");
-            } else {
-                out.println("<p style='color:red;'>Error: Event not found.</p>");
+            if (eventTitle == null || studentIc == null) {
+                out.println("<p style='color:red;'>Error: Missing event title or student IC.</p>");
                 return;
             }
 
-        } catch (Exception e) {
-            out.println("<p style='color:red;'>Database error: " + e.getMessage() + "</p>");
-            return;
-        } finally {
-            if (rs != null) rs.close();
-            if (ps != null) ps.close();
-            if (con != null) con.close();
-        }
-    %>
+            Connection con = null;
+            PreparedStatement ps = null;
+            ResultSet rs = null;
+
+            int eventId = -1;
+            int parentId = -1;
+
+            try {
+                con = DBConfig.getConnection();
+
+                // Get parent_id from student table
+                ps = con.prepareStatement("SELECT parent_id FROM student WHERE ic_number = ?");
+                ps.setString(1, studentIc);
+                rs = ps.executeQuery();
+                if (rs.next()) {
+                    parentId = rs.getInt("parent_id");
+                } else {
+                    out.println("<p style='color:red;'>Error: No parent found for this student.</p>");
+                    return;
+                }
+                rs.close();
+                ps.close();
+
+                // Get event_id from event table using eventTitle
+                ps = con.prepareStatement("SELECT id FROM events WHERE title = ?");
+                ps.setString(1, eventTitle);
+                rs = ps.executeQuery();
+                if (rs.next()) {
+                    eventId = rs.getInt("id");
+                } else {
+                    out.println("<p style='color:red;'>Error: Event not found.</p>");
+                    return;
+                }
+
+            } catch (Exception e) {
+                out.println("<p style='color:red;'>Database error: " + e.getMessage() + "</p>");
+                return;
+            } finally {
+                if (rs != null) {
+                    rs.close();
+                }
+                if (ps != null) {
+                    ps.close();
+                }
+                if (con != null) {
+                    con.close();
+                }
+            }
+        %>
 
         <div class="container-scroller">
             <!-- partial:../../partials/_navbar.html -->
@@ -310,13 +316,19 @@
                         </div>
 
                     </div>
-                    <div class="col-md-6 grid-margin stretch-card">
+                    <%-- Example: assume eventCategory is fetched from DB --%>
+                    <%
+                        String eventCategory = "payment"; // Replace with actual value from DB
+                    %>
 
+                    <% if ("external".equalsIgnoreCase(eventCategory) || "payment".equalsIgnoreCase(eventCategory)) {%>
+                    <div class="col-md-6 grid-margin stretch-card">
                         <div class="card">
                             <div class="card-body">
                                 <h4 class="card-title">Parent Approval</h4>
-                                <p class="card-description"> Please enter the details </p>
-                                <form class="forms-sample" method="post" action="../SubmitApprovalServlet">
+                                <p class="card-description">Please enter the details</p>
+
+                                <form class="forms-sample" method="post" action="../SubmitApprovalServlet" <%= "payment".equalsIgnoreCase(eventCategory) ? "enctype=\"multipart/form-data\"" : ""%>>
                                     <input type="hidden" name="event_id" value="<%= eventId%>">
                                     <input type="hidden" name="parent_id" value="<%= parentId%>">
                                     <input type="hidden" name="student_ic" value="<%= studentIc%>">
@@ -326,15 +338,26 @@
                                         <input type="radio" name="status" value="Approved" required> Approve
                                         <input type="radio" name="status" value="Rejected"> Reject
                                     </div>
+
                                     <div class="form-group">
                                         <label for="reason">Reason (if reject):</label>
                                         <input type="text" class="form-control" id="reason" name="reason" placeholder="Reason">
                                     </div>
+
+                                    <% if ("payment".equalsIgnoreCase(eventCategory)) { %>
+                                    <div class="form-group">
+                                        <label for="resit">Upload Resit:</label>
+                                        <input type="file" class="form-control" id="resit" name="resit" accept=".pdf,.jpg,.jpeg,.png" required>
+                                    </div>
+                                    <% } %>
+
                                     <button type="submit" class="btn btn-gradient-primary me-2">Submit</button>
                                 </form>
                             </div>
                         </div>
                     </div>
+                    <% }%>
+
                     <!-- content-wrapper ends -->
                     <!-- partial:../../partials/_footer.html -->
                     <footer class="footer">

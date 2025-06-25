@@ -54,7 +54,7 @@ public class StudentDAO {
                     String studentName = rs.getString("student_name");
                     String studentClass = rs.getString("class");
                     // Assuming a constructor Student(class, name, ic) exists
-                    return new Student(studentClass, studentName, icNumber); 
+                    return new Student(studentClass, studentName, icNumber);
                 }
             }
         } catch (SQLException e) {
@@ -153,8 +153,8 @@ public class StudentDAO {
     public List<Student> getStudentsByEvent(int eventId) {
         List<Student> students = new ArrayList<>();
         String sql = "SELECT s.* FROM student s "
-                   + "JOIN event_participants ep ON s.ic_number = ep.student_ic "
-                   + "WHERE ep.event_id = ?";
+                + "JOIN event_participants ep ON s.ic_number = ep.student_ic "
+                + "WHERE ep.event_id = ?";
         try (Connection conn = DBConfig.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, eventId);
             try (ResultSet rs = stmt.executeQuery()) {
@@ -174,7 +174,7 @@ public class StudentDAO {
         }
         return students;
     }
-    
+
     public String getParentEmailByIc(String icNumber) {
         String sql = "SELECT p.email FROM student s JOIN parent p ON s.parent_id = p.id WHERE s.ic_number = ?";
         try (Connection conn = DBConfig.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -204,7 +204,7 @@ public class StudentDAO {
                     student.setIcNumber(rs.getString("ic_number"));
                     student.setSportTeam(rs.getString("sport_team"));
                     student.setUniformUnit(rs.getString("uniform_unit"));
-                    
+
                     String parentEmail = getParentEmailByIc(icNumber);
                     student.setParentEmail(parentEmail);
                 }
@@ -218,7 +218,7 @@ public class StudentDAO {
 
     public List<Student> getStudentsByClass(String className) {
         List<Student> students = new ArrayList<>();
-        String sql = "SELECT * FROM student WHERE class = ?";
+        String sql = "SELECT * FROM student WHERE class = ? AND status = 'active'";
         try (Connection conn = DBConfig.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, className);
             ResultSet rs = stmt.executeQuery();
@@ -239,12 +239,12 @@ public class StudentDAO {
     }
 
     // --- NEW METHODS REQUIRED BY EVENTCONTROLLER ---
-
     /**
-     * Retrieves a list of all student IC numbers for a given list of class names.
-     * Required by EventController for adding participants by class.
+     * Retrieves a list of all student IC numbers for a given list of class
+     * names. Required by EventController for adding participants by class.
      *
-     * @param classesList A list of class names (e.g., ["1 Makkah", "1 Madinah"]).
+     * @param classesList A list of class names (e.g., ["1 Makkah", "1
+     * Madinah"]).
      * @return A List of student IC numbers.
      */
     public List<String> getStudentICsByClasses(List<String> classesList) {
@@ -321,8 +321,8 @@ public class StudentDAO {
     }
 
     /**
-     * Retrieves full Student objects for a given list of IC numbers.
-     * Required by EventController to get participant details for PDF generation.
+     * Retrieves full Student objects for a given list of IC numbers. Required
+     * by EventController to get participant details for PDF generation.
      *
      * @param icList A list of student IC numbers.
      * @return A List of Student objects.
@@ -338,7 +338,7 @@ public class StudentDAO {
             sql.append("?").append(i < icList.size() - 1 ? "," : "");
         }
         sql.append(")");
-        
+
         try (Connection conn = DBConfig.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
             for (int i = 0; i < icList.size(); i++) {
                 stmt.setString(i + 1, icList.get(i));
@@ -362,23 +362,20 @@ public class StudentDAO {
     }
 
     // --- END NEW METHODS ---
-
     public boolean promoteStudents() {
         String selectQuery = "SELECT id, class FROM student";
         String updateQuery = "UPDATE student SET class = ? WHERE id = ?";
         try (
-            Connection conn = DBConfig.getConnection();
-            PreparedStatement selectStmt = conn.prepareStatement(selectQuery);
-            PreparedStatement updateStmt = conn.prepareStatement(updateQuery);
-            ResultSet rs = selectStmt.executeQuery()
-        ) {
+                Connection conn = DBConfig.getConnection(); PreparedStatement selectStmt = conn.prepareStatement(selectQuery); PreparedStatement updateStmt = conn.prepareStatement(updateQuery); ResultSet rs = selectStmt.executeQuery()) {
             conn.setAutoCommit(false); // Start transaction
-            
+
             while (rs.next()) {
                 int id = rs.getInt("id");
                 String studentClass = rs.getString("class");
 
-                if (studentClass == null) continue;
+                if (studentClass == null) {
+                    continue;
+                }
 
                 String[] parts = studentClass.split(" ", 2);
                 if (parts.length == 2) {
@@ -406,5 +403,27 @@ public class StudentDAO {
             // Consider rolling back transaction in a real-world scenario
             return false;
         }
+    }
+     public boolean archiveStudent(String icNumber) throws SQLException {
+        String sql = "UPDATE student SET status = 'archived' WHERE ic_number = ?";
+        Connection conn = null;
+        PreparedStatement ps = null;
+        int rowsAffected = 0;
+
+        try {
+            conn = DBConfig.getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setString(1, icNumber);
+            rowsAffected = ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace(); // Log the error
+            throw e; // Re-throw to be handled by the servlet
+        } finally {
+            if (ps != null) ps.close();
+            if (conn != null) conn.close();
+        }
+
+        return rowsAffected > 0;
+    
     }
 }

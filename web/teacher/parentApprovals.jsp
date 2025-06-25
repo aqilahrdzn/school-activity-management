@@ -43,73 +43,76 @@
     </head>
     <body>
         <%
-            // Retrieve email from session
-            String email = (String) session.getAttribute("email");
+    String email = (String) session.getAttribute("email");
 
-            TeacherDAO teacherDAO = new TeacherDAO();
-            Teacher teacher = null;
+    TeacherDAO teacherDAO = new TeacherDAO();
+    Teacher teacher = null;
 
-            if (email != null) {
-                teacher = teacherDAO.getTeacherDetails(email);
+    if (email != null) {
+        teacher = teacherDAO.getTeacherDetails(email);
+    }
+
+    if (teacher == null) {
+        response.sendRedirect(request.getContextPath() + "/login.jsp");
+        return;
+    }
+
+    int totalTeachers = 0;
+    int totalStudents = 0;
+
+    try (Connection conn = DBConfig.getConnection()) {
+        try (PreparedStatement stmt = conn.prepareStatement("SELECT COUNT(*) AS total FROM teachers"); ResultSet rs = stmt.executeQuery()) {
+            if (rs.next()) {
+                totalTeachers = rs.getInt("total");
             }
+        }
 
-            if (teacher == null) {
-                response.sendRedirect(request.getContextPath() + "/login.jsp");
-                return;
+        try (PreparedStatement stmt = conn.prepareStatement("SELECT COUNT(*) AS total FROM student"); ResultSet rs = stmt.executeQuery()) {
+            if (rs.next()) {
+                totalStudents = rs.getInt("total");
             }
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
 
-            int totalTeachers = 0;
-            int totalStudents = 0;
+    String eventId = request.getParameter("eventId");
+    List<Map<String, String>> approvalList = new ArrayList<>();
 
-            try (Connection conn = DBConfig.getConnection()) {
-                try (PreparedStatement stmt = conn.prepareStatement("SELECT COUNT(*) AS total FROM teachers"); ResultSet rs = stmt.executeQuery()) {
-                    if (rs.next()) {
-                        totalTeachers = rs.getInt("total");
-                    }
-                }
+    String approvalQuery = "SELECT p.id AS parent_id, p.name AS parent_name, p.email, p.contact_number, p.ic_number AS parent_ic, "
+            + "s.student_name, s.class, s.ic_number AS student_ic, "
+            + "pa.status, pa.reason, pa.approved_at, pa.resit_file "
+            + "FROM parent_approval pa "
+            + "JOIN parent p ON pa.parent_id = p.id "
+            + "JOIN student s ON s.parent_id = p.id "
+            + "WHERE pa.event_id = ?";
 
-                try (PreparedStatement stmt = conn.prepareStatement("SELECT COUNT(*) AS total FROM student"); ResultSet rs = stmt.executeQuery()) {
-                    if (rs.next()) {
-                        totalStudents = rs.getInt("total");
-                    }
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
+    try (Connection connection = DBConfig.getConnection(); PreparedStatement stmt = connection.prepareStatement(approvalQuery)) {
+        stmt.setInt(1, Integer.parseInt(eventId));
+        try (ResultSet rs = stmt.executeQuery()) {
+            while (rs.next()) {
+                Map<String, String> row = new HashMap<>();
+                row.put("parent_id", rs.getString("parent_id"));
+                row.put("parent_name", rs.getString("parent_name"));
+                row.put("email", rs.getString("email"));
+                row.put("contact_number", rs.getString("contact_number"));
+                row.put("parent_ic", rs.getString("parent_ic"));
+                row.put("student_name", rs.getString("student_name"));
+                row.put("student_ic", rs.getString("student_ic"));
+                row.put("class", rs.getString("class"));
+                row.put("status", rs.getString("status"));
+                row.put("reason", rs.getString("reason"));
+                row.put("approved_at", rs.getString("approved_at"));
+                row.put("resit_file", rs.getString("resit_file"));
+                row.put("event_id", eventId);
+
+                approvalList.add(row);
             }
-            String eventId = request.getParameter("eventId");
-
-            List<Map<String, String>> approvalList = new ArrayList<>();
-            String approvalQuery = "SELECT p.name AS parent_name, p.email, p.contact_number, p.ic_number AS parent_ic, "
-                    + "s.student_name, s.class, s.ic_number AS student_ic, "
-                    + "pa.status, pa.reason, pa.approved_at "
-                    + "FROM parent_approval pa "
-                    + "JOIN parent p ON pa.parent_id = p.id "
-                    + "JOIN student s ON s.parent_id = p.id "
-                    + "WHERE pa.event_id = ?";
-
-            try (Connection connection = DBConfig.getConnection(); PreparedStatement stmt = connection.prepareStatement(approvalQuery)) {
-
-                stmt.setInt(1, Integer.parseInt(eventId));
-                try (ResultSet rs = stmt.executeQuery()) {
-                    while (rs.next()) {
-                        Map<String, String> row = new HashMap<>();
-                        row.put("parent_name", rs.getString("parent_name"));
-                        row.put("email", rs.getString("email"));
-                        row.put("contact_number", rs.getString("contact_number"));
-                        row.put("parent_ic", rs.getString("parent_ic"));
-                        row.put("student_name", rs.getString("student_name"));
-                        row.put("student_ic", rs.getString("student_ic"));
-                        row.put("class", rs.getString("class"));
-                        row.put("status", rs.getString("status"));
-                        row.put("reason", rs.getString("reason"));
-                        row.put("approved_at", rs.getString("approved_at"));
-                        approvalList.add(row);
-                    }
-                }
-            } catch (SQLException e) {
-                request.setAttribute("error", "Error retrieving approval list: " + e.getMessage());
-            }
-        %>
+        }
+    } catch (SQLException e) {
+        request.setAttribute("error", "Error retrieving approval list: " + e.getMessage());
+    }
+%>
         <div class="container-scroller">
             <!-- partial:../../partials/_navbar.html -->
             <nav class="navbar default-layout-navbar col-lg-12 col-12 p-0 fixed-top d-flex flex-row">
@@ -287,7 +290,7 @@
                                         <a class="nav-link" href="createEvent.jsp">Create Event/Activity</a>
                                         <a class="nav-link" href="bookingClass.jsp">Booking Event Venue</a>
                                         <a class="nav-link" href="updateAccTc.jsp">Update Account</a>
-                                       
+
                                     </li>
                                 </ul>
                             </div>
@@ -331,16 +334,13 @@
                                         <table class="table">
                                             <thead>
                                                 <tr>
-                                                    <th>Parent Name</th>
-                                                    <th>Email</th>
-                                                    <th>Contact</th>
-                                                    <th>Parent IC</th>
                                                     <th>Student Name</th>
                                                     <th>Student IC</th>
                                                     <th>Class</th>
                                                     <th>Status</th>
                                                     <th>Reason</th>
                                                     <th>Approved At</th>
+                                                    <th>Resit File</th> <%-- ✅ New column --%>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -353,16 +353,27 @@
                                                         for (Map<String, String> row : approvalList) {
                                                     %>
                                                 <tr>
-                                                    <td><%= row.get("parent_name")%></td>
-                                                    <td><%= row.get("email")%></td>
-                                                    <td><%= row.get("contact_number")%></td>
-                                                    <td><%= row.get("parent_ic")%></td>
                                                     <td><%= row.get("student_name")%></td>
                                                     <td><%= row.get("student_ic")%></td>
                                                     <td><%= row.get("class")%></td>
                                                     <td><%= row.get("status")%></td>
                                                     <td><%= row.get("reason")%></td>
                                                     <td><%= row.get("approved_at")%></td>
+                                                    <td>
+                                                        <%
+                                                            String resitPath = row.get("resit_file");
+                                                            if (resitPath != null && !resitPath.trim().isEmpty()) {
+                                                        %>
+                                                        <a href="ViewResitServlet?event_id=<%= row.get("event_id") %>&parent_id=<%= row.get("parent_id") %>" target="_blank">View Resit</a>
+
+                                                        <%
+                                                        } else {
+                                                        %>
+                                                        No file
+                                                        <%
+                                                            }
+                                                        %>
+                                                    </td>
                                                 </tr>
                                                 <%
                                                     }
@@ -373,6 +384,7 @@
                                                     }
                                                 %>
                                             </tbody>
+
                                         </table>
                                     </div>
                                 </div>

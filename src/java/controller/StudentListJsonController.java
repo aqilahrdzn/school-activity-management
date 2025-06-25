@@ -3,8 +3,8 @@ package controller;
 
 import dao.StudentDAO;
 import model.Student;
-import model.Teacher; // Assuming Teacher model
-import com.google.gson.Gson; // You'll need Gson library in your classpath (e.g., Maven dependency)
+import model.Teacher;
+import com.google.gson.Gson; // Ensure Gson library is in your classpath
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -15,55 +15,69 @@ import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.List;
-import java.util.ArrayList; // For empty list
+import java.util.ArrayList;
 
-@WebServlet("/StudentListJsonController") // A new servlet for JSON data
+/**
+ * This servlet handles AJAX requests from studentList.jsp.
+ * It fetches a list of students for a given class from the DAO
+ * and returns them as a JSON array.
+ */
+@WebServlet("/StudentListJsonController")
 public class StudentListJsonController extends HttpServlet {
 
     private StudentDAO studentDAO;
-    private Gson gson; // For converting Java objects to JSON
+    private Gson gson;
 
     @Override
     public void init() throws ServletException {
+        // Initialize DAO and Gson instances once when the servlet is created.
         super.init();
         studentDAO = new StudentDAO();
-        gson = new Gson(); // Initialize Gson
+        gson = new Gson();
     }
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         HttpSession session = request.getSession(false);
 
-        // Basic authentication check
+        // Security check: Ensure a teacher is logged in.
         if (session == null || session.getAttribute("teacher") == null) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 401 Unauthorized
-            response.getWriter().write("Unauthorized access.");
+            response.getWriter().write(gson.toJson("Error: Unauthorized access. Please log in."));
             return;
         }
 
-        Teacher loggedInTeacher = (Teacher) session.getAttribute("teacher");
-        boolean isGuruKelas = "Yes".equals(loggedInTeacher.getIsGuruKelas());
-        String currentUserKelas = loggedInTeacher.getKelas();
-
+        // Get the class parameter from the AJAX request
         String selectedClass = request.getParameter("studentClass");
-        List<Student> students = new ArrayList<>(); // Initialize as empty list
+        List<Student> students = new ArrayList<>();
 
-        if (selectedClass != null && !selectedClass.isEmpty()) {
-            students = studentDAO.getStudentsByClass(selectedClass);
+        if (selectedClass != null && !selectedClass.trim().isEmpty()) {
+            try {
+                // --- THIS IS THE MOST IMPORTANT PART ---
+                // This line calls your StudentDAO. The logic to fetch ONLY students
+                // with `status = 'active'` MUST be inside the SQL query of the
+                // `getStudentsByClass` method in your StudentDAO.java file.
+                //
+                // This controller correctly calls the method; the DAO method itself
+                // must perform the correct filtering.
+                students = studentDAO.getStudentsByClass(selectedClass);
 
-            // Important: Apply server-side filtering for Guru Kelas if needed
-            // If a Guru Kelas tries to view students of OTHER classes,
-            // you might want to return an empty list or only allow viewing their own.
-            // For now, let's allow viewing all but control editing on client side.
-            // Server-side editing control is still in StudentEditController.
+            } catch (Exception e) {
+                // Handle potential SQL errors from the DAO
+                e.printStackTrace(); // Log the full error to the server console
+                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                response.getWriter().write(gson.toJson("Error: Could not retrieve student data."));
+                return;
+            }
         }
 
-        // Set response type to JSON
+        // Set the response content type to JSON
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
 
+        // Convert the list of students (which may be empty) to a JSON string and send it
         PrintWriter out = response.getWriter();
-        out.print(gson.toJson(students)); // Convert list of students to JSON and send
+        out.print(gson.toJson(students));
         out.flush();
     }
 }

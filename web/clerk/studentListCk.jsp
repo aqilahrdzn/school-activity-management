@@ -275,24 +275,25 @@
                             <div class="collapse" id="forms">
                                 <ul class="nav flex-column sub-menu">
                                     <li class="nav-item">
-                                        <a class="nav-link" href="studentRegistration.jsp">Student Registration</a>
-                                        <a class="nav-link" href="createEvent.jsp">Create Event/Activity</a>
-                                        <a class="nav-link" href="bookingClass.jsp">Booking Event Venue</a>
-                                        <a class="nav-link" href="eventList.jsp">Event List</a>
-                                        <a class="nav-link" href="updateAccTc.jsp">Update Account</a>
+                                        <a class="nav-link" href="teacherRegistration.jsp">Teacher Registration</a>
+                                        <a class="nav-link" href="addVenue.jsp">Add New Venue</a>
+                                        <a class="nav-link" href="updateVenue.jsp">Update Venue Condition</a>
+                                        <a class="nav-link" href="updateAccCk.jsp">Update Account</a>
+                                        
                                     </li>
                                 </ul>
                             </div>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" data-bs-toggle="collapse" href="#charts" aria-expanded="false" aria-controls="charts">
-                                <span class="menu-title">Charts</span>
+                                <span class="menu-title">List</span>
                                 <i class="mdi mdi-chart-bar menu-icon"></i>
                             </a>
                             <div class="collapse" id="charts">
                                 <ul class="nav flex-column sub-menu">
                                     <li class="nav-item">
-                                        <a class="nav-link" href="../../pages/charts/chartjs.html">ChartJs</a>
+                                        <a class="nav-link" href="studentListCk.jsp">Student List</a>
+                                        <a class="nav-link" href="teacherList.jsp">Teacher List</a>
                                     </li>
                                 </ul>
                             </div>

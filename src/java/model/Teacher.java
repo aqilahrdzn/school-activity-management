@@ -12,6 +12,7 @@ public class Teacher {
     private String profilePicture; // ✅ New field added
     private String isGuruKelas;
     private String kelas;
+    private int assignedYear;
 
     // Constructors
     public Teacher() {
@@ -129,5 +130,19 @@ public class Teacher {
 
     public void setKelas(String kelas) {
         this.kelas = kelas;
+    }
+
+    /**
+     * @return the assignedYear
+     */
+    public int getAssignedYear() {
+        return assignedYear;
+    }
+
+    /**
+     * @param assignedYear the assignedYear to set
+     */
+    public void setAssignedYear(int assignedYear) {
+        this.assignedYear = assignedYear;
     }
 }

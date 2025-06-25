@@ -279,7 +279,7 @@
                                         <a class="nav-link" href="createEvent.jsp">Create Event/Activity</a>
                                         <a class="nav-link" href="bookingClass.jsp">Booking Event Venue</a>
                                         <a class="nav-link" href="updateAccTc.jsp">Update Account</a>
-                                       
+
                                     </li>
                                 </ul>
                             </div>
@@ -314,30 +314,12 @@
                         </div>
 
                     </div>
-
                     <%@page import="model.Teacher"%>
                     <%@page import="java.util.List, model.Student, model.Teacher"%>
                     <%
-                        // ... existing Teacher session retrieval and checks ...
-
                         String successMessage = request.getParameter("successMessage");
                         String errorMessage = request.getParameter("errorMessage");
-                    %>
 
-                    <!-- Add these div blocks near the top of your card-body in studentList.jsp -->
-                    <% if (successMessage != null) {%>
-                    <div class="alert alert-success mt-3" role="alert">
-                        <%= successMessage%>
-                    </div>
-                    <% } %>
-                    <% if (errorMessage != null) {%>
-                    <div class="alert alert-danger mt-3" role="alert">
-                        <%= errorMessage%>
-                    </div>
-                    <% } %>
-
-                    <!-- ... rest of your studentList.jsp ... -->
-                    <%
                         Teacher loggedInTeacher = (Teacher) session.getAttribute("teacher");
 
                         if (loggedInTeacher == null) {
@@ -349,30 +331,30 @@
                         String currentUserKelas = loggedInTeacher.getKelas();
                     %>
 
+                    <%-- Show messages if available --%>
+                    <% if (successMessage != null) {%>
+                    <div class="alert alert-success mt-3" role="alert"><%= successMessage%></div>
+                    <% } %>
+                    <% if (errorMessage != null) {%>
+                    <div class="alert alert-danger mt-3" role="alert"><%= errorMessage%></div>
+                    <% } %>
+
                     <div class="row">
                         <div class="col-12 grid-margin">
                             <div class="card">
                                 <div class="card-body">
                                     <h4 class="card-title">Student List</h4>
 
-                                    <form id="studentClassForm"> <%-- Add an ID to the form --%>
+                                    <form id="studentClassForm">
                                         <div class="form-group row">
                                             <label for="studentClass" class="col-sm-2 col-form-label">Select Class:</label>
                                             <div class="col-sm-6">
                                                 <select class="form-control" name="studentClass" id="studentClass" required>
                                                     <option value="">-- Select Class --</option>
-                                                    <option value="1 Makkah">1 Makkah</option>
-                                                    <option value="1 Madinah">1 Madinah</option>
-                                                    <option value="2 Makkah">2 Makkah</option>
-                                                    <option value="2 Madinah">2 Madinah</option>
-                                                    <option value="3 Makkah">3 Makkah</option>
-                                                    <option value="3 Madinah">3 Madinah</option>
-                                                    <option value="4 Makkah">4 Makkah</option>
-                                                    <option value="4 Madinah">4 Madinah</option>
-                                                    <option value="5 Makkah">5 Makkah</option>
-                                                    <option value="5 Madinah">5 Madinah</option>
-                                                    <option value="6 Makkah">6 Makkah</option>
-                                                    <option value="6 Madinah">6 Madinah</option>
+                                                    <% String[] classes = {"1 Makkah", "1 Madinah", "2 Makkah", "2 Madinah", "3 Makkah", "3 Madinah", "4 Makkah", "4 Madinah", "5 Makkah", "5 Madinah", "6 Makkah", "6 Madinah"};
+                                                        for (String cls : classes) {%>
+                                                    <option value="<%= cls%>"><%= cls%></option>
+                                                    <% } %>
                                                 </select>
                                             </div>
                                             <div class="col-sm-2">
@@ -389,12 +371,14 @@
                                                     <th> IC Number </th>
                                                     <th> Sport Team </th>
                                                     <th> Uniform Unit </th>
-                                                        
+                                                        <% if (isCurrentUserGuruKelas) { %>
+                                                    <th> Actions </th>
+                                                    <th> Parent Details </th>
+                                                        <% }%>
                                                 </tr>
                                             </thead>
-                                            <tbody id="studentTableBody"> <%-- Add an ID to the tbody --%>
-                                                <tr><td colspan="4">Please select a class to view students.</td></tr>
-
+                                            <tbody id="studentTableBody">
+                                                <tr><td colspan="6">Please select a class to view students.</td></tr>
                                             </tbody>
                                         </table>
                                     </div>
@@ -403,30 +387,30 @@
                         </div>
                     </div>
 
+                    <%-- jQuery and AJAX --%>
                     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
                     <script>
                         $(document).ready(function () {
-                            // Pre-select the class if the user is Guru Kelas and has an assigned class
-                            var isGuruKelas = "<%= isCurrentUserGuruKelas%>"; // Get boolean from JSP
-                            var currentUserKelas = "<%= currentUserKelas%>"; // Get string from JSP
+                            var isGuruKelas = "<%= isCurrentUserGuruKelas%>";
+                            var currentUserKelas = "<%= currentUserKelas%>";
 
                             if (isGuruKelas === "true" && currentUserKelas && currentUserKelas !== "null" && currentUserKelas !== "") {
-                                $('#studentClass').val(currentUserKelas).change(); // Set value and trigger change to load data
+                                $('#studentClass').val(currentUserKelas).change();
                             }
 
                             $('#studentClassForm').submit(function (event) {
-                                event.preventDefault(); // Prevent default form submission
+                                event.preventDefault();
 
                                 var selectedClass = $('#studentClass').val();
                                 var tableBody = $('#studentTableBody');
-                                tableBody.empty(); // Clear existing rows
+                                tableBody.empty();
 
                                 if (selectedClass) {
                                     $.ajax({
-                                        url: '<%= request.getContextPath()%>/StudentListJsonController', // Call the new JSON servlet
+                                        url: '<%= request.getContextPath()%>/StudentListJsonController',
                                         type: 'GET',
                                         data: {studentClass: selectedClass},
-                                        dataType: 'json', // Expect JSON response
+                                        dataType: 'json',
                                         success: function (data) {
                                             if (data && data.length > 0) {
                                                 $.each(data, function (index, student) {
@@ -436,31 +420,48 @@
                                                             '<td>' + student.sportTeam + '</td>' +
                                                             '<td>' + student.uniformUnit + '</td>';
 
-                                                    
+                                                    // Guru Kelas: Show action buttons only for their own class
+                                                    if (isGuruKelas === "true" && selectedClass === currentUserKelas) {
+                                                        // ...
+                                                        row += '<td>' +
+                                                                '<a href="updateStudent.jsp?ic=' + student.icNumber + '" class="btn btn-sm btn-warning mr-1">Update</a>' +
+                                                                // --- MODIFIED LINE ---
+                                                                '<a href="<%= request.getContextPath()%>/teacher/archiveStudent?ic=' + student.icNumber + '" class="btn btn-sm btn-secondary" onclick="return confirm(\'Are you sure you want to archive this student? They will be hidden from the active list.\')">Archive</a>' +
+                                                                '</td>';
+// ...
+                                                        row += '<td>' +
+                                                                '<a href="editParent.jsp?studentIc=' + student.icNumber + '" class="btn btn-sm btn-info">Parent Details</a>' +
+                                                                '</td>';
+                                                    } else if (isGuruKelas === "true") {
+                                                        row += '<td></td><td></td>'; // Blank cells for other classes
+                                                    }
+
                                                     row += '</tr>';
                                                     tableBody.append(row);
                                                 });
                                             } else {
-                                                tableBody.append('<tr><td colspan="4">No students found for selected class.</td></tr>');
-
+                                                tableBody.append('<tr><td colspan="6">No students found for selected class.</td></tr>');
                                             }
                                         },
                                         error: function (jqXHR, textStatus, errorThrown) {
                                             console.log("AJAX error: " + textStatus + ', ' + errorThrown);
-                                            tableBody.append('<tr><td colspan="4">Error loading students.</td></tr>');
-
+                                            tableBody.append('<tr><td colspan="6">Error loading students.</td></tr>');
                                         }
                                     });
                                 } else {
-                                    tableBody.append('<tr><td colspan="<%= isCurrentUserGuruKelas ? "5" : "4"%>">Please select a class to view students.</td></tr>');
+                                    tableBody.append('<tr><td colspan="6">Please select a class to view students.</td></tr>');
                                 }
                             });
-                            // Trigger submission on initial page load if class is pre-selected by Guru Kelas
+
+                            // Trigger load on page if auto-filled
                             if (isGuruKelas === "true" && currentUserKelas && currentUserKelas !== "null" && currentUserKelas !== "") {
                                 $('#studentClassForm').submit();
                             }
                         });
                     </script>
+
+
+
                     <!-- content-wrapper ends -->
                     <!-- partial:../../partials/_footer.html -->
                     <footer class="footer">

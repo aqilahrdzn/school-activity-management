@@ -1,38 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project-private xmlns="http://www.netbeans.org/ns/project-private/1">
-    <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
+    <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="1">
+        <file>
+            <url>web/teacher/createEvent.jsp</url>
+            <bookmark id="1">
+                <name/>
+                <line>335</line>
+                <key/>
+            </bookmark>
+        </file>
+    </editor-bookmarks>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/src/java/controller/StudentListJsonController.java</file>
-            <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/src/java/model/Teacher.java</file>
-            <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/web/clerk/teacherRegistration.jsp</file>
-            <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/src/java/controller/LoginServlet.java</file>
-            <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/web/clerk/studentListCk.jsp</file>
-            <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/web/assets/images/favicon.png</file>
-            <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/web/teacher/teacherdashboard.jsp</file>
-            <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/web/teacher/bookingVenue.jsp</file>
-            <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/src/java/dao/EventParticipantDAO.java</file>
-            <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/web/teacher/editStudent.jsp</file>
-            <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/web/clerk/clerkdashboard.jsp</file>
-            <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/web/assets/images/SKKJ.png</file>
-            <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/web/teacher/createEvent.jsp</file>
-            <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/web/headmaster/viewReport.jsp</file>
-            <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/src/java/controller/EventController.java</file>
-            <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/src/java/dao/ParentDAO.java</file>
-            <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/src/java/controller/StudentRegistrationServlet.java</file>
-            <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/src/java/controller/UploadSuratServlet.java</file>
-            <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/src/java/dao/EventDAO.java</file>
-            <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/src/java/controller/StudentEditController.java</file>
-            <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/web/teacher/eventDetails.jsp</file>
-            <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/src/java/dao/StudentDAO.java</file>
-            <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/web/teacher/eventList.jsp</file>
-            <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/src/java/dao/TeacherDAO.java</file>
-            <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/web/teacher/studentList.jsp</file>
-            <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/web/teacher/studentRegistration.jsp</file>
-            <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/web/teacher/bookingClass.jsp</file>
-            <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/web/parent/studentEvent.jsp</file>
-            <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/src/java/controller/TeacherRegisterServlet.java</file>
-            <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/src/java/controller/UploadEventFileServlet.java</file>
+            <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/web/mainpage.jsp</file>
         </group>
     </open-files>
 </project-private>

@@ -1,9 +1,16 @@
 <%-- 
-    Document   : updateAccCk
-    Created on : May 23, 2025, 10:24:08 AM
+    Document   : updateAccTc
+    Created on : May 23, 2025, 12:26:30 AM
     Author     : Lenovo
 --%>
 
+
+<%@page import="java.sql.SQLException"%>
+<%@page import="java.sql.ResultSet"%>
+<%@page import="java.sql.PreparedStatement"%>
+<%@page import="util.DBConfig"%>
+<%@page import="java.sql.Connection"%>
+<%@page import="dao.TeacherDAO"%>
 <%@page import="model.Teacher"%>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <!DOCTYPE html>
@@ -32,20 +39,52 @@
     </head>
     <body>
         <%
-            Teacher teacher = (Teacher) session.getAttribute("teacher");
+            String email = (String) session.getAttribute("email"); // Retrieve email from session
+
+            TeacherDAO teacherDAO = new TeacherDAO();
+            Teacher teacher = null;
+
+            if (email != null) {
+                teacher = teacherDAO.getTeacherDetails(email); // Pass email to fetch details
+                session.setAttribute("teacher", teacher); // Store in session if needed elsewhere
+            }
+
             if (teacher == null) {
-                response.sendRedirect("../login.jsp");
+                // Redirect to login page if no teacher found
+                response.sendRedirect(request.getContextPath() + "/login.jsp");
                 return;
+            }
+
+            int totalTeachers = 0;
+            int totalStudents = 0;
+
+            try (Connection conn = DBConfig.getConnection()) {
+                // Get total teachers
+                try (PreparedStatement stmt = conn.prepareStatement("SELECT COUNT(*) AS total FROM teachers"); ResultSet rs = stmt.executeQuery()) {
+                    if (rs.next()) {
+                        totalTeachers = rs.getInt("total");
+                    }
+                }
+
+                // Get total students
+                try (PreparedStatement stmt = conn.prepareStatement("SELECT COUNT(*) AS total FROM student"); ResultSet rs = stmt.executeQuery()) {
+                    if (rs.next()) {
+                        totalStudents = rs.getInt("total");
+                    }
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
             }
 
             boolean success = "true".equals(request.getParameter("success"));
         %>
+
         <div class="container-scroller">
             <!-- partial:../../partials/_navbar.html -->
             <nav class="navbar default-layout-navbar col-lg-12 col-12 p-0 fixed-top d-flex flex-row">
                 <div class="text-center navbar-brand-wrapper d-flex align-items-center justify-content-start">
-                    <a class="navbar-brand brand-logo" href="../../index.html"><img src="../../assets/images/logo.svg" alt="logo" /></a>
-                    <a class="navbar-brand brand-logo-mini" href="../../index.html"><img src="../../assets/images/logo-mini.svg" alt="logo" /></a>
+                    <a class="navbar-brand brand-logo" href="teacherdashboard.jsp"><img src="../assets/images/skkj_logo.jpg" width="1000" height="50" alt="logo" /></a>
+                    <a class="navbar-brand brand-logo-mini" href="index.jsp"><img src="../assets/images/logo-mini.svg" alt="logo" /></a>
                 </div>
                 <div class="navbar-menu-wrapper d-flex align-items-stretch">
                     <button class="navbar-toggler navbar-toggler align-self-center" type="button" data-toggle="minimize">
@@ -74,13 +113,10 @@
                                 <div class="dropdown-divider"></div>
                                 <a class="dropdown-item" href="../login.jsp">
                                     <i class="mdi mdi-logout me-2 text-primary"></i> Signout </a>
+
                             </div>
                         </li>
-                        <li class="nav-item d-none d-lg-block full-screen-link">
-                            <a class="nav-link">
-                                <i class="mdi mdi-fullscreen" id="fullscreen-button"></i>
-                            </a>
-                        </li>
+
                         <li class="nav-item dropdown">
                             <a class="nav-link count-indicator dropdown-toggle" id="messageDropdown" href="#" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="mdi mdi-email-outline"></i>
@@ -170,15 +206,11 @@
                             </div>
                         </li>
                         <li class="nav-item nav-logout d-none d-lg-block">
-                            <a class="nav-link" href="#">
+                            <a class="nav-link" href="../login.jsp">
                                 <i class="mdi mdi-power"></i>
                             </a>
                         </li>
-                        <li class="nav-item nav-settings d-none d-lg-block">
-                            <a class="nav-link" href="#">
-                                <i class="mdi mdi-format-line-spacing"></i>
-                            </a>
-                        </li>
+
                     </ul>
                     <button class="navbar-toggler navbar-toggler-right d-lg-none align-self-center" type="button" data-toggle="offcanvas">
                         <span class="mdi mdi-menu"></span>
@@ -190,10 +222,11 @@
                 <!-- partial:../../partials/_sidebar.html -->
                 <nav class="sidebar sidebar-offcanvas" id="sidebar">
                     <ul class="nav">
-                         <li class="nav-item nav-profile">
+                        <li class="nav-item nav-profile">
                             <a href="#" class="nav-link">
                                 <div class="nav-profile-image">
                                     <img src="<%= (teacher != null && teacher.getProfilePicture() != null) ? "../profile_pics/" + teacher.getProfilePicture() : "../assets/images/faces/default.jpg"%>" alt="profile" />
+
                                     <span class="login-status online"></span>
                                 </div>
 
@@ -220,7 +253,6 @@
                                 <ul class="nav flex-column sub-menu">
                                     <li class="nav-item">
                                         <a class="nav-link" href="teacherRegistration.jsp">Teacher Registration</a>
-                                        <a class="nav-link" href="createEvent.jsp">Create Event/Activity</a>
                                         <a class="nav-link" href="addVenue.jsp">Add New Venue</a>
                                         <a class="nav-link" href="updateVenue.jsp">Update Venue Condition</a>
                                         <a class="nav-link" href="updateAccCk.jsp">Update Account</a>
@@ -231,61 +263,17 @@
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" data-bs-toggle="collapse" href="#charts" aria-expanded="false" aria-controls="charts">
-                                <span class="menu-title">Charts</span>
+                                <span class="menu-title">List</span>
                                 <i class="mdi mdi-chart-bar menu-icon"></i>
                             </a>
                             <div class="collapse" id="charts">
                                 <ul class="nav flex-column sub-menu">
                                     <li class="nav-item">
-                                        <a class="nav-link" href="../../pages/charts/chartjs.html">ChartJs</a>
+                                        <a class="nav-link" href="studentListCk.jsp">Student List</a>
+                                        <a class="nav-link" href="teacherList.jsp">Teacher List</a>
                                     </li>
                                 </ul>
                             </div>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" data-bs-toggle="collapse" href="#tables" aria-expanded="false" aria-controls="tables">
-                                <span class="menu-title">Tables</span>
-                                <i class="mdi mdi-table-large menu-icon"></i>
-                            </a>
-                            <div class="collapse" id="tables">
-                                <ul class="nav flex-column sub-menu">
-                                    <li class="nav-item">
-                                        <a class="nav-link" href="../../pages/tables/basic-table.html">Basic table</a>
-                                    </li>
-                                </ul>
-                            </div>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" data-bs-toggle="collapse" href="#auth" aria-expanded="false" aria-controls="auth">
-                                <span class="menu-title">User Pages</span>
-                                <i class="menu-arrow"></i>
-                                <i class="mdi mdi-lock menu-icon"></i>
-                            </a>
-                            <div class="collapse" id="auth">
-                                <ul class="nav flex-column sub-menu">
-                                    <li class="nav-item">
-                                        <a class="nav-link" href="../../pages/samples/blank-page.html"> Blank Page </a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a class="nav-link" href="../../pages/samples/login.html"> Login </a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a class="nav-link" href="../../pages/samples/register.html"> Register </a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a class="nav-link" href="../../pages/samples/error-404.html"> 404 </a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a class="nav-link" href="../../pages/samples/error-500.html"> 500 </a>
-                                    </li>
-                                </ul>
-                            </div>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="../../docs/documentation.html" target="_blank">
-                                <span class="menu-title">Documentation</span>
-                                <i class="mdi mdi-file-document-box menu-icon"></i>
-                            </a>
                         </li>
                     </ul>
                 </nav>
@@ -302,43 +290,75 @@
                             </nav>
                         </div>
                         <div class="row">
-                            <div class="col-md-6 grid-margin stretch-card">
-                                <div class="card">
-                                    <div class="card-body">
-                                        <% if (success) { %>
-                                        <p style="color: green;">Profile updated successfully!</p>
-                                        <% }%>
-                                        <h4 class="card-title">Update Account</h4>
-                                        <form class="forms-sample" action="../UpdateTeacherProfileServlet" method="post" enctype="multipart/form-data">
+    <div class="col-md-6 grid-margin stretch-card">
+        <div class="card">
+            <div class="card-body">
+                <% if (request.getParameter("success") != null) { %>
+                    <p style="color: green;">Profile updated successfully!</p>
+                <% } else if (request.getParameter("error") != null) { %>
+                    <p style="color: red;"><%= request.getParameter("error") %></p>
+                <% } %>
 
-                                            <div class="form-group">
-                                                <label for="name">Name:</label>
-                                                <input type="text" class="form-control" id="name" name="name" value="<%= teacher.getName()%>"required>
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="email">Email:</label>
-                                                <input type="email" class="form-control" id="email" name="email" value="<%= teacher.getEmail()%>" required>
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="profilePic">Profile Picture:</label>
+                <h4 class="card-title">Update Account</h4>
+                <form class="forms-sample" action="../UpdateClerkProfileServlet" method="post" enctype="multipart/form-data" autocomplete="off">
 
-                                                <input type="file" class="form-control" id="profilePic" name="profilePic" accept="image/*"  required>
-                                            </div>
+                    <!-- View-only Name -->
+                    <div class="form-group">
+                        <label for="name">Name:</label>
+                        <input type="text" class="form-control" id="name" name="name" value="<%= teacher.getName() %>" readonly>
+                    </div>
 
-                                            <% if (teacher.getProfilePicture() != null) {%>
-                                            <img src="profile_pics/<%= teacher.getProfilePicture()%>" width="100" height="100" alt="Profile Picture" />
-                                            <% } else { %>
-                                            <img src="assets/images/faces/default.jpg" width="100" height="100" alt="Default Picture" />
-                                            <% }%>
+                    <!-- Editable Phone Number -->
+                    <div class="form-group">
+                        <label for="phone">Phone Number:</label>
+                        <input type="text" class="form-control" id="phone" name="phone" value="<%= teacher.getContactNumber() %>" required>
+                    </div>
 
-                                            <button type="submit" class="btn btn-gradient-primary me-2">Update Account</button>
+                    <!-- Editable Email -->
+                    <div class="form-group">
+                        <label for="email">Email:</label>
+                        <input type="email" class="form-control" id="email" name="email" value="<%= teacher.getEmail() %>" required>
+                    </div>
 
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
+                    <!-- Old Password (required if new password is filled) -->
+                    <div class="form-group">
+                        <label for="oldPassword">Old Password:</label>
+                        <input type="password" class="form-control" id="oldPassword" name="oldPassword" placeholder="Enter your current password">
+                    </div>
 
-                        </div>
+                    <!-- New Password -->
+                    <div class="form-group">
+                        <label for="newPassword">New Password:</label>
+                        <input type="password" class="form-control" id="newPassword" name="newPassword" placeholder="Enter new password">
+                    </div>
+
+                    <!-- Confirm New Password -->
+                    <div class="form-group">
+                        <label for="confirmPassword">Confirm New Password:</label>
+                        <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" placeholder="Re-enter new password">
+                    </div>
+
+                    <!-- Profile Picture Upload -->
+                    <div class="form-group">
+                        <label for="profilePic">Profile Picture:</label>
+                        <input type="file" class="form-control" id="profilePic" name="profilePic" accept="image/*">
+                    </div>
+
+                    <!-- Show Existing Picture -->
+                    <% if (teacher.getProfilePicture() != null) { %>
+                        <img src="profile_pics/<%= teacher.getProfilePicture() %>" width="100" height="100" alt="Profile Picture" />
+                    <% } else { %>
+                        <img src="assets/images/faces/default.jpg" width="100" height="100" alt="Default Picture" />
+                    <% } %>
+
+                    <button type="submit" class="btn btn-gradient-primary me-2">Update Account</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
                     </div>
                     <!-- content-wrapper ends -->
                     <!-- partial:../../partials/_footer.html -->
@@ -376,5 +396,4 @@
         <!-- End custom js for this page -->
     </body>
 </html>
-
 

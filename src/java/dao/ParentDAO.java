@@ -180,5 +180,30 @@ public class ParentDAO {
         }
         return result;
     }
+    public Parent getParentByStudentIc(String studentIc) {
+    Parent parent = null;
+    String sql = "SELECT p.* FROM parent p " +
+                 "JOIN student s ON p.id = s.parent_id " +
+                 "WHERE s.ic_number = ?";
+    try (Connection conn = DBConfig.getConnection();
+         PreparedStatement stmt = conn.prepareStatement(sql)) {
+        stmt.setString(1, studentIc);
+        try (ResultSet rs = stmt.executeQuery()) {
+            if (rs.next()) {
+                parent = new Parent();
+                parent.setId(rs.getInt("id"));
+                parent.setName(rs.getString("name"));
+                parent.setEmail(rs.getString("email"));
+                parent.setPassword(rs.getString("password"));
+                parent.setContactNumber(rs.getString("contact_number"));
+                parent.setIcNumber(rs.getString("ic_number"));
+                parent.setProfilePicture(rs.getString("profile_picture"));
+            }
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+    return parent;
+}
 
 }
