@@ -7,6 +7,7 @@ package controller;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -23,6 +24,7 @@ import util.DBConfig;
  */
 @WebServlet("/ViewResitServlet")
 public class ViewResitServlet extends HttpServlet {
+    @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String eventId = request.getParameter("event_id");
         String parentId = request.getParameter("parent_id");
@@ -39,30 +41,42 @@ public class ViewResitServlet extends HttpServlet {
                 InputStream fileContent = rs.getBinaryStream("resit_blob");
                 String fileName = rs.getString("resit_file");
 
-                String mimeType = getServletContext().getMimeType(fileName);
-                if (mimeType == null) {
-                    mimeType = "application/octet-stream";
+                if (fileContent != null) {
+                    // Try to detect MIME type from file name or fallback
+                    String mimeType = getServletContext().getMimeType(fileName);
+                    if (mimeType == null) {
+                        mimeType = "application/octet-stream";
+                    }
+
+                    response.setContentType(mimeType);
+                    response.setHeader("Content-Disposition", "inline; filename=\"" + (fileName != null ? fileName : "resit.pdf") + "\"");
+
+                    OutputStream out = response.getOutputStream();
+                    byte[] buffer = new byte[4096];
+                    int bytesRead;
+
+                    while ((bytesRead = fileContent.read(buffer)) != -1) {
+                        out.write(buffer, 0, bytesRead);
+                    }
+
+                    fileContent.close();
+                    out.flush();
+                } else {
+                    // BLOB is null
+                    response.setContentType("text/html");
+                    PrintWriter out = response.getWriter();
+                    out.println("<h3>Resit BLOB not found in database.</h3>");
                 }
-
-                response.setContentType(mimeType);
-                response.setHeader("Content-Disposition", "inline; filename=\"" + fileName + "\"");
-
-                OutputStream out = response.getOutputStream();
-                byte[] buffer = new byte[4096];
-                int bytesRead;
-
-                while ((bytesRead = fileContent.read(buffer)) != -1) {
-                    out.write(buffer, 0, bytesRead);
-                }
-
-                fileContent.close();
-                out.flush();
             } else {
-                response.getWriter().write("Resit file not found.");
+                response.setContentType("text/html");
+                PrintWriter out = response.getWriter();
+                out.println("<h3>Resit not found for this event and parent.</h3>");
             }
         } catch (Exception e) {
             e.printStackTrace();
-            response.getWriter().write("Error loading resit file.");
+            response.setContentType("text/html");
+            PrintWriter out = response.getWriter();
+            out.println("<h3>Error loading resit file: " + e.getMessage() + "</h3>");
         }
     }
 }

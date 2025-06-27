@@ -79,7 +79,8 @@
 
             // Retrieve events
             List<Map<String, String>> events = new ArrayList<>();
-            String eventQuery = "SELECT id, title, description, start_time, end_time, target_class, status FROM events WHERE created_by = ?";
+            String eventError = (String) request.getAttribute("eventError");
+            String eventQuery = "SELECT id, title, description, start_time, end_time, target_class, status, category FROM events WHERE created_by = ?";
 
             try (Connection connection = DBConfig.getConnection(); PreparedStatement eventStmt = connection.prepareStatement(eventQuery)) {
 
@@ -94,6 +95,8 @@
                         event.put("end_time", rs.getString("end_time"));
                         event.put("target_class", rs.getString("target_class"));
                         event.put("status", rs.getString("status"));
+                        event.put("category", rs.getString("category"));  // <-- Add this line
+
                         events.add(event);
                     }
                 }
@@ -101,6 +104,8 @@
                 request.setAttribute("eventError", "Error retrieving event data: " + e.getMessage());
             }
         %>
+
+
         <div class="container-scroller">
             <!-- partial:../../partials/_navbar.html -->
             <nav class="navbar default-layout-navbar col-lg-12 col-12 p-0 fixed-top d-flex flex-row">
@@ -138,7 +143,7 @@
 
                             </div>
                         </li>
-                       
+
                         <li class="nav-item dropdown">
                             <a class="nav-link count-indicator dropdown-toggle" id="messageDropdown" href="#" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="mdi mdi-email-outline"></i>
@@ -232,7 +237,7 @@
                                 <i class="mdi mdi-power"></i>
                             </a>
                         </li>
-                        
+
                     </ul>
                     <button class="navbar-toggler navbar-toggler-right d-lg-none align-self-center" type="button" data-toggle="offcanvas">
                         <span class="mdi mdi-menu"></span>
@@ -278,7 +283,7 @@
                                         <a class="nav-link" href="createEvent.jsp">Create Event/Activity</a>
                                         <a class="nav-link" href="bookingClass.jsp">Booking Event Venue</a>
                                         <a class="nav-link" href="updateAccTc.jsp">Update Account</a>
-                                       
+
                                     </li>
                                 </ul>
                             </div>
@@ -297,7 +302,7 @@
                                 </ul>
                             </div>
                         </li>
-                        
+
                     </ul>
                 </nav>
                 <!-- partial -->
@@ -319,54 +324,88 @@
                             <div class="card">
                                 <div class="card-body">
                                     <h4 class="card-title">Event List</h4>
+
+                                    <%-- Display success/error messages from redirects --%>
+                                    <% if ("created".equals(request.getParameter("status"))) { %>
+                                    <div class="alert alert-success">Event created successfully.</div>
+                                    <% } else if ("updated".equals(request.getParameter("status"))) { %>
+                                    <div class="alert alert-success">Event updated successfully.</div>
+                                    <% } else if ("deleted".equals(request.getParameter("status"))) { %>
+                                    <div class="alert alert-success">Event deleted successfully.</div>
+                                    <% } %>
+
                                     <div class="table-responsive">
                                         <table class="table">
                                             <thead>
                                                 <tr>
-                                                    <th> Title </th>
-                                                    <th> Description </th>
-                                                    <th> Status </th>
-                                                    <th> Start Time </th>
-                                                    <th> Pre-Event </th>
-                                                    <th> Approval </th>
-                                                    <th> Post-Event </th>
+                                                    <th>Title</th>
+                                                    <th>Status</th>
+                                                    <th>Start Time</th>
+                                                    <th>Approval</th>
+                                                    <th>Post-Event</th>
+                                                    <th>Manage</th>  <%-- NEW COLUMN --%>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 <%
-                                                    if (request.getAttribute("eventError") != null) {
+                                                    if (eventError != null) {
                                                 %>
-                                                <tr><td colspan="6"><%= request.getAttribute("eventError")%></td></tr>
+                                                <tr><td colspan="7"><%= eventError%></td></tr>
                                                     <%
-                                                    } else {
+                                                    } else if (events != null && !events.isEmpty()) {
                                                         for (Map<String, String> event : events) {
                                                     %>
                                                 <tr>
                                                     <td><%= event.get("title")%></td>
-                                                    <td><%= event.get("description")%></td>
-                                                    <td><%= event.get("status").toUpperCase()%></td>
+                                                    <td><label class="badge badge-gradient-success"><%= event.get("status").toUpperCase()%></label></td>
                                                     <td><%= event.get("start_time")%></td>
+
                                                     <td>
-                                                        <form method="post" action="sendApproval.jsp" style="display:inline;">
-                                                            <input type="hidden" name="eventId" value="<%= event.get("id")%>" />
-                                                            <button type="submit" class="btn btn-sm btn-primary">Pre-Event</button>
-                                                        </form>
-                                                    </td>
-                                                    <td>
+                                                        <%-- This form remains as you had it --%>
                                                         <form method="post" action="parentApprovals.jsp" style="display:inline;">
                                                             <input type="hidden" name="eventId" value="<%= event.get("id")%>" />
-                                                            <button type="submit" class="btn btn-sm btn-primary">Approval List</button>
+                                                            <button type="submit" class="btn btn-sm btn-info">Approval List</button>
                                                         </form>
                                                     </td>
                                                     <td>
+                                                        <%-- This form remains as you had it --%>
                                                         <form method="post" action="eventDetails.jsp" style="display:inline;">
                                                             <input type="hidden" name="eventId" value="<%= event.get("id")%>" />
-                                                            <button type="submit" class="btn btn-sm btn-primary">Post-Event</button>
+                                                            <button type="submit" class="btn btn-sm btn-dark">Post-Event</button>
                                                         </form>
                                                     </td>
+                                                    <td>
+                                                        <a href="editEvent.jsp?eventId=<%= event.get("id")%>" class="btn btn-sm btn-warning">Edit</a>
+
+                                                        <form method="post" action="EventController" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this event? This cannot be undone.');">
+                                                            <input type="hidden" name="action" value="delete">
+                                                            <input type="hidden" name="eventId" value="<%= event.get("id")%>" />
+                                                            <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                                                        </form>
+
+                                                        <%
+                                                            String category = (String) event.get("category");
+                                                            if ("external".equalsIgnoreCase(category) || "payment".equalsIgnoreCase(category)) {
+                                                        %>
+                                                        <a href="<%= request.getContextPath()%>/SendConfirmationLetterController?eventId=<%= event.get("id")%>" 
+                                                           class="btn btn-sm btn-success" 
+                                                           onclick="return confirm('This will regenerate and send the confirmation letter to all parents. Continue?');">
+                                                            Send Letter
+                                                        </a>
+                                                        <%
+                                                            }
+                                                        %>
+
+
+                                                    </td>
+
                                                 </tr>
                                                 <%
-                                                        }
+                                                    }
+                                                } else {
+                                                %>
+                                                <tr><td colspan="7">No events found.</td></tr>
+                                                <%
                                                     }
                                                 %>
                                             </tbody>

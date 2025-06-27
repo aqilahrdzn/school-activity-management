@@ -1,24 +1,22 @@
 <%-- 
-    Document   : bookingClass
-    Created on : May 6, 2025, 9:01:23 PM
+    Document   : editEventDetails
+    Created on : Jun 27, 2025, 1:27:59 AM
+    Author     : Lenovo
+--%>
+<%-- 
+    Document   : updateAccTc
+    Created on : May 23, 2025, 12:26:30 AM
     Author     : Lenovo
 --%>
 
-<%@page import="model.Teacher"%>
-<%@page import="dao.TeacherDAO"%>
+
 <%@page import="java.sql.SQLException"%>
 <%@page import="java.sql.ResultSet"%>
 <%@page import="java.sql.PreparedStatement"%>
 <%@page import="util.DBConfig"%>
 <%@page import="java.sql.Connection"%>
-<%@page import="model.Classroom"%>
-<%@page import="dao.ClassroomDAO"%>
-<%@page import="java.text.SimpleDateFormat"%>
-<%@page import="java.util.ArrayList"%>
-<%@page import="java.sql.Timestamp"%>
-<%@page import="java.util.List"%>
-<%@page import="dao.EventDAO"%>
-<%@page import="model.Event"%>
+<%@page import="dao.TeacherDAO"%>
+<%@page import="model.Teacher"%>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <!DOCTYPE html>
 <html lang="en">
@@ -43,7 +41,6 @@
         <link rel="stylesheet" href="../assets/css/style.css">
         <!-- End layout styles -->
         <link rel="shortcut icon" href="../assets/images/favicon.png" />
-
     </head>
     <body>
         <%
@@ -54,13 +51,57 @@
 
             if (email != null) {
                 teacher = teacherDAO.getTeacherDetails(email); // Pass email to fetch details
+                session.setAttribute("teacher", teacher); // Store in session if needed elsewhere
             }
 
-            // Add a check to handle cases where teacher is null (e.g., not logged in)
             if (teacher == null) {
-                // Redirect to login page or display an error message
+                // Redirect to login page if no teacher found
                 response.sendRedirect(request.getContextPath() + "/login.jsp");
-                return; // Stop further processing of this JSP
+                return;
+            }
+
+            int totalTeachers = 0;
+            int totalStudents = 0;
+
+            try (Connection conn = DBConfig.getConnection()) {
+                // Get total teachers
+                try (PreparedStatement stmt = conn.prepareStatement("SELECT COUNT(*) AS total FROM teachers"); ResultSet rs = stmt.executeQuery()) {
+                    if (rs.next()) {
+                        totalTeachers = rs.getInt("total");
+                    }
+                }
+
+                // Get total students
+                try (PreparedStatement stmt = conn.prepareStatement("SELECT COUNT(*) AS total FROM student"); ResultSet rs = stmt.executeQuery()) {
+                    if (rs.next()) {
+                        totalStudents = rs.getInt("total");
+                    }
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+
+            boolean success = "true".equals(request.getParameter("success"));
+        %>
+        <%
+            String eventId = request.getParameter("eventId");
+            String eventTitle = "";
+            String uploadedDescription = "";
+
+            if (eventId != null && !eventId.isEmpty()) {
+                try (Connection con = DBConfig.getConnection(); PreparedStatement stmt = con.prepareStatement("SELECT e.title, eu.description FROM events e LEFT JOIN event_uploads eu ON e.id = eu.event_id WHERE e.id = ? LIMIT 1")) {
+                    stmt.setInt(1, Integer.parseInt(eventId));
+                    ResultSet rs = stmt.executeQuery();
+                    if (rs.next()) {
+                        eventTitle = rs.getString("title");
+                        uploadedDescription = rs.getString("description") != null ? rs.getString("description") : "";
+                    }
+                } catch (Exception e) {
+                    out.println("Error loading data: " + e.getMessage());
+                }
+            } else {
+                out.println("<p style='color:red;'>Event ID missing.</p>");
+                return;
             }
         %>
 
@@ -191,7 +232,7 @@
                             </div>
                         </li>
                         <li class="nav-item nav-logout d-none d-lg-block">
-                            <a class="nav-link" href="#">
+                            <a class="nav-link" href="../login.jsp">
                                 <i class="mdi mdi-power"></i>
                             </a>
                         </li>
@@ -260,76 +301,9 @@
                                 </ul>
                             </div>
                         </li>
-
                     </ul>
                 </nav>
                 <!-- partial -->
-                <%@ page import="java.sql.*, java.util.*, dao.ClassroomDAO, dao.EventDAO, model.Event, model.Classroom" %>
-                <%
-                    Event preselectedEvent = null;
-
-                    Integer eventId = (Integer) session.getAttribute("eventId");
-                    if (eventId != null) {
-                        EventDAO eventDAO = new EventDAO();
-                        preselectedEvent = eventDAO.getEventById(eventId);
-                    }
-
-                    String eventTitle = (String) session.getAttribute("eventTitle");
-                    String eventStart = (String) session.getAttribute("eventStartTime");
-                    String eventEnd = (String) session.getAttribute("eventEndTime");
-
-                    boolean buttonEnabled = (eventTitle != null && !eventTitle.isEmpty()
-                            && eventStart != null && !eventStart.isEmpty()
-                            && eventEnd != null && !eventEnd.isEmpty());
-
-                    String teacherEmail = (String) session.getAttribute("email");
-                    EventDAO eventDAO = new EventDAO();
-                    List<Event> myEvents = eventDAO.getEventsByCreator(teacherEmail);
-
-                    int calculatedDuration = 0;
-                    if (eventStart != null && eventEnd != null) {
-                        try {
-                            java.time.LocalDateTime start = java.time.LocalDateTime.parse(eventStart);
-                            java.time.LocalDateTime end = java.time.LocalDateTime.parse(eventEnd);
-                            java.time.Duration durationBetween = java.time.Duration.between(start, end);
-                            calculatedDuration = (int) durationBetween.toMinutes();
-                        } catch (Exception e) {
-                            out.println("<p style='color:red;'>Error parsing date/time: " + e.getMessage() + "</p>");
-                        }
-                    }
-
-                    String startParam = request.getParameter("eventStart");
-                    String durationParam = request.getParameter("duration");
-                    String eventIdParam = request.getParameter("eventId");
-//                    out.println(startParam);
-                    Timestamp startTime = null;
-                    int duration = 0;
-                    String formattedStart = "";
-                    List<Classroom> available = new ArrayList<>();
-
-                    if (startParam != null && durationParam != null && eventIdParam != null) {
-                        if (startParam != null && startParam.contains("T")) {
-                            startTime = Timestamp.valueOf(startParam.replace("T", " ") + ":00");
-                        } else {
-                            out.println("<p style='color:red;'>Invalid start time format: " + startParam + "</p>");
-                        }
-                        try {
-                            startTime = Timestamp.valueOf(startParam.replace("T", " ") + ":00");
-                            duration = Integer.parseInt(durationParam);
-                            Timestamp endTime = new Timestamp(startTime.getTime() + duration * 60 * 1000);
-                            formattedStart = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(startTime);
-
-                            ClassroomDAO dao = new ClassroomDAO();
-                            available = dao.getAvailableClassrooms(startTime, endTime);
-                        } catch (Exception e) {
-                            out.println("<p style='color:red;'>Error fetching available classrooms: " + e.getMessage() + "</p>");
-                        }
-                    }
-                %>
-
-
-
-
                 <div class="main-panel">
                     <div class="content-wrapper">
                         <div class="page-header">
@@ -341,127 +315,38 @@
                                 </ol>
                             </nav>
                         </div>
-                        <div class="row">
-                            <div class="col-md-6 grid-margin stretch-card">
-                                <div class="card">
-                                    <div class="card-body">
+                        <div class="card">
+                            <div class="card-body">
+                                <h4 class="card-title">Edit Event Details</h4>
 
-                                        <h4 class="card-title">Book Event Venue</h4>
-                                        <form class="forms-sample" action="bookingClass.jsp" method="get">
+                                <form class="forms-sample" method="post" action="<%= request.getContextPath()%>/UploadEventFileServlet" enctype="multipart/form-data">
+                                    <input type="hidden" name="eventId" value="<%= eventId%>">
 
-                                            <div class="form-group">
-
-
-                                                <% if (eventTitle != null && eventStart != null && eventEnd != null) {%>
-                                                <div class="form-group">
-
-                                                    <p><strong>Title:</strong> <%= eventTitle%></p>
-                                                    <p><strong>Start Time:</strong> <%= eventStart%></p>
-                                                    <p><strong>End Time:</strong> <%= eventEnd%></p>
-                                                    <!-- Hidden inputs to send values in the request -->
-                                                    <input type="hidden" name="eventTitle" value="<%= eventTitle%>" />
-                                                    <input type="datetime-local" name="eventStart" value="<%= eventStart%>" readonly />
-                                                    <input type="hidden" name="eventEndTime" value="<%= eventEnd%>" />
-                                                    <input type="hidden" name="eventId" value="<%= (eventId != null) ? eventId : ""%>" />
-
-                                                </div>
-                                                <% } else { %>
-                                                <p style="color:orange;">No recent event found in session.</p>
-                                                <% }%>
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="duration">Duration (minutes):</label>
-                                                <input type="number" name="duration" id="duration" min="1"
-                                                       value="<%= (durationParam != null) ? durationParam : calculatedDuration%>" 
-                                                       readonly />
-                                                <input type="hidden" value="<%= (durationParam != null) ? durationParam : calculatedDuration%>">
-                                            </div>
-                                            <br><br>
-                                            <input type="submit" value="Find Available Classrooms" <%= buttonEnabled ? "" : "disabled"%> />
-
-
-                                        </form> 
-
-                                        <% if (available != null && !available.isEmpty()) { %>
-                                        <!-- Step 1: Classroom Selection -->
-                                        <div class="form-group">
-                                            <form id="selectForm">
-                                                <label for="classroomSelect">Select Classroom:</label>
-                                                <select name="classroomId" id="classroomSelect" required>
-                                                    <% for (Classroom c : available) {%>
-                                                    <option value="<%= c.getId()%>"><%= c.getName()%></option>
-                                                    <% }%>
-                                                </select>
-                                                <br><br>
-                                                <button type="button" onclick="showConfirmation()">Continue</button>
-                                            </form>
-                                        </div>
-
-                                        <div class="form-group">
-                                            <form id="confirmationForm" method="post" action="../classroom" style="display:none;">
-                                                <input type="hidden" name="startTime" value="<%= formattedStart%>"/>
-                                                <input type="hidden" name="duration" value="<%= duration%>"/>
-                                                <input type="hidden" name="classroomId" id="hiddenClassroomId"/>
-                                                <input type="hidden" name="eventId" value="<%= eventIdParam%>"/>
-
-                                                <p><strong>Classroom:</strong> <span id="confirmClassroomName"></span></p>
-                                                <p><strong>Start Time:</strong> <%= formattedStart%></p>
-                                                <p><strong>Duration:</strong> <%= duration%> minutes</p>
-
-                                                <input type="submit" value="Confirm Booking"/>
-                                                <button type="button" onclick="cancelConfirmation()">Cancel</button>
-                                            </form>
-                                        </div>
-
-                                        <% } else if (startParam != null && durationParam != null && eventIdParam != null) { %>
-                                        <p style="color:orange;">No classrooms available during that time.</p>
-                                        <% }%>
-
-
-
+                                    <div class="form-group">
+                                        <label>Event Title</label>
+                                        <input type="text" class="form-control" value="<%= eventTitle%>" readonly>
                                     </div>
-                                </div>
+
+                                    <div class="form-group">
+                                        <label>Replace Uploaded Files</label>
+                                        <input type="file" name="eventFile" class="form-control" multiple>
+                                        <small class="form-text text-muted">Leave empty if you don't want to change existing files.</small>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>Edit Description</label>
+                                        <textarea name="description" class="form-control" rows="4"><%= uploadedDescription%></textarea>
+                                    </div>
+
+                                    <button type="submit" class="btn btn-gradient-primary">Update</button>
+                                    <a href="eventDetails.jsp?eventId=<%= eventId%>" class="btn btn-light">Cancel</a>
+                                </form>
                             </div>
                         </div>
+
+
+
                     </div>
-
-
-                    <script>
-                        window.addEventListener("DOMContentLoaded", () => {
-                            const input = document.getElementById("startTime");
-                            if (input) {
-                                const now = new Date();
-                                now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-                                input.min = now.toISOString().slice(0, 16);
-                            }
-                        });
-
-                        function showConfirmation() {
-                            const select = document.getElementById("classroomSelect");
-                            if (!select || select.selectedIndex === -1)
-                                return;
-
-                            const selected = select.options[select.selectedIndex];
-                            if (!selected)
-                                return;
-
-                            // Update confirmation form fields
-                            document.getElementById("confirmClassroomName").textContent = selected.text;
-                            document.getElementById("hiddenClassroomId").value = selected.value;
-
-                            // Toggle form visibility
-                            document.getElementById("selectForm").style.display = "none";
-                            document.getElementById("confirmationForm").style.display = "block";
-                        }
-
-                        function cancelConfirmation() {
-                            // Hide confirmation form and show classroom selection again
-                            document.getElementById("confirmationForm").reset(); // optional: resets hidden fields
-                            document.getElementById("confirmationForm").style.display = "none";
-                            document.getElementById("selectForm").style.display = "block";
-                        }
-                    </script>
-
                     <!-- content-wrapper ends -->
                     <!-- partial:../../partials/_footer.html -->
                     <footer class="footer">
@@ -498,3 +383,6 @@
         <!-- End custom js for this page -->
     </body>
 </html>
+
+
+

@@ -265,6 +265,45 @@ public void insertEventParticipant(int eventId, String studentIC) {
     }
 
 }
+public boolean deleteEventById(int eventId) {
+    String sql = "DELETE FROM events WHERE id = ?";
+    try (Connection conn = DBConfig.getConnection();
+         PreparedStatement stmt = conn.prepareStatement(sql)) {
+        stmt.setInt(1, eventId);
+        return stmt.executeUpdate() > 0;
+    } catch (SQLException e) {
+        e.printStackTrace();
+        return false;
+    }
+}
+public boolean updateEvent(Event event) {
+    String sql = "UPDATE events SET category = ?, title = ?, description = ?, start_time = ?, end_time = ?, time_zone = ?, payment_amount = ? WHERE id = ?";
+    try (Connection conn = DBConfig.getConnection();
+         PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+        stmt.setString(1, event.getCategory());
+        stmt.setString(2, event.getTitle());
+        stmt.setString(3, event.getDescription());
+        stmt.setString(4, event.getStartTime());
+        stmt.setString(5, event.getEndTime());
+        stmt.setString(6, event.getTimeZone());
+
+        if (event.getPaymentAmount() > 0) {
+            stmt.setDouble(7, event.getPaymentAmount());
+        } else {
+            stmt.setNull(7, java.sql.Types.DECIMAL);
+        }
+
+        stmt.setInt(8, Integer.parseInt(event.getId()));  // assuming getId() returns a String
+        return stmt.executeUpdate() > 0;
+
+    } catch (SQLException e) {
+        e.printStackTrace();
+        return false;
+    }
+}
+
+
 
 
 }

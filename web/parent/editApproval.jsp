@@ -1,24 +1,24 @@
 <%-- 
-    Document   : bookingClass
-    Created on : May 6, 2025, 9:01:23 PM
+    Document   : editApproval
+    Created on : Jun 27, 2025, 12:56:56 AM
+    Author     : Lenovo
+--%>
+<%-- 
+    Document   : approvalParent
+    Created on : May 25, 2025, 2:39:25 PM
     Author     : Lenovo
 --%>
 
-<%@page import="model.Teacher"%>
-<%@page import="dao.TeacherDAO"%>
-<%@page import="java.sql.SQLException"%>
+<%@page import="model.Parent"%>
 <%@page import="java.sql.ResultSet"%>
 <%@page import="java.sql.PreparedStatement"%>
-<%@page import="util.DBConfig"%>
 <%@page import="java.sql.Connection"%>
-<%@page import="model.Classroom"%>
-<%@page import="dao.ClassroomDAO"%>
-<%@page import="java.text.SimpleDateFormat"%>
-<%@page import="java.util.ArrayList"%>
-<%@page import="java.sql.Timestamp"%>
+
+<%@page import="model.Student"%>
 <%@page import="java.util.List"%>
-<%@page import="dao.EventDAO"%>
-<%@page import="model.Event"%>
+
+
+<%@page import="util.DBConfig"%>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <!DOCTYPE html>
 <html lang="en">
@@ -43,33 +43,107 @@
         <link rel="stylesheet" href="../assets/css/style.css">
         <!-- End layout styles -->
         <link rel="shortcut icon" href="../assets/images/favicon.png" />
-
     </head>
     <body>
+        <%@ page import="java.sql.*, model.Parent, util.DBConfig" %>
         <%
-            String email = (String) session.getAttribute("email"); // Retrieve email from session
-
-            TeacherDAO teacherDAO = new TeacherDAO();
-            Teacher teacher = null;
-
-            if (email != null) {
-                teacher = teacherDAO.getTeacherDetails(email); // Pass email to fetch details
+            Parent parent = (Parent) session.getAttribute("parent");
+            if (parent == null) {
+                response.sendRedirect("../login.jsp");
+                return;
             }
 
-            // Add a check to handle cases where teacher is null (e.g., not logged in)
-            if (teacher == null) {
-                // Redirect to login page or display an error message
-                response.sendRedirect(request.getContextPath() + "/login.jsp");
-                return; // Stop further processing of this JSP
+            boolean success = "true".equals(request.getParameter("success"));
+
+            String eventTitle = request.getParameter("eventTitle");
+            String studentIc = request.getParameter("studentIc");
+
+            if (eventTitle == null || studentIc == null) {
+                out.println("<p style='color:red;'>Error: Missing event title or student IC.</p>");
+                return;
+            }
+
+            Connection con = null;
+            PreparedStatement ps = null;
+            ResultSet rs = null;
+
+            int eventId = -1;
+            int parentId = -1;
+            String eventCategory = null;
+            String status = "", reason = "", resitPath = "";
+            boolean alreadySubmitted = false;
+            boolean hasResit = false;
+
+            try {
+                con = DBConfig.getConnection();
+
+                // Get parent_id from student
+                ps = con.prepareStatement("SELECT parent_id FROM student WHERE ic_number = ?");
+                ps.setString(1, studentIc);
+                rs = ps.executeQuery();
+                if (rs.next()) {
+                    parentId = rs.getInt("parent_id");
+                } else {
+                    out.println("<p style='color:red;'>Error: No parent found for this student.</p>");
+                    return;
+                }
+                rs.close();
+                ps.close();
+
+                // Get event_id and category
+                ps = con.prepareStatement("SELECT id, category FROM events WHERE title = ?");
+                ps.setString(1, eventTitle);
+                rs = ps.executeQuery();
+                if (rs.next()) {
+                    eventId = rs.getInt("id");
+                    eventCategory = rs.getString("category");
+                } else {
+                    out.println("<p style='color:red;'>Error: Event not found.</p>");
+                    return;
+                }
+                rs.close();
+                ps.close();
+
+                // Check if already submitted and fetch existing data
+                ps = con.prepareStatement(
+                        "SELECT status, reason, resit_file FROM parent_approval WHERE event_id = ? AND parent_id = ?"
+                );
+                ps.setInt(1, eventId);
+                ps.setInt(2, parentId);
+                rs = ps.executeQuery();
+                if (rs.next()) {
+                    alreadySubmitted = true;
+                    status = rs.getString("status");
+                    reason = rs.getString("reason");
+                    resitPath = rs.getString("resit_file");
+                    hasResit = resitPath != null && !resitPath.trim().isEmpty();
+                }
+            } catch (Exception e) {
+                out.println("<p style='color:red;'>Database error: " + e.getMessage() + "</p>");
+                return;
+            } finally {
+                if (rs != null) try {
+                    rs.close();
+                } catch (Exception e) {
+                }
+                if (ps != null) try {
+                    ps.close();
+                } catch (Exception e) {
+                }
+                if (con != null) try {
+                    con.close();
+                } catch (Exception e) {
+                }
             }
         %>
+
 
         <div class="container-scroller">
             <!-- partial:../../partials/_navbar.html -->
             <nav class="navbar default-layout-navbar col-lg-12 col-12 p-0 fixed-top d-flex flex-row">
                 <div class="text-center navbar-brand-wrapper d-flex align-items-center justify-content-start">
-                    <a class="navbar-brand brand-logo" href="teacherdashboard.jsp"><img src="../assets/images/skkj_logo.jpg" width="1000" height="50" alt="logo" /></a>
-                    <a class="navbar-brand brand-logo-mini" href="index.jsp"><img src="../assets/images/logo-mini.svg" alt="logo" /></a>
+                    <a class="navbar-brand brand-logo" href="parentdashboard.jsp"><img src="../assets/images/skkj_logo.jpg" width="1000" height="50" alt="logo" /></a>
+                    <a class="navbar-brand brand-logo-mini" href="../../index.html"><img src="../../assets/images/logo-mini.svg" alt="logo" /></a>
                 </div>
                 <div class="navbar-menu-wrapper d-flex align-items-stretch">
                     <button class="navbar-toggler navbar-toggler align-self-center" type="button" data-toggle="minimize">
@@ -89,7 +163,7 @@
                         <li class="nav-item nav-profile dropdown">
                             <a class="nav-link dropdown-toggle" id="profileDropdown" href="#" data-bs-toggle="dropdown" aria-expanded="false">
                                 <div class="nav-profile-text">
-                                    <p class="mb-1 text-black"><%= teacher.getName()%></p>
+                                    <p class="mb-1 text-black"><%= parent.getName()%></p>
                                 </div>
                             </a>
                             <div class="dropdown-menu navbar-dropdown" aria-labelledby="profileDropdown">
@@ -191,7 +265,7 @@
                             </div>
                         </li>
                         <li class="nav-item nav-logout d-none d-lg-block">
-                            <a class="nav-link" href="#">
+                            <a class="nav-link" href="../login.jsp">
                                 <i class="mdi mdi-power"></i>
                             </a>
                         </li>
@@ -210,16 +284,15 @@
                         <li class="nav-item nav-profile">
                             <a href="#" class="nav-link">
                                 <div class="nav-profile-image">
-                                    <img src="<%= (teacher != null && teacher.getProfilePicture() != null) ? "../profile_pics/" + teacher.getProfilePicture() : "../assets/images/faces/default.jpg"%>" alt="profile" />
-
+                                    <img src="<%= (parent != null && parent.getProfilePicture() != null) ? "../profile_pics/" + parent.getProfilePicture() : "../assets/images/faces/default.jpg"%>" alt="profile" />
                                     <span class="login-status online"></span>
                                 </div>
 
                                 <div class="nav-profile-text d-flex flex-column">
-                                    <span class="font-weight-bold mb-2"><%= teacher.getName()%></span>
-                                    <span class="text-secondary text-small"><%= teacher.getRole()%></span>
+                                    <span class="font-weight-bold mb-2"><%= parent != null ? parent.getName() : "Parent"%></span>
+                                    <span class="text-secondary text-small">Parent</span>
                                 </div>
-                                <i class="mdi mdi-bookmark-check text-success nav-profile-badge"></i>
+                                <i class="mdi mdi-account-check text-info nav-profile-badge"></i>
                             </a>
                         </li>
                         <li class="nav-item">
@@ -237,25 +310,21 @@
                             <div class="collapse" id="forms">
                                 <ul class="nav flex-column sub-menu">
                                     <li class="nav-item">
-                                        <a class="nav-link" href="studentRegistration.jsp">Student Registration</a>
-                                        <a class="nav-link" href="createEvent.jsp">Create Event/Activity</a>
-                                        <a class="nav-link" href="bookingClass.jsp">Booking Event Venue</a>
-                                        <a class="nav-link" href="updateAccTc.jsp">Update Account</a>
-
+                                        <a class="nav-link" href="updateAccPr.jsp">Update Account</a>
+                                        <a class="nav-link" href="studentEvent.jsp">Student Event List</a>
                                     </li>
                                 </ul>
                             </div>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" data-bs-toggle="collapse" href="#charts" aria-expanded="false" aria-controls="charts">
-                                <span class="menu-title">List</span>
+                                <span class="menu-title">Charts</span>
                                 <i class="mdi mdi-chart-bar menu-icon"></i>
                             </a>
                             <div class="collapse" id="charts">
                                 <ul class="nav flex-column sub-menu">
                                     <li class="nav-item">
-                                        <a class="nav-link" href="studentList.jsp">Student List</a>
-                                        <a class="nav-link" href="eventList.jsp">Event List</a>
+                                        <a class="nav-link" href="../../pages/charts/chartjs.html">ChartJs</a>
                                     </li>
                                 </ul>
                             </div>
@@ -264,72 +333,6 @@
                     </ul>
                 </nav>
                 <!-- partial -->
-                <%@ page import="java.sql.*, java.util.*, dao.ClassroomDAO, dao.EventDAO, model.Event, model.Classroom" %>
-                <%
-                    Event preselectedEvent = null;
-
-                    Integer eventId = (Integer) session.getAttribute("eventId");
-                    if (eventId != null) {
-                        EventDAO eventDAO = new EventDAO();
-                        preselectedEvent = eventDAO.getEventById(eventId);
-                    }
-
-                    String eventTitle = (String) session.getAttribute("eventTitle");
-                    String eventStart = (String) session.getAttribute("eventStartTime");
-                    String eventEnd = (String) session.getAttribute("eventEndTime");
-
-                    boolean buttonEnabled = (eventTitle != null && !eventTitle.isEmpty()
-                            && eventStart != null && !eventStart.isEmpty()
-                            && eventEnd != null && !eventEnd.isEmpty());
-
-                    String teacherEmail = (String) session.getAttribute("email");
-                    EventDAO eventDAO = new EventDAO();
-                    List<Event> myEvents = eventDAO.getEventsByCreator(teacherEmail);
-
-                    int calculatedDuration = 0;
-                    if (eventStart != null && eventEnd != null) {
-                        try {
-                            java.time.LocalDateTime start = java.time.LocalDateTime.parse(eventStart);
-                            java.time.LocalDateTime end = java.time.LocalDateTime.parse(eventEnd);
-                            java.time.Duration durationBetween = java.time.Duration.between(start, end);
-                            calculatedDuration = (int) durationBetween.toMinutes();
-                        } catch (Exception e) {
-                            out.println("<p style='color:red;'>Error parsing date/time: " + e.getMessage() + "</p>");
-                        }
-                    }
-
-                    String startParam = request.getParameter("eventStart");
-                    String durationParam = request.getParameter("duration");
-                    String eventIdParam = request.getParameter("eventId");
-//                    out.println(startParam);
-                    Timestamp startTime = null;
-                    int duration = 0;
-                    String formattedStart = "";
-                    List<Classroom> available = new ArrayList<>();
-
-                    if (startParam != null && durationParam != null && eventIdParam != null) {
-                        if (startParam != null && startParam.contains("T")) {
-                            startTime = Timestamp.valueOf(startParam.replace("T", " ") + ":00");
-                        } else {
-                            out.println("<p style='color:red;'>Invalid start time format: " + startParam + "</p>");
-                        }
-                        try {
-                            startTime = Timestamp.valueOf(startParam.replace("T", " ") + ":00");
-                            duration = Integer.parseInt(durationParam);
-                            Timestamp endTime = new Timestamp(startTime.getTime() + duration * 60 * 1000);
-                            formattedStart = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(startTime);
-
-                            ClassroomDAO dao = new ClassroomDAO();
-                            available = dao.getAvailableClassrooms(startTime, endTime);
-                        } catch (Exception e) {
-                            out.println("<p style='color:red;'>Error fetching available classrooms: " + e.getMessage() + "</p>");
-                        }
-                    }
-                %>
-
-
-
-
                 <div class="main-panel">
                     <div class="content-wrapper">
                         <div class="page-header">
@@ -341,126 +344,44 @@
                                 </ol>
                             </nav>
                         </div>
-                        <div class="row">
-                            <div class="col-md-6 grid-margin stretch-card">
-                                <div class="card">
-                                    <div class="card-body">
 
-                                        <h4 class="card-title">Book Event Venue</h4>
-                                        <form class="forms-sample" action="bookingClass.jsp" method="get">
+                    </div>
+                    <div class="col-md-6 grid-margin stretch-card">
+                        <div class="card">
+                            <div class="card-body">
+                                <h4 class="card-title">Edit Approval Form</h4>
+                                <form method="post" action="../SubmitApprovalServlet" enctype="multipart/form-data">
+                                    <input type="hidden" name="event_id" value="<%= eventId%>">
+                                    <input type="hidden" name="parent_id" value="<%= parentId%>">
+                                    <input type="hidden" name="event_category" value="<%= eventCategory%>">
 
-                                            <div class="form-group">
-
-
-                                                <% if (eventTitle != null && eventStart != null && eventEnd != null) {%>
-                                                <div class="form-group">
-
-                                                    <p><strong>Title:</strong> <%= eventTitle%></p>
-                                                    <p><strong>Start Time:</strong> <%= eventStart%></p>
-                                                    <p><strong>End Time:</strong> <%= eventEnd%></p>
-                                                    <!-- Hidden inputs to send values in the request -->
-                                                    <input type="hidden" name="eventTitle" value="<%= eventTitle%>" />
-                                                    <input type="datetime-local" name="eventStart" value="<%= eventStart%>" readonly />
-                                                    <input type="hidden" name="eventEndTime" value="<%= eventEnd%>" />
-                                                    <input type="hidden" name="eventId" value="<%= (eventId != null) ? eventId : ""%>" />
-
-                                                </div>
-                                                <% } else { %>
-                                                <p style="color:orange;">No recent event found in session.</p>
-                                                <% }%>
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="duration">Duration (minutes):</label>
-                                                <input type="number" name="duration" id="duration" min="1"
-                                                       value="<%= (durationParam != null) ? durationParam : calculatedDuration%>" 
-                                                       readonly />
-                                                <input type="hidden" value="<%= (durationParam != null) ? durationParam : calculatedDuration%>">
-                                            </div>
-                                            <br><br>
-                                            <input type="submit" value="Find Available Classrooms" <%= buttonEnabled ? "" : "disabled"%> />
-
-
-                                        </form> 
-
-                                        <% if (available != null && !available.isEmpty()) { %>
-                                        <!-- Step 1: Classroom Selection -->
-                                        <div class="form-group">
-                                            <form id="selectForm">
-                                                <label for="classroomSelect">Select Classroom:</label>
-                                                <select name="classroomId" id="classroomSelect" required>
-                                                    <% for (Classroom c : available) {%>
-                                                    <option value="<%= c.getId()%>"><%= c.getName()%></option>
-                                                    <% }%>
-                                                </select>
-                                                <br><br>
-                                                <button type="button" onclick="showConfirmation()">Continue</button>
-                                            </form>
-                                        </div>
-
-                                        <div class="form-group">
-                                            <form id="confirmationForm" method="post" action="../classroom" style="display:none;">
-                                                <input type="hidden" name="startTime" value="<%= formattedStart%>"/>
-                                                <input type="hidden" name="duration" value="<%= duration%>"/>
-                                                <input type="hidden" name="classroomId" id="hiddenClassroomId"/>
-                                                <input type="hidden" name="eventId" value="<%= eventIdParam%>"/>
-
-                                                <p><strong>Classroom:</strong> <span id="confirmClassroomName"></span></p>
-                                                <p><strong>Start Time:</strong> <%= formattedStart%></p>
-                                                <p><strong>Duration:</strong> <%= duration%> minutes</p>
-
-                                                <input type="submit" value="Confirm Booking"/>
-                                                <button type="button" onclick="cancelConfirmation()">Cancel</button>
-                                            </form>
-                                        </div>
-
-                                        <% } else if (startParam != null && durationParam != null && eventIdParam != null) { %>
-                                        <p style="color:orange;">No classrooms available during that time.</p>
-                                        <% }%>
-
-
-
+                                    <div class="form-group">
+                                        <label>Approve:</label><br>
+                                        <input type="radio" name="status" value="Approved" <%= "Approved".equalsIgnoreCase(status) ? "checked" : ""%>> Approve
+                                        <input type="radio" name="status" value="Rejected" <%= "Rejected".equalsIgnoreCase(status) ? "checked" : ""%>> Reject
                                     </div>
-                                </div>
+
+                                    <div class="form-group">
+                                        <label for="reason">Reason (if reject):</label>
+                                        <input type="text" class="form-control" name="reason" value="<%= reason%>">
+                                    </div>
+
+                                    <% if ("payment".equalsIgnoreCase(eventCategory)) { %>
+                                    <div class="form-group">
+                                        <label for="resit">Upload New Resit (optional):</label>
+                                        <input type="file" class="form-control" name="resit" accept=".pdf,.jpg,.jpeg,.png">
+                                        <% if (hasResit) {%>
+                                        <p>Current Resit: <a href="../ViewResitServlet?event_id=<%= eventId%>&parent_id=<%= parentId%>" target="_blank">View</a></p>
+                                        <% } %>
+                                    </div>
+                                    <% }%>
+
+                                    <button type="submit" class="btn btn-primary">Update Approval</button>
+                                </form>
                             </div>
                         </div>
                     </div>
 
-
-                    <script>
-                        window.addEventListener("DOMContentLoaded", () => {
-                            const input = document.getElementById("startTime");
-                            if (input) {
-                                const now = new Date();
-                                now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-                                input.min = now.toISOString().slice(0, 16);
-                            }
-                        });
-
-                        function showConfirmation() {
-                            const select = document.getElementById("classroomSelect");
-                            if (!select || select.selectedIndex === -1)
-                                return;
-
-                            const selected = select.options[select.selectedIndex];
-                            if (!selected)
-                                return;
-
-                            // Update confirmation form fields
-                            document.getElementById("confirmClassroomName").textContent = selected.text;
-                            document.getElementById("hiddenClassroomId").value = selected.value;
-
-                            // Toggle form visibility
-                            document.getElementById("selectForm").style.display = "none";
-                            document.getElementById("confirmationForm").style.display = "block";
-                        }
-
-                        function cancelConfirmation() {
-                            // Hide confirmation form and show classroom selection again
-                            document.getElementById("confirmationForm").reset(); // optional: resets hidden fields
-                            document.getElementById("confirmationForm").style.display = "none";
-                            document.getElementById("selectForm").style.display = "block";
-                        }
-                    </script>
 
                     <!-- content-wrapper ends -->
                     <!-- partial:../../partials/_footer.html -->
@@ -495,6 +416,10 @@
         <script src="../assets/js/file-upload.js"></script>
         <script src="../assets/js/typeahead.js"></script>
         <script src="../assets/js/select2.js"></script>
+
         <!-- End custom js for this page -->
     </body>
 </html>
+
+
+

@@ -42,6 +42,7 @@
         <link rel="shortcut icon" href="../assets/images/favicon.png" />
     </head>
     <body>
+        
         <%
     String email = (String) session.getAttribute("email");
 
@@ -76,7 +77,14 @@
         e.printStackTrace();
     }
 
+   
     String eventId = request.getParameter("eventId");
+
+    if (eventId == null || eventId.trim().isEmpty()) {
+        out.println("<p style='color:red;'>Error: Missing or invalid event ID.</p>");
+        return;
+    }
+
     List<Map<String, String>> approvalList = new ArrayList<>();
 
     String approvalQuery = "SELECT p.id AS parent_id, p.name AS parent_name, p.email, p.contact_number, p.ic_number AS parent_ic, "
@@ -86,7 +94,6 @@
             + "JOIN parent p ON pa.parent_id = p.id "
             + "JOIN student s ON s.parent_id = p.id "
             + "WHERE pa.event_id = ?";
-
     try (Connection connection = DBConfig.getConnection(); PreparedStatement stmt = connection.prepareStatement(approvalQuery)) {
         stmt.setInt(1, Integer.parseInt(eventId));
         try (ResultSet rs = stmt.executeQuery()) {
@@ -364,7 +371,7 @@
                                                             String resitPath = row.get("resit_file");
                                                             if (resitPath != null && !resitPath.trim().isEmpty()) {
                                                         %>
-                                                        <a href="ViewResitServlet?event_id=<%= row.get("event_id") %>&parent_id=<%= row.get("parent_id") %>" target="_blank">View Resit</a>
+                                                        <a href="../ViewResitServlet?event_id=<%= row.get("event_id") %>&parent_id=<%= row.get("parent_id") %>" target="_blank">View Resit</a>
 
                                                         <%
                                                         } else {

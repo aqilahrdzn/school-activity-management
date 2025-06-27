@@ -234,7 +234,7 @@
                                         <a class="nav-link" href="createEvent.jsp">Create Event/Activity</a>
                                         <a class="nav-link" href="bookingClass.jsp">Booking Event Venue</a>
                                         <a class="nav-link" href="updateAccTc.jsp">Update Account</a>
-                                       
+
                                     </li>
                                 </ul>
                             </div>
@@ -286,7 +286,7 @@
                                         </iframe>
                                     </div>
 
-                                    <form class="forms-sample" action="../EventController" method="post">
+                                    <form class="forms-sample" action="../EventController" method="post" onsubmit="return confirmSubmission()">
                                         <div class="form-group">
                                             <label for="category">Event Category:</label>
                                             <select id="event-category" name="event-category">
@@ -296,30 +296,10 @@
                                                 <option value="payment">Payment-Required Event</option>
                                             </select>
                                         </div>
-                                        <div class="form-group" id="payment-amount-section" >
+                                        <div class="form-group" id="payment-amount-section">
                                             <label for="paymentAmount">Payment Amount (RM):</label>
                                             <input type="number" id="paymentAmount" name="paymentAmount" step="0.01" min="0" placeholder="e.g., 10.50">
                                         </div>
-                                        <%
-                                            String successParam = request.getParameter("success");
-                                            String category = request.getParameter("category");
-                                            boolean success = "true".equals(successParam);
-
-                                            if (success) {
-                                        %>
-                                        <div id="popup" style="background-color: #d4edda; color: #155724; padding: 15px; border: 1px solid #c3e6cb; border-radius: 5px; margin-top: 20px;">
-                                            Event successfully created!
-                                            <%
-                                                if ("school".equals(category)) {
-                                            %>
-                                            <button type="button" onclick="window.location.href = 'bookingVenue.jsp'" style="padding: 8px 12px; background-color: #007bff; color: white; border: none; border-radius: 4px;">Book Now</button>
-                                            <%
-                                                }
-                                            %>
-                                        </div>
-                                        <%
-                                            }
-                                        %>
 
                                         <div class="form-group">
                                             <label for="title">Event Title:</label>
@@ -331,13 +311,13 @@
                                         </div>
                                         <div class="form-group">
                                             <label for="startTime">Start Time:</label>
-                                            <input type="datetime-local" id="startTime" name="startTime" required min="<%= java.time.LocalDateTime.now().toString().substring(0,16) %>">
+                                            <input type="datetime-local" id="startTime" name="startTime" required min="<%= java.time.LocalDateTime.now().toString().substring(0, 16)%>">
                                             <small>Format: YYYY-MM-DDTHH:mm (Browser will auto-format)</small>
                                         </div>
 
                                         <div class="form-group">
                                             <label for="endTime">End Time:</label>
-                                            <input type="datetime-local" id="endTime" name="endTime" required min="<%= java.time.LocalDateTime.now().toString().substring(0,16) %>">
+                                            <input type="datetime-local" id="endTime" name="endTime" required min="<%= java.time.LocalDateTime.now().toString().substring(0, 16)%>">
                                             <small>Format: YYYY-MM-DDTHH:mm (Browser will auto-format)</small>
                                         </div>
 
@@ -409,7 +389,6 @@
                                             </select>
                                         </div>
 
-
                                         <script>
                                             function toggleSelection() {
                                                 const selectedRadio = document.querySelector('input[name="selectType"]:checked');
@@ -431,8 +410,8 @@
                                                     document.querySelectorAll('.hidden-ic-input').forEach(input => input.remove());
                                                 }
                                             }
+
                                             function togglePaymentField() {
-                                                // Run this after the DOM is fully loaded
                                                 document.addEventListener("DOMContentLoaded", function () {
                                                     const categorySelect = document.getElementById("event-category");
                                                     const paymentSection = document.getElementById("payment-amount-section");
@@ -471,11 +450,7 @@
                                                 fetch('<%= request.getContextPath()%>/EventController?action=getStudentByIC&ic=' + encodeURIComponent(ic))
                                                         .then(response => {
                                                             if (!response.ok) {
-                                                                // Check for specific status or content to differentiate "not found"
-                                                                if (
-                                                                        response.status === 404 ||
-                                                                        (response.headers.get('Content-Type').includes('application/json') && response.status === 200)
-                                                                        ) {
+                                                                if (response.status === 404 || (response.headers.get('Content-Type').includes('application/json') && response.status === 200)) {
                                                                     return response.json(); // Still try to parse JSON for message
                                                                 }
                                                                 throw new Error("Network response was not ok: " + response.statusText);
@@ -487,8 +462,6 @@
 
                                                             if (data && data.success && data.name && data.ic) {
                                                                 updateStudentList(data.name, data.ic);
-                                                                // Do not clear the IC input field
-                                                                // document.getElementById("icInput").value = "";
                                                             } else {
                                                                 alert(data.message || "Student not found.");
                                                             }
@@ -499,7 +472,6 @@
                                                         });
                                             }
 
-
                                             function updateStudentList(name, ic) {
                                                 if (!name || !ic || selectedStudents.has(ic))
                                                     return;
@@ -509,7 +481,6 @@
                                                 const listDiv = document.getElementById("selected-students");
                                                 let ul = document.getElementById("student-ul");
                                                 if (!ul) {
-                                                    // Clear the "No students selected." paragraph and create the UL
                                                     listDiv.innerHTML = "<strong>Selected Students:</strong><ul id='student-ul'></ul>";
                                                     ul = document.getElementById("student-ul");
                                                 }
@@ -532,9 +503,7 @@
                                                 });
 
                                                 const textSpan = document.createElement("span");
-                                                console.log("DEBUG: name =", name, "| ic =", ic);
-
-                                                textSpan.textContent = "Name:" + name, ",\n IC:" + ic;
+                                                textSpan.textContent = "Name: " + name + ", IC: " + ic;
 
                                                 li.appendChild(checkbox);
                                                 li.appendChild(textSpan);
@@ -566,52 +535,82 @@
 
                                             // Initialize toggleSelection on page load to set initial state
                                             document.addEventListener('DOMContentLoaded', toggleSelection);
+
+                                            function confirmSubmission() {
+                                                const category = document.getElementById("event-category").value;
+                                                const title = document.getElementById("title").value;
+                                                const description = document.getElementById("description").value;
+                                                const startTime = document.getElementById("startTime").value;
+                                                const endTime = document.getElementById("endTime").value;
+                                                const timeZone = document.getElementById("timeZone").value;
+                                                const paymentAmount = document.getElementById("paymentAmount").value;
+
+                                                // Gather selected students
+                                                const selectedStudentsArray = Array.from(document.querySelectorAll('input[name="selected-students-ui"]:checked'))
+                                                        .map(input => input.nextSibling.textContent.trim());
+
+                                                let confirmationMessage = "Please confirm the following details:\n\n";
+                                                confirmationMessage += "Event Category: " + category + "\n";
+                                                confirmationMessage += "Event Title: " + title + "\n";
+                                                confirmationMessage += "Event Description: " + description + "\n";
+                                                confirmationMessage += "Start Time: " + startTime + "\n";
+                                                confirmationMessage += "End Time: " + endTime + "\n";
+                                                confirmationMessage += "Time Zone: " + timeZone + "\n";
+                                                confirmationMessage += "Payment Amount: RM " + paymentAmount + "\n";
+                                                if (selectedStudentsArray.length > 0) {
+                                                    confirmationMessage += "Selected Students: " + selectedStudentsArray.join(", ") + "\n";
+                                                } else {
+                                                    confirmationMessage += "No students selected.\n";
+                                                }
+
+                                                return confirm(confirmationMessage);
+                                            }
                                         </script>
+
                                         <button type="submit" class="btn btn-gradient-primary me-2">Submit</button>
+                                    </form>
                                 </div>
-                                </form>
                             </div>
                         </div>
-
                     </div>
+
+                    <!-- content-wrapper ends -->
+                    <!-- partial:../../partials/_footer.html -->
+                    <footer class="footer">
+                        <div class="d-sm-flex justify-content-center justify-content-sm-between">
+                            <span class="text-muted text-center text-sm-left d-block d-sm-inline-block">Copyright © 2023 <a href="https://www.bootstrapdash.com/" target="_blank">BootstrapDash</a>. All rights reserved.</span>
+                            <span class="float-none float-sm-right d-block mt-1 mt-sm-0 text-center">Hand-crafted & made with <i class="mdi mdi-heart text-danger"></i></span>
+                        </div>
+                    </footer>
+                    <!-- partial -->
                 </div>
-                <!-- content-wrapper ends -->
-                <!-- partial:../../partials/_footer.html -->
-                <footer class="footer">
-                    <div class="d-sm-flex justify-content-center justify-content-sm-between">
-                        <span class="text-muted text-center text-sm-left d-block d-sm-inline-block">Copyright © 2023 <a href="https://www.bootstrapdash.com/" target="_blank">BootstrapDash</a>. All rights reserved.</span>
-                        <span class="float-none float-sm-right d-block mt-1 mt-sm-0 text-center">Hand-crafted & made with <i class="mdi mdi-heart text-danger"></i></span>
-                    </div>
-                </footer>
-                <!-- partial -->
+                <!-- main-panel ends -->
             </div>
-            <!-- main-panel ends -->
+            <!-- page-body-wrapper ends -->
         </div>
-        <!-- page-body-wrapper ends -->
-    </div>
-    <!-- container-scroller -->
-    <!-- plugins:js -->
-    <script src="../assets/vendors/js/vendor.bundle.base.js"></script>
-    <!-- endinject -->
-    <!-- Plugin js for this page -->
-    <script src="../assets/vendors/select2/select2.min.js"></script>
-    <script src="../assets/vendors/typeahead.js/typeahead.bundle.min.js"></script>
-    <!-- End plugin js for this page -->
-    <!-- inject:js -->
-    <script src="../assets/js/off-canvas.js"></script>
-    <script src="../assets/js/misc.js"></script>
-    <script src="../assets/js/settings.js"></script>
-    <script src="../assets/js/todolist.js"></script>
-    <script src="../assets/js/jquery.cookie.js"></script>
-    <!-- endinject -->
-    <!-- Custom js for this page -->
-    <script src="../assets/js/file-upload.js"></script>
-    <script src="../assets/js/typeahead.js"></script>
-    <script src="../assets/js/select2.js"></script>
+        <!-- container-scroller -->
+        <!-- plugins:js -->
+        <script src="../assets/vendors/js/vendor.bundle.base.js"></script>
+        <!-- endinject -->
+        <!-- Plugin js for this page -->
+        <script src="../assets/vendors/select2/select2.min.js"></script>
+        <script src="../assets/vendors/typeahead.js/typeahead.bundle.min.js"></script>
+        <!-- End plugin js for this page -->
+        <!-- inject:js -->
+        <script src="../assets/js/off-canvas.js"></script>
+        <script src="../assets/js/misc.js"></script>
+        <script src="../assets/js/settings.js"></script>
+        <script src="../assets/js/todolist.js"></script>
+        <script src="../assets/js/jquery.cookie.js"></script>
+        <!-- endinject -->
+        <!-- Custom js for this page -->
+        <script src="../assets/js/file-upload.js"></script>
+        <script src="../assets/js/typeahead.js"></script>
+        <script src="../assets/js/select2.js"></script>
 
 
 
-    <!-- End custom js for this page -->
-</body>
+        <!-- End custom js for this page -->
+    </body>
 </html>
 

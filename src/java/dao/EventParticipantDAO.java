@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.ResultSet;
+import java.util.ArrayList;
 import java.util.List;
 import util.DBConfig;
 
@@ -67,5 +68,21 @@ public class EventParticipantDAO {
             e.printStackTrace();
             return false;
         }
+    }
+    public List<String> getICsByEventId(int eventId) {
+        List<String> studentICs = new ArrayList<>();
+        String sql = "SELECT student_ic FROM event_participants WHERE event_id = ?";
+        try (Connection conn = DBConfig.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, eventId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    studentICs.add(rs.getString("student_ic"));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return studentICs;
     }
 }

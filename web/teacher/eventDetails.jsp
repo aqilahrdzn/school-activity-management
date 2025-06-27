@@ -252,7 +252,7 @@
                                         <a class="nav-link" href="createEvent.jsp">Create Event/Activity</a>
                                         <a class="nav-link" href="bookingClass.jsp">Booking Event Venue</a>
                                         <a class="nav-link" href="updateAccTc.jsp">Update Account</a>
-                                       
+
                                     </li>
                                 </ul>
                             </div>
@@ -388,6 +388,7 @@
                                     <% } else if (eventId != null && !eventId.isEmpty()) { %>
                                     <p class="mt-3 text-info">Upload files to enable "View OPR".</p>
                                     <% }%>
+                                    <a href="editEventDetails.jsp?eventId=<%= eventId%>" class="btn btn-warning ml-2">Edit</a>
 
                                 </form>
 

@@ -48,8 +48,7 @@
             }
 
             boolean success = "true".equals(request.getParameter("success"));
-        %>
-        <%
+
             String eventTitle = request.getParameter("eventTitle");
             String studentIc = request.getParameter("studentIc");
 
@@ -64,6 +63,8 @@
 
             int eventId = -1;
             int parentId = -1;
+            String eventCategory = null;
+            boolean alreadySubmitted = false;
 
             try {
                 con = DBConfig.getConnection();
@@ -81,15 +82,27 @@
                 rs.close();
                 ps.close();
 
-                // Get event_id from event table using eventTitle
-                ps = con.prepareStatement("SELECT id FROM events WHERE title = ?");
+                // Get event_id and category from events table using eventTitle
+                ps = con.prepareStatement("SELECT id, category FROM events WHERE title = ?");
                 ps.setString(1, eventTitle);
                 rs = ps.executeQuery();
                 if (rs.next()) {
                     eventId = rs.getInt("id");
+                    eventCategory = rs.getString("category");
                 } else {
                     out.println("<p style='color:red;'>Error: Event not found.</p>");
                     return;
+                }
+                rs.close();
+                ps.close();
+
+                // Check if already submitted
+                ps = con.prepareStatement("SELECT COUNT(*) AS count FROM parent_approval WHERE event_id = ? AND parent_id = ?");
+                ps.setInt(1, eventId);
+                ps.setInt(2, parentId);
+                rs = ps.executeQuery();
+                if (rs.next()) {
+                    alreadySubmitted = rs.getInt("count") > 0;
                 }
 
             } catch (Exception e) {
@@ -316,19 +329,19 @@
                         </div>
 
                     </div>
-                    <%-- Example: assume eventCategory is fetched from DB --%>
-                    <%
-                        String eventCategory = "payment"; // Replace with actual value from DB
-                    %>
-
-                    <% if ("external".equalsIgnoreCase(eventCategory) || "payment".equalsIgnoreCase(eventCategory)) {%>
+                    <% if ("external".equalsIgnoreCase(eventCategory) || "payment".equalsIgnoreCase(eventCategory)) { %>
                     <div class="col-md-6 grid-margin stretch-card">
                         <div class="card">
                             <div class="card-body">
                                 <h4 class="card-title">Parent Approval</h4>
+                                <% if (alreadySubmitted) {%>
+                                <p class="text-success">✅ Approval already submitted.</p>
+                                <a href="editApproval.jsp?eventId=<%= eventId%>&parentId=<%= parentId%>" class="btn btn-warning">Edit Approval</a>
+                                <% } else {%>
                                 <p class="card-description">Please enter the details</p>
 
-                                <form class="forms-sample" method="post" action="../SubmitApprovalServlet" <%= "payment".equalsIgnoreCase(eventCategory) ? "enctype=\"multipart/form-data\"" : ""%>>
+                                <form class="forms-sample" method="post" action="../SubmitApprovalServlet" enctype="multipart/form-data">
+                                    <input type="hidden" name="event_category" value="<%= eventCategory%>">
                                     <input type="hidden" name="event_id" value="<%= eventId%>">
                                     <input type="hidden" name="parent_id" value="<%= parentId%>">
                                     <input type="hidden" name="student_ic" value="<%= studentIc%>">
@@ -353,6 +366,7 @@
 
                                     <button type="submit" class="btn btn-gradient-primary me-2">Submit</button>
                                 </form>
+                                <% } %>
                             </div>
                         </div>
                     </div>
