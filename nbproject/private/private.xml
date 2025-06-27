@@ -21,6 +21,7 @@
             <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/web/clerk/studentListCk.jsp</file>
             <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/web/teacher/updateAccTc.jsp</file>
             <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/src/java/controller/ViewResitServlet.java</file>
+            <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/web/headmaster/reportList.jsp</file>
             <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/src/java/controller/ArchiveStudentServlet.java</file>
             <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/web/parent/editApproval.jsp</file>
             <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/web/parent/parentdashboard.jsp</file>
@@ -37,6 +38,7 @@
             <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/web/clerk/addVenue.jsp</file>
             <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/web/teacher/updateStudent.jsp</file>
             <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/web/teacher/editEvent.jsp</file>
+            <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/web/headmaster/viewReport.jsp</file>
             <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/src/java/controller/EventController.java</file>
             <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/src/java/dao/ParentDAO.java</file>
             <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/src/java/dao/EventDAO.java</file>

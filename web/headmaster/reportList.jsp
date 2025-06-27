@@ -4,6 +4,8 @@
     Author     : Lenovo
 --%>
 
+<%@page import="java.time.format.TextStyle"%>
+<%@page import="java.util.Locale"%>
 <%@page import="java.util.ArrayList"%>
 <%@page import="java.util.List"%>
 <%@page import="java.time.format.DateTimeFormatter"%>
@@ -92,7 +94,7 @@
                                     <i class="mdi mdi-logout me-2 text-primary"></i> Signout </a>
                             </div>
                         </li>
-                        
+
                         <li class="nav-item dropdown">
                             <a class="nav-link count-indicator dropdown-toggle" id="messageDropdown" href="#" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="mdi mdi-email-outline"></i>
@@ -186,7 +188,7 @@
                                 <i class="mdi mdi-power"></i>
                             </a>
                         </li>
-                        
+
                     </ul>
                     <button class="navbar-toggler navbar-toggler-right d-lg-none align-self-center" type="button" data-toggle="offcanvas">
                         <span class="mdi mdi-menu"></span>
@@ -201,12 +203,12 @@
                         <li class="nav-item nav-profile">
                             <a href="#" class="nav-link">
                                 <div class="nav-profile-image">
-                                    <img src="<%= (teacher != null && teacher.getProfilePicture() != null) ? "../profile_pics/" + teacher.getProfilePicture() : "../assets/images/faces/default.jpg" %>" alt="profile" />
+                                    <img src="<%= (teacher != null && teacher.getProfilePicture() != null) ? "../profile_pics/" + teacher.getProfilePicture() : "../assets/images/faces/default.jpg"%>" alt="profile" />
 
                                     <span class="login-status online"></span>
                                 </div>
 
-                                 <div class="nav-profile-text d-flex flex-column">
+                                <div class="nav-profile-text d-flex flex-column">
                                     <span class="font-weight-bold mb-2"><%= teacher.getName()%></span>
                                     <span class="text-secondary text-small"><%= teacher.getRole()%></span>
                                 </div>
@@ -247,7 +249,7 @@
                                 </ul>
                             </div>
                         </li>
-                        
+
                     </ul>
                 </nav>
                 <!-- partial -->
@@ -265,147 +267,116 @@
 
                     </div>
                     <div class="row">
-    <div class="col-12 grid-margin">
-        <div class="card">
-            <div class="card-body">
-                <h4 class="card-title">Submitted Events</h4>
+                        <div class="col-12 grid-margin">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h4 class="card-title">Submitted Events</h4>
 
-                <%-- Month/Year Filter Form --%>
-                <form class="form-inline mb-4" method="get" action="">
-                    <label for="monthYearFilter" class="mr-2">Filter by Month:</label>
-                    <select class="form-control mr-2" id="monthYearFilter" name="filterMonthYear" onchange="this.form.submit()">
-                        <option value="">All Months</option>
-                        <%
-                            // Get current year and 2 previous years for the dropdown
-                            int currentYear = YearMonth.now().getYear();
-                            Map<String, String> monthYearOptions = new LinkedHashMap<>(); // To maintain insertion order
-
-                            // Generate options for the current year and previous 2 years
-                            for (int y = currentYear; y >= currentYear - 2; y--) {
-                                for (int m = 1; m <= 12; m++) {
-                                    YearMonth ym = YearMonth.of(y, m);
-                                    String value = ym.format(DateTimeFormatter.ofPattern("yyyy-MM")); // e.g., "2025-06"
-                                    String text = ym.format(DateTimeFormatter.ofPattern("MMMM yyyy")); // e.g., "June 2025"
-                                    monthYearOptions.put(value, text);
-                                }
-                            }
-
-                            // Get selected filter from request
-                            String selectedMonthYear = request.getParameter("filterMonthYear");
-
-                            // Add options to the dropdown
-                            for (Map.Entry<String, String> entry : monthYearOptions.entrySet()) {
-                                String value = entry.getKey();
-                                String text = entry.getValue();
-                                String selected = (selectedMonthYear != null && selectedMonthYear.equals(value)) ? "selected" : "";
-                        %>
-                                <option value="<%= value %>" <%= selected %>><%= text %></option>
-                        <%
-                            }
-                        %>
-                    </select>
-                    <%-- A submit button could be added if you remove the onchange above --%>
-                    <%-- <button type="submit" class="btn btn-primary">Filter</button> --%>
-                </form>
-
-                <div class="table-responsive">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th> Event Category </th>
-                                <th> Event Title </th>
-                                <th> Description </th>
-                                <th> Start Time </th>
-                                <th> End Time </th>
-                                <th> Time Zone </th>
-                                <th> Target Student </th>
-                                <th> Status </th>
-                                <th> Created By </th>
-                                <th> Classroom </th>
-                                <th> Actions </th> <%-- Added for View Report button --%>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <%
-                                String filterMonthYear = request.getParameter("filterMonthYear");
-                                String sqlQuery = "SELECT * FROM events";
-                                List<Object> params = new ArrayList<>(); // Use List for dynamic parameters
-
-                                if (filterMonthYear != null && !filterMonthYear.isEmpty()) {
-                                    // Extract year and month from "yyyy-MM" format
-                                    String[] ym = filterMonthYear.split("-");
-                                    int year = Integer.parseInt(ym[0]);
-                                    int month = Integer.parseInt(ym[1]);
-
-                                    // For PostgreSQL or MySQL, DATE_TRUNC or YEAR/MONTH functions are efficient
-                                    // Assuming start_time is a DATETIME/TIMESTAMP column
-                                    sqlQuery += " WHERE EXTRACT(YEAR FROM start_time) = ? AND EXTRACT(MONTH FROM start_time) = ?"; // For PostgreSQL
-                                    // For MySQL: sqlQuery += " WHERE YEAR(start_time) = ? AND MONTH(start_time) = ?";
-
-                                    params.add(year);
-                                    params.add(month);
-                                }
-                                
-                                sqlQuery += " ORDER BY start_time DESC"; // Order by most recent events first
-
-                                try (Connection conn = DBConfig.getConnection();
-                                     PreparedStatement pstmt = conn.prepareStatement(sqlQuery)) {
-
-                                    // Set parameters if filter is applied
-                                    for (int i = 0; i < params.size(); i++) {
-                                        pstmt.setObject(i + 1, params.get(i));
-                                    }
-
-                                    try (ResultSet rs = pstmt.executeQuery()) {
-                                        while (rs.next()) {
-                                            int eventId = rs.getInt("id");
-                                            String category = rs.getString("category");
-                                            String title = rs.getString("title");
-                                            String description = rs.getString("description");
-                                            String start = rs.getString("start_time");
-                                            String end = rs.getString("end_time");
-                                            String timeZone = rs.getString("time_zone");
-                                            String targetClass = rs.getString("target_class");
-                                            String status = rs.getString("status");
-                                            String createdBy = rs.getString("created_by");
-                                            String classroom = rs.getString("classroom_id");
-                            %>
-                            <tr>
-                                <td><%= category%></td>
-                                <td><%= title%></td>
-                                <td><%= description%></td>
-                                <td><%= start%></td>
-                                <td><%= end%></td>
-                                <td><%= timeZone%></td>
-                                <td><%= targetClass%></td>
-                                <td><%= status%></td>
-                                <td><%= createdBy%></td>
-                                <td><%= classroom%></td>
-                                <td>
-                                    <form action="viewOPR.jsp" method="get" style="display:inline;" target="_blank">
-                                        <input type="hidden" name="eventId" value="<%= eventId%>">
-                                        <button type="submit" class="btn btn-gradient-info btn-sm">View OPR</button>
+                                    <form class="form-inline mb-4" method="get" action="">
+                                        <label for="monthYearFilter" class="mr-2">Filter by Month:</label>
+                                        <input type="month" class="form-control mr-2" id="monthYearFilter" name="filterMonthYear"
+                                               value="<%= request.getParameter("filterMonthYear") != null ? request.getParameter("filterMonthYear") : ""%>"
+                                               max="<%= java.time.YearMonth.now().toString()%>"
+                                               onchange="this.form.submit()">
                                     </form>
-                                    <%-- If you also want to link to eventDetails.jsp for editing/uploading: --%>
-                                    <a href="eventDetails.jsp?eventId=<%= eventId %>" class="btn btn-gradient-primary btn-sm ml-1">Upload Details</a>
-                                </td>
-                            </tr>
-                            <%
-                                        }
-                                    }
-                                } catch (Exception e) {
-                                    out.println("<tr><td colspan='11'>Error: " + e.getMessage() + "</td></tr>");
-                                    // For debugging, print stack trace:
-                                    // e.printStackTrace(out);
-                                }
-                            %>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+
+                                    <div class="table-responsive">
+                                        <table class="table">
+                                            <thead>
+                                                <tr>
+                                                    <th> Event Category </th>
+                                                    <th> Event Title </th>
+                                                    <th> Description </th>
+                                                    <th> Start Time </th>
+                                                    <th> End Time </th>
+                                                    <th> Time Zone </th>
+                                                    <th> Target Student </th>
+                                                    <th> Status </th>
+                                                    <th> Created By </th>
+                                                    <th> Classroom </th>
+                                                    <th> Actions </th> <%-- Added for View Report button --%>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <%
+                                                    String filterMonthYear = request.getParameter("filterMonthYear");
+                                                    String sqlQuery = "SELECT * FROM events";
+                                                    List<Object> params = new ArrayList<>(); // Use List for dynamic parameters
+
+                                                    if (filterMonthYear != null && !filterMonthYear.isEmpty()) {
+                                                        // Extract year and month from "yyyy-MM" format
+                                                        String[] ym = filterMonthYear.split("-");
+                                                        int year = Integer.parseInt(ym[0]);
+                                                        int month = Integer.parseInt(ym[1]);
+
+                                                        // For PostgreSQL or MySQL, DATE_TRUNC or YEAR/MONTH functions are efficient
+                                                        // Assuming start_time is a DATETIME/TIMESTAMP column
+                                                        sqlQuery += " WHERE EXTRACT(YEAR FROM start_time) = ? AND EXTRACT(MONTH FROM start_time) = ?"; // For PostgreSQL
+                                                        // For MySQL: sqlQuery += " WHERE YEAR(start_time) = ? AND MONTH(start_time) = ?";
+
+                                                        params.add(year);
+                                                        params.add(month);
+                                                    }
+
+                                                    sqlQuery += " ORDER BY start_time DESC"; // Order by most recent events first
+
+                                                    try (Connection conn = DBConfig.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sqlQuery)) {
+
+                                                        // Set parameters if filter is applied
+                                                        for (int i = 0; i < params.size(); i++) {
+                                                            pstmt.setObject(i + 1, params.get(i));
+                                                        }
+
+                                                        try (ResultSet rs = pstmt.executeQuery()) {
+                                                            while (rs.next()) {
+                                                                int eventId = rs.getInt("id");
+                                                                String category = rs.getString("category");
+                                                                String title = rs.getString("title");
+                                                                String description = rs.getString("description");
+                                                                String start = rs.getString("start_time");
+                                                                String end = rs.getString("end_time");
+                                                                String timeZone = rs.getString("time_zone");
+                                                                String targetClass = rs.getString("target_class");
+                                                                String status = rs.getString("status");
+                                                                String createdBy = rs.getString("created_by");
+                                                                String classroom = rs.getString("classroom_id");
+                                                %>
+                                                <tr>
+                                                    <td><%= category%></td>
+                                                    <td><%= title%></td>
+                                                    <td><%= description%></td>
+                                                    <td><%= start%></td>
+                                                    <td><%= end%></td>
+                                                    <td><%= timeZone%></td>
+                                                    <td><%= targetClass%></td>
+                                                    <td><%= status%></td>
+                                                    <td><%= createdBy%></td>
+                                                    <td><%= classroom%></td>
+                                                    <td>
+                                                        <form action="viewOPR.jsp" method="get" style="display:inline;" target="_blank">
+                                                            <input type="hidden" name="eventId" value="<%= eventId%>">
+                                                            <button type="submit" class="btn btn-gradient-info btn-sm">View OPR</button>
+                                                        </form>
+                                                        <%-- If you also want to link to eventDetails.jsp for editing/uploading: --%>
+                                                        <a href="eventDetails.jsp?eventId=<%= eventId%>" class="btn btn-gradient-primary btn-sm ml-1">Upload Details</a>
+                                                    </td>
+                                                </tr>
+                                                <%
+                                                            }
+                                                        }
+                                                    } catch (Exception e) {
+                                                        out.println("<tr><td colspan='11'>Error: " + e.getMessage() + "</td></tr>");
+                                                        // For debugging, print stack trace:
+                                                        // e.printStackTrace(out);
+                                                    }
+                                                %>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
                     <!-- content-wrapper ends -->
                     <!-- partial:../../partials/_footer.html -->

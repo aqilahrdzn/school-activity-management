@@ -29,7 +29,7 @@ public class LoginServlet extends HttpServlet {
             return;
         }
 
-        // Optionally, redirect to login.jsp for any non-POST access
+        // Redirect to login page for any non-POST access
         response.sendRedirect(request.getContextPath() + "/login.jsp");
     }
 
@@ -66,35 +66,34 @@ public class LoginServlet extends HttpServlet {
                     session.setAttribute("emailSender", teacher.getEmail());
                     session.setAttribute("emailPassword", "epvajwpbzvaixplv");
 
-                    session.setAttribute("isGuruKelas", teacher.getIsGuruKelas()); // Corrected
+                    session.setAttribute("isGuruKelas", teacher.getIsGuruKelas());
                     session.setAttribute("teacherClass", teacher.getKelas());
-
                 } else {
-                    request.setAttribute("errorMessage", "Teacher details not found.");
-                    request.getRequestDispatcher("login.jsp").forward(request, response);
+                    System.out.println("[LoginServlet] Teacher details not found for: " + email);
+                    response.sendRedirect("login.jsp?error=teacherNotFound");
                     return;
                 }
+
             } else if (role.equalsIgnoreCase("parent")) {
                 ParentDAO parentDAO = new ParentDAO();
                 Parent parent = parentDAO.getParentByEmail(email);
 
                 if (parent != null) {
-                    // Compare entered password with DB password
                     if (password.equals(parent.getPassword())) {
-                        session.setAttribute("parent", parent); // ✅ Password now included in session
+                        session.setAttribute("parent", parent);
                     } else {
-                        request.setAttribute("errorMessage", "Incorrect password.");
-                        request.getRequestDispatcher("login.jsp").forward(request, response);
+                        System.out.println("[LoginServlet] Incorrect parent password.");
+                        response.sendRedirect("login.jsp?error=wrongPassword");
                         return;
                     }
                 } else {
-                    request.setAttribute("errorMessage", "Parent details not found.");
-                    request.getRequestDispatcher("login.jsp").forward(request, response);
+                    System.out.println("[LoginServlet] Parent details not found.");
+                    response.sendRedirect("login.jsp?error=parentNotFound");
                     return;
                 }
             }
 
-            // Redirect to dashboard based on role
+            // ✅ Redirect to dashboard based on role
             switch (role.toLowerCase()) {
                 case "teacher":
                     response.sendRedirect("teacher/teacherdashboard.jsp");
@@ -109,14 +108,14 @@ public class LoginServlet extends HttpServlet {
                     response.sendRedirect("parent/parentdashboard.jsp");
                     break;
                 default:
-                    request.setAttribute("errorMessage", "Invalid role assigned.");
-                    request.getRequestDispatcher("login.jsp").forward(request, response);
+                    System.out.println("[LoginServlet] Unknown role.");
+                    response.sendRedirect("login.jsp?error=invalidRole");
+                    break;
             }
+
         } else {
             System.out.println("[LoginServlet] Invalid credentials for: " + email);
-            request.setAttribute("errorMessage", "Invalid email or password.");
-            request.getRequestDispatcher("login.jsp").forward(request, response);
+            response.sendRedirect("login.jsp?error=invalidCredentials");
         }
-
     }
 }

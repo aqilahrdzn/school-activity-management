@@ -9,9 +9,10 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public class DBConfig {
-    private static final String URL = "jdbc:mysql://localhost/school_management";
+    private static final String URL = "jdbc:mysql://containers-us-west-123.railway.app:3306/railway?useSSL=true&allowPublicKeyRetrieval=true&serverTimezone=UTC";
+
     private static final String USER = "root";
-    private static final String PASSWORD = "";
+    private static final String PASSWORD = "QEjfpdgJbyiLaFjhlhZZhCVcwyWOFESy";
 
     public static Connection getConnection() throws SQLException {
         try {
