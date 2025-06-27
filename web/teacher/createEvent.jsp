@@ -286,7 +286,7 @@
                                         </iframe>
                                     </div>
 
-                                    <form class="forms-sample" action="../EventController" method="post" onsubmit="return confirmSubmission()">
+                                    <form class="forms-sample" action="<%= request.getContextPath() %>/EventController" method="post" onsubmit="return confirmSubmission()">
                                         <div class="form-group">
                                             <label for="category">Event Category:</label>
                                             <select id="event-category" name="event-category">

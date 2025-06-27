@@ -371,7 +371,7 @@
                                                             String resitPath = row.get("resit_file");
                                                             if (resitPath != null && !resitPath.trim().isEmpty()) {
                                                         %>
-                                                        <a href="../ViewResitServlet?event_id=<%= row.get("event_id") %>&parent_id=<%= row.get("parent_id") %>" target="_blank">View Resit</a>
+                                                        <a href="<%= request.getContextPath() %>/ViewResitServlet?event_id=<%= row.get("event_id") %>&parent_id=<%= row.get("parent_id") %>" target="_blank">View Resit</a>
 
                                                         <%
                                                         } else {

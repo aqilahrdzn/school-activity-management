@@ -48,7 +48,7 @@
                                 </div>
                                 <h4>New here?</h4>
                                 <h6 class="font-weight-light">Signing up is easy. It only takes a few steps</h6>
-                                <form class="forms-sample" method="post" action="../ParentRegisterServlet">
+                                <form class="forms-sample" method="post" action="<%= request.getContextPath() %>/ParentRegisterServlet">
                                     <div class="form-group">
                                         <label for="exampleInputUsername1">Name:</label>
                                         <input type="text" class="form-control" id="exampleInputUsername1" name="name" placeholder="Name">

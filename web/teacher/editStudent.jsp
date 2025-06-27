@@ -338,7 +338,7 @@
                                 <div class="card-body">
                                     <h4 class="card-title">Edit Student: <%= student.getStudentName()%></h4>
 
-                                    <form method="post" action="../StudentEditController?action=update">
+                                    <form method="post" action="<%= request.getContextPath() %>/StudentEditController?action=update">
                                         <input type="hidden" name="id" value="<%= student.getId()%>"/>
                                         <input type="hidden" name="studentClass" value="<%= student.getStudentClass()%>"/> <%-- Keep student's original class --%>
 

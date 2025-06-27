@@ -258,7 +258,7 @@
                                         <p style="color: green;">Profile updated successfully!</p>
                                         <% }%>
                                         <h4 class="card-title">Update Account</h4>
-                                        <form class="forms-sample" action="../UpdateTeacherAccountServlet" method="post" enctype="multipart/form-data">
+                                        <form class="forms-sample" action="<%= request.getContextPath() %>/UpdateTeacherAccountServlet" method="post" enctype="multipart/form-data">
 
                                             <div class="form-group">
                                                 <label for="name">Name:</label>

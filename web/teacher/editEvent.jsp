@@ -31,7 +31,7 @@
 <body>
 <div class="container mt-5">
     <h2>Edit Event</h2>
-    <form method="post" action="../EventController">
+    <form method="post" action="<%= request.getContextPath() %>/EventController">
         <input type="hidden" name="action" value="update" />
         <input type="hidden" name="eventId" value="<%= event.getId() %>" />
 

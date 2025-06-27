@@ -23,6 +23,6 @@ public class PromoteStudentsServlet extends HttpServlet {
             request.getSession().setAttribute("errorMessage", "Promotion failed!");
         }
 
-        response.sendRedirect("clerk/studentList.jsp"); // adjust this path if needed
+        response.sendRedirect(request.getContextPath() + "/clerk/studentList.jsp"); // adjust this path if needed
     }
 }

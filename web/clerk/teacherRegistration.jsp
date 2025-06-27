@@ -265,7 +265,7 @@
                                 <div class="card">
                                     <div class="card-body">
                                         <h4 class="card-title">Teacher Registration Form</h4>
-                                        <form class="forms-sample" action="../TeacherRegisterServlet" method="post">
+                                        <form class="forms-sample" action="<%= request.getContextPath() %>/TeacherRegisterServlet" method="post">
                                             <div class="form-group">
                                                 <label for="name">Name:</label>
                                                 <input type="text" class="form-control" id="name" name="name" required>

@@ -300,7 +300,7 @@
                 <% } %>
 
                 <h4 class="card-title">Update Account</h4>
-                <form class="forms-sample" action="../UpdateClerkProfileServlet" method="post" enctype="multipart/form-data" autocomplete="off">
+                <form class="forms-sample" action="<%= request.getContextPath() %>/UpdateClerkProfileServlet" method="post" enctype="multipart/form-data" autocomplete="off">
 
                     <!-- View-only Name -->
                     <div class="form-group">

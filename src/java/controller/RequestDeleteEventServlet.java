@@ -27,7 +27,7 @@ public class RequestDeleteEventServlet extends HttpServlet {
         String eventId = request.getParameter("eventId");
 
         if (eventId == null || eventId.isEmpty()) {
-            response.sendRedirect("viewEvent.jsp?error=Invalid event ID");
+            response.sendRedirect(request.getContextPath() + "viewEvent.jsp?error=Invalid event ID");
             return;
         }
 
@@ -40,13 +40,13 @@ public class RequestDeleteEventServlet extends HttpServlet {
             int rowsUpdated = stmt.executeUpdate();
 
             if (rowsUpdated > 0) {
-                response.sendRedirect("viewEvent.jsp?message=Cancellation request submitted successfully");
+                response.sendRedirect(request.getContextPath() + "viewEvent.jsp?message=Cancellation request submitted successfully");
             } else {
-                response.sendRedirect("viewEvent.jsp?error=Failed to submit cancellation request");
+                response.sendRedirect(request.getContextPath() + "viewEvent.jsp?error=Failed to submit cancellation request");
             }
         } catch (SQLException e) {
             logger.log(Level.SEVERE, "Error processing cancellation request for event ID: " + eventId, e);
-            response.sendRedirect("viewEvent.jsp?error=An error occurred while processing your request");
+            response.sendRedirect(request.getContextPath() + "viewEvent.jsp?error=An error occurred while processing your request");
         }
     }
 }

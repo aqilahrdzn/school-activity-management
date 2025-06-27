@@ -89,11 +89,11 @@ public class GenerateSuratServlet extends HttpServlet {
 
         } catch (Exception e) {
             e.printStackTrace();
-            response.sendRedirect("/teacher/sendApproval.jsp?eventId=" + eventId + "&error=1");
+            response.sendRedirect(request.getContextPath() + "/teacher/sendApproval.jsp?eventId=" + eventId + "&error=1");
             return;
         }
 
-        response.sendRedirect("/teacher/sendApproval.jsp?eventId=" + eventId + "&success=1");
+        response.sendRedirect(request.getContextPath() + "/teacher/sendApproval.jsp?eventId=" + eventId + "&success=1");
     }
 
     private void createSuratPDF(String filePath, String parentName, String parentIC, String studentName,

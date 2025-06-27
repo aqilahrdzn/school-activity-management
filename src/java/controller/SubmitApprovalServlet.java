@@ -116,6 +116,6 @@ public class SubmitApprovalServlet extends HttpServlet {
             return;
         }
 
-        response.sendRedirect("parent/studentEvent.jsp?success=true");
+        response.sendRedirect(request.getContextPath() + "parent/studentEvent.jsp?success=true");
     }
 }

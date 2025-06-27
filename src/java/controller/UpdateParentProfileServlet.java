@@ -34,7 +34,7 @@ public class UpdateParentProfileServlet extends HttpServlet {
         Parent parent = (Parent) session.getAttribute("parent");
 
         if (parent == null) {
-            response.sendRedirect("login.jsp");
+            response.sendRedirect(request.getContextPath() + "login.jsp");
             return;
         }
 
@@ -49,15 +49,15 @@ public class UpdateParentProfileServlet extends HttpServlet {
         // Password Validation First
         if (!isEmpty(oldPassword) || !isEmpty(newPassword) || !isEmpty(confirmPassword)) {
             if (isEmpty(oldPassword) || isEmpty(newPassword) || isEmpty(confirmPassword)) {
-                response.sendRedirect("parent/updateAccPr.jsp?error=All password fields are required.");
+                response.sendRedirect(request.getContextPath() + "parent/updateAccPr.jsp?error=All password fields are required.");
                 return;
             }
             if (!oldPassword.equals(parent.getPassword())) {
-                response.sendRedirect("parent/updateAccPr.jsp?error=Old password is incorrect.");
+                response.sendRedirect(request.getContextPath() + "parent/updateAccPr.jsp?error=Old password is incorrect.");
                 return;
             }
             if (!newPassword.equals(confirmPassword)) {
-                response.sendRedirect("parent/updateAccPr.jsp?error=New password and confirm password do not match.");
+                response.sendRedirect(request.getContextPath() + "parent/updateAccPr.jsp?error=New password and confirm password do not match.");
                 return;
             }
             updatePassword = true;

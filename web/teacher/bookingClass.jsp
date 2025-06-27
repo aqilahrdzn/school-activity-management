@@ -398,7 +398,7 @@
                                         </div>
 
                                         <div class="form-group">
-                                            <form id="confirmationForm" method="post" action="../classroom" style="display:none;">
+                                            <form id="confirmationForm" method="post" action="<%= request.getContextPath() %>/classroom" style="display:none;">
                                                 <input type="hidden" name="startTime" value="<%= formattedStart%>"/>
                                                 <input type="hidden" name="duration" value="<%= duration%>"/>
                                                 <input type="hidden" name="classroomId" id="hiddenClassroomId"/>

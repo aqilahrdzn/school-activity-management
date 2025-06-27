@@ -297,7 +297,7 @@
                                         <p style="color: red;"><%= request.getParameter("error")%></p>
                                         <% }%>
                                         <h4 class="card-title">Update Account</h4>
-                                        <form class="forms-sample" action="../UpdateParentProfileServlet" method="post" enctype="multipart/form-data">
+                                        <form class="forms-sample" action="<%= request.getContextPath() %>/UpdateParentProfileServlet" method="post" enctype="multipart/form-data">
 
                                             <div class="form-group">
                                                 <label for="name">Name:</label>

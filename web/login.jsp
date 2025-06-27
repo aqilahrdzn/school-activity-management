@@ -56,7 +56,8 @@
                                     }
                                 %>
 
-                                <form class="pt-3" action="LoginServlet" method="post">
+                                <form class="pt-3" action="<%= request.getContextPath() %>/LoginServlet" method="post">
+
                                     <div class="form-group">
                                         <input type="email" class="form-control form-control-lg" id="email" name="email" placeholder="Email">
                                     </div>

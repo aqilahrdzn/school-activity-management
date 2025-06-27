@@ -70,7 +70,7 @@ public class LoginServlet extends HttpServlet {
                     session.setAttribute("teacherClass", teacher.getKelas());
                 } else {
                     System.out.println("[LoginServlet] Teacher details not found for: " + email);
-                    response.sendRedirect("login.jsp?error=teacherNotFound");
+                    response.sendRedirect(request.getContextPath() + "/login.jsp?error=teacherNotFound");
                     return;
                 }
 
@@ -83,12 +83,12 @@ public class LoginServlet extends HttpServlet {
                         session.setAttribute("parent", parent);
                     } else {
                         System.out.println("[LoginServlet] Incorrect parent password.");
-                        response.sendRedirect("login.jsp?error=wrongPassword");
+                        response.sendRedirect(request.getContextPath() + "/login.jsp?error=wrongPassword");
                         return;
                     }
                 } else {
                     System.out.println("[LoginServlet] Parent details not found.");
-                    response.sendRedirect("login.jsp?error=parentNotFound");
+                    response.sendRedirect(request.getContextPath() + "/login.jsp?error=parentNotFound");
                     return;
                 }
             }
@@ -96,26 +96,26 @@ public class LoginServlet extends HttpServlet {
             // ✅ Redirect to dashboard based on role
             switch (role.toLowerCase()) {
                 case "teacher":
-                    response.sendRedirect("teacher/teacherdashboard.jsp");
+                    response.sendRedirect(request.getContextPath() + "/teacher/teacherdashboard.jsp");
                     break;
                 case "schoolclerk":
-                    response.sendRedirect("clerk/clerkdashboard.jsp");
+                    response.sendRedirect(request.getContextPath() + "/clerk/clerkdashboard.jsp");
                     break;
                 case "headmaster":
-                    response.sendRedirect("headmaster/hmdashboard.jsp");
+                    response.sendRedirect(request.getContextPath() + "/headmaster/hmdashboard.jsp");
                     break;
                 case "parent":
-                    response.sendRedirect("parent/parentdashboard.jsp");
+                    response.sendRedirect(request.getContextPath() + "/parent/parentdashboard.jsp");
                     break;
                 default:
                     System.out.println("[LoginServlet] Unknown role.");
-                    response.sendRedirect("login.jsp?error=invalidRole");
+                    response.sendRedirect(request.getContextPath() + "/login.jsp?error=invalidRole");
                     break;
             }
 
         } else {
             System.out.println("[LoginServlet] Invalid credentials for: " + email);
-            response.sendRedirect("login.jsp?error=invalidCredentials");
+            response.sendRedirect(request.getContextPath() + "/login.jsp?error=invalidCredentials");
         }
     }
 }

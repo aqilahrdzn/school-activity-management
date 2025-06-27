@@ -350,7 +350,7 @@
                         <div class="card">
                             <div class="card-body">
                                 <h4 class="card-title">Edit Approval Form</h4>
-                                <form method="post" action="../SubmitApprovalServlet" enctype="multipart/form-data">
+                                <form method="post" action="<%= request.getContextPath() %>/SubmitApprovalServlet" enctype="multipart/form-data">
                                     <input type="hidden" name="event_id" value="<%= eventId%>">
                                     <input type="hidden" name="parent_id" value="<%= parentId%>">
                                     <input type="hidden" name="event_category" value="<%= eventCategory%>">

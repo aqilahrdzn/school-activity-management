@@ -340,7 +340,7 @@
                                 <% } else {%>
                                 <p class="card-description">Please enter the details</p>
 
-                                <form class="forms-sample" method="post" action="../SubmitApprovalServlet" enctype="multipart/form-data">
+                                <form class="forms-sample" method="post" action="<%= request.getContextPath() %>/SubmitApprovalServlet" enctype="multipart/form-data">
                                     <input type="hidden" name="event_category" value="<%= eventCategory%>">
                                     <input type="hidden" name="event_id" value="<%= eventId%>">
                                     <input type="hidden" name="parent_id" value="<%= parentId%>">

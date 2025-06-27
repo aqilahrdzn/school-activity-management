@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package controller;
 
 import java.io.IOException;
@@ -19,17 +15,14 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import util.DBConfig;
 
-/**
- *
- * @author Lenovo
- */
 @WebServlet("/ViewParentApprovalServlet")
 public class ViewParentApprovalServlet extends HttpServlet {
+    
+    @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         List<Map<String, String>> approvalList = new ArrayList<>();
         String teacherEmail = (String) request.getSession().getAttribute("email");
 
-        // Debug
         System.out.println("Teacher Email: " + teacherEmail);
 
         try (Connection con = DBConfig.getConnection()) {
@@ -43,7 +36,7 @@ public class ViewParentApprovalServlet extends HttpServlet {
                          "WHERE e.created_by = ?";
 
             PreparedStatement ps = con.prepareStatement(sql);
-            ps.setString(1, teacherEmail); // Must match email in 'created_by'
+            ps.setString(1, teacherEmail);
             ResultSet rs = ps.executeQuery();
 
             while (rs.next()) {
@@ -67,7 +60,7 @@ public class ViewParentApprovalServlet extends HttpServlet {
             e.printStackTrace();
         }
 
-        request.setAttribute("approvalList", approvalList);
-        request.getRequestDispatcher("/teacher/parentApprovals.jsp").forward(request, response);
+        // ✅ SAFELY FORWARD to JSP with context path
+        request.getRequestDispatcher(request.getContextPath() + "/teacher/parentApprovals.jsp").forward(request, response);
     }
 }

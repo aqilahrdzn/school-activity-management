@@ -304,7 +304,7 @@
                                 <div class="card">
                                     <div class="card-body">
                                         <h4 class="card-title">Update Venue Status</h4>
-                                        <form class="forms-sample" action="../UpdateClassroomStatusController" method="post">
+                                        <form class="forms-sample" action="<%= request.getContextPath() %>/UpdateClassroomStatusController" method="post">
                                             <div class="form-group">
                                                 <label for="classroomId">Select Classroom:</label>
                                                 <select name="id" required>

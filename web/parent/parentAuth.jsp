@@ -46,7 +46,7 @@
                                 </div>
                                 <h4>New here?</h4>
                                 <h6 class="font-weight-light">Signing up is easy. It only takes a few steps</h6>
-                                <form class="forms-sample" action="../ParentAuthServlet" method="post">
+                                <form class="forms-sample" action="<%= request.getContextPath() %>/ParentAuthServlet" method="post">
                                     <div id="form-container" class="form-group">
                                         <label for="exampleInputUsername1">IC Number:</label>
                                         <input type="text" class="form-control" id="ic" name="ic" required>

@@ -310,7 +310,7 @@
 
                                         <% if ("Yes".equalsIgnoreCase(isGuruKelas) && assignedClass != null && !assignedClass.isEmpty()) {%>
 
-                                        <form class="forms-sample" action="../StudentRegistrationServlet" method="post">
+                                        <form class="forms-sample" action="<%= request.getContextPath() %>/StudentRegistrationServlet" method="post">
 
                                             <div class="form-group">
                                                 <label for="class">Student Class</label>

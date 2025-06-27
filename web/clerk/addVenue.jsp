@@ -256,7 +256,7 @@
                                 <div class="card">
                                     <div class="card-body">
                                         <h4 class="card-title">Add New Venue</h4>
-                                        <form class="forms-sample" action="../AddClassroomController" method="post">
+                                        <form class="forms-sample" action="<%= request.getContextPath() %>/AddClassroomController" method="post">
                                             <div class="form-group">
                                                 <label for="name">Classroom Name:</label>
                                                 <input type="text" class="form-control" id="name" name="name" required>

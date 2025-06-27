@@ -32,7 +32,7 @@ public class UpdateClerkProfileServlet extends HttpServlet {
         Teacher teacher = (Teacher) session.getAttribute("teacher");
 
         if (teacher == null) {
-            response.sendRedirect("login.jsp");
+            response.sendRedirect(request.getContextPath() + "login.jsp");
             return;
         }
 
@@ -48,17 +48,17 @@ public class UpdateClerkProfileServlet extends HttpServlet {
         // ✅ STEP 1: Check password early
         if (!isEmpty(oldPassword) || !isEmpty(newPassword) || !isEmpty(confirmPassword)) {
             if (isEmpty(oldPassword) || isEmpty(newPassword) || isEmpty(confirmPassword)) {
-                response.sendRedirect("clerk/updateAccTc.jsp?error=All password fields are required.");
+                response.sendRedirect(request.getContextPath() + "clerk/updateAccTc.jsp?error=All password fields are required.");
                 return;
             }
 
             if (!oldPassword.equals(teacher.getPassword())) {
-                response.sendRedirect("clerk/updateAccCk.jsp?error=Old password is incorrect.");
+               response.sendRedirect(request.getContextPath() + "clerk/updateAccCk.jsp?error=Old password is incorrect.");
                 return;
             }
 
             if (!newPassword.equals(confirmPassword)) {
-                response.sendRedirect("clerk/updateAccCk.jsp?error=New password and confirmation do not match.");
+                response.sendRedirect(request.getContextPath() + "clerk/updateAccCk.jsp?error=New password and confirmation do not match.");
                 return;
             }
 
@@ -119,11 +119,11 @@ public class UpdateClerkProfileServlet extends HttpServlet {
             if (updatePassword) teacher.setPassword(newPassword);
             session.setAttribute("teacher", teacher);
 
-            response.sendRedirect("clerk/updateAccCk.jsp?success=true");
+            response.sendRedirect(request.getContextPath() + "clerk/updateAccCk.jsp?success=true");
 
         } catch (Exception e) {
             e.printStackTrace();
-            response.sendRedirect("clerk/updateAccCk.jsp?error=Update failed. Please try again.");
+            response.sendRedirect(request.getContextPath() + "clerk/updateAccCk.jsp?error=Update failed. Please try again.");
         }
     }
 

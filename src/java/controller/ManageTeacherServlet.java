@@ -29,26 +29,26 @@ public class ManageTeacherServlet extends HttpServlet {
 
                 // Validate input
                 if (newClass == null || newClass.trim().isEmpty()) {
-                    response.sendRedirect("clerk/teacherList.jsp?error=Please select a class.&selectedYear=" + selectedYear);
+                    response.sendRedirect(request.getContextPath() + "/clerk/teacherList.jsp?error=Please select a class.&selectedYear=" + selectedYear);
                     return;
                 }
 
                 // Check if the class is already assigned to a different teacher
                 boolean isAlreadyAssigned = teacherDAO.isClassAlreadyAssigned(newClass, selectedYear, teacherId);
                 if (isAlreadyAssigned) {
-                    response.sendRedirect("clerk/teacherList.jsp?error=Class already assigned to another teacher for " + selectedYear + ".&selectedYear=" + selectedYear);
+                    response.sendRedirect(request.getContextPath() + "/clerk/teacherList.jsp?error=Class already assigned to another teacher for " + selectedYear + ".&selectedYear=" + selectedYear);
                     return;
                 }
 
                 boolean success = teacherDAO.updateTeacherClass(teacherId, newClass, selectedYear);
                 if (success) {
-                    response.sendRedirect("clerk/teacherList.jsp?success=Class updated successfully!&selectedYear=" + selectedYear);
+                    response.sendRedirect(request.getContextPath() + "/clerk/teacherList.jsp?success=Class updated successfully!&selectedYear=" + selectedYear);
                 } else {
-                    response.sendRedirect("clerk/teacherList.jsp?error=Failed to update class.&selectedYear=" + selectedYear);
+                    response.sendRedirect(request.getContextPath() + "/clerk/teacherList.jsp?error=Failed to update class.&selectedYear=" + selectedYear);
                 }
 
             } catch (NumberFormatException e) {
-                response.sendRedirect("clerk/teacherList.jsp?error=Invalid input for teacher ID or year.");
+                response.sendRedirect(request.getContextPath() + "/clerk/teacherList.jsp?error=Invalid input for teacher ID or year.");
             }
 
         } else if ("delete".equals(action)) {
@@ -57,17 +57,17 @@ public class ManageTeacherServlet extends HttpServlet {
                 boolean success = teacherDAO.deleteTeacher(teacherId);
 
                 if (success) {
-                    response.sendRedirect("clerk/teacherList.jsp?success=Teacher deleted successfully!");
+                    response.sendRedirect(request.getContextPath() + "/clerk/teacherList.jsp?success=Teacher deleted successfully!");
                 } else {
-                    response.sendRedirect("clerk/teacherList.jsp?error=Failed to delete teacher.");
+                    response.sendRedirect(request.getContextPath() + "/clerk/teacherList.jsp?error=Failed to delete teacher.");
                 }
 
             } catch (NumberFormatException e) {
-                response.sendRedirect("clerk/teacherList.jsp?error=Invalid teacher ID.");
+                response.sendRedirect(request.getContextPath() + "/clerk/teacherList.jsp?error=Invalid teacher ID.");
             }
 
         } else {
-            response.sendRedirect("clerk/teacherList.jsp?error=Invalid action specified.");
+            response.sendRedirect(request.getContextPath() + "/clerk/teacherList.jsp?error=Invalid action specified.");
         }
     }
 }
