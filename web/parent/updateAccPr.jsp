@@ -16,6 +16,14 @@
 
 
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%
+    String lang = request.getParameter("lang");
+    if (lang != null) session.setAttribute("lang", lang);
+    String currentLang = (String) session.getAttribute("lang");
+    if (currentLang == null) currentLang = "ms";
+    java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("messages", new java.util.Locale(currentLang));
+%>
+
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -253,8 +261,9 @@
                             <div class="collapse" id="forms">
                                 <ul class="nav flex-column sub-menu">
                                     <li class="nav-item">
-                                        <a class="nav-link" href="updateAccPr.jsp">Update Account</a>
-                                        <a class="nav-link" href="studentEvent.jsp">Student Event List</a>
+                                        <a class="nav-link" href="updateAccPr.jsp"><%= bundle.getString("update_account")%></a>
+                                        <a class="nav-link" href="studentEvent.jsp"><%= bundle.getString("student_event_list")%></a>
+
                                     </li>
                                 </ul>
                             </div>
@@ -292,38 +301,38 @@
                                     <div class="card-body">
                                         <!-- Show message -->
                                         <% if ("true".equals(request.getParameter("success"))) { %>
-                                        <p style="color: green;">Profile updated successfully!</p>
+                                        <p style="color: green;"><%= bundle.getString("profile_updated")%></p>
                                         <% } else if (request.getParameter("error") != null) {%>
                                         <p style="color: red;"><%= request.getParameter("error")%></p>
                                         <% }%>
-                                        <h4 class="card-title">Update Account</h4>
+                                        <h4 class="card-title"><%= bundle.getString("update_account")%></h4>
                                         <form class="forms-sample" action="<%= request.getContextPath() %>/UpdateParentProfileServlet" method="post" enctype="multipart/form-data">
 
                                             <div class="form-group">
-                                                <label for="name">Name:</label>
+                                                <label for="name"><%= bundle.getString("name")%>:</label>
                                                 <input type="text" class="form-control" id="name" name="name" value="<%= parent.getName() != null ? parent.getName() : ""%>" required>
                                             </div>
                                             <div class="form-group">
-                                                <label for="email">Email:</label>
+                                                <label for="email"><%= bundle.getString("email")%>:</label>
                                                 <input type="email" class="form-control" id="email" name="email" value="<%= parent.getEmail() != null ? parent.getEmail() : ""%>" required>
                                             </div>
                                             <!-- Add Password Fields -->
                                             <div class="form-group">
-                                                <label for="oldPassword">Old Password:</label>
-                                                <input type="password" class="form-control" id="oldPassword" name="oldPassword" placeholder="Enter your current password">
+                                                <label for="oldPassword"><%= bundle.getString("oldpass")%>:</label>
+                                                <input type="password" class="form-control" id="oldPassword" name="oldPassword" placeholder="<%= bundle.getString("enter_current_pass")%>">
                                             </div>
 
                                             <div class="form-group">
-                                                <label for="newPassword">New Password:</label>
-                                                <input type="password" class="form-control" id="newPassword" name="newPassword" placeholder="Enter new password">
+                                                <label for="newPassword"><%= bundle.getString("newpass")%>:</label>
+                                                <input type="password" class="form-control" id="newPassword" name="newPassword" placeholder="<%= bundle.getString("enter_new_pass")%>">
                                             </div>
 
                                             <div class="form-group">
-                                                <label for="confirmPassword">Confirm New Password:</label>
-                                                <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" placeholder="Re-enter new password">
+                                                <label for="confirmPassword"><%= bundle.getString("confirmpass")%>:</label>
+                                                <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" placeholder="<%= bundle.getString("re_enter_pass")%>">
                                             </div>
                                             <div class="form-group">
-                                                <label for="profilePic">Profile Picture:</label>
+                                                <label for="profilePic"><%= bundle.getString("profilepic")%>:</label>
                                                 <input type="file" class="form-control" id="profilePic" name="profilePic" accept="image/*">
                                             </div>
 
@@ -335,18 +344,18 @@
 
                                             <% if (children != null && !children.isEmpty()) { %>
                                             <div class="form-group">
-                                                <label>Child Information:</label>
+                                                <label><%= bundle.getString("child_info")%>:</label>
                                                 <ul class="list-group">
                                                     <% for (Student child : children) {%>
                                                     <li class="list-group-item">
-                                                        Name: <strong><%= child.getStudentName() != null ? child.getStudentName() : "N/A"%></strong><br>
-                                                        Class: <strong><%= child.getStudentClass() != null ? child.getStudentClass() : "N/A"%></strong>
+                                                        <%= bundle.getString("child_name")%>: <strong><%= child.getStudentName() != null ? child.getStudentName() : "N/A"%></strong><br>
+                                                        <%= bundle.getString("child_class")%>: <strong><%= child.getStudentClass() != null ? child.getStudentClass() : "N/A"%></strong>
                                                     </li>
                                                     <% } %>
                                                 </ul>
                                             </div>
                                             <% } else { %>
-                                            <p>No children registered for this parent.</p>
+                                            <p><%= bundle.getString("new_here")%></p>
                                             <% }%>
 
                                             <button type="submit" class="btn btn-gradient-primary me-2">Update Account</button>

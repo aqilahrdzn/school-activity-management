@@ -12,6 +12,17 @@
 <%@page import="java.sql.PreparedStatement"%>
 <%@page import="java.sql.Connection"%>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%
+    String lang = request.getParameter("lang");
+    if (lang != null) {
+        session.setAttribute("lang", lang);
+    }
+    String currentLang = (String) session.getAttribute("lang");
+    if (currentLang == null) {
+        currentLang = "ms";
+    }
+    java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("messages", new java.util.Locale(currentLang));
+%>
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -261,6 +272,7 @@
                                     <li class="nav-item">
                                         <a class="nav-link" href="reportList.jsp">View Report</a>
                                         <a class="nav-link" href="updateAccHm.jsp">Update Account</a>
+                                        <a class="nav-link" href="reportViewer.jsp">Report</a>
                                     </li>
                                 </ul>
                             </div>

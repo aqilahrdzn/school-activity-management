@@ -5,6 +5,17 @@
 --%>
 
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%
+    String lang = request.getParameter("lang");
+    if (lang != null) {
+        session.setAttribute("lang", lang);
+    }
+    String currentLang = (String) session.getAttribute("lang");
+    if (currentLang == null) currentLang = "ms"; // Default: BM
+
+    java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("messages", new java.util.Locale(currentLang));
+%>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -173,10 +184,17 @@
     </div>
     <div class="collapse navbar-collapse" id="myNavbar">
       <ul class="nav navbar-nav navbar-right">
-       
-        <li><a href="login.jsp">LOGIN</a></li>
-        
-      </ul>
+  <li><a href="login.jsp"><%= bundle.getString("login") %></a></li>
+  <li>
+    <form method="get" action="" style="margin-top:8px;">
+      <select name="lang" onchange="this.form.submit()" style="padding:3px;">
+        <option value="en" <%= "en".equals(currentLang) ? "selected" : "" %>>EN</option>
+        <option value="ms" <%= "ms".equals(currentLang) ? "selected" : "" %>>BM</option>
+      </select>
+    </form>
+  </li>
+</ul>
+
     </div>
   </div>
 </nav>
@@ -194,7 +212,8 @@
       <div class="item active">
         <img src="assets/images/skkj3.jpg" alt="New York" >
         <div class="carousel-caption">
-          <h3>Welcome to SK Kerayong Jaya</h3>
+          <h3><%= bundle.getString("welcome_to") %> SK Kerayong Jaya</h3>
+
           <p>Disini Pemimpin Dilahirkan</p>
         </div>      
       </div>

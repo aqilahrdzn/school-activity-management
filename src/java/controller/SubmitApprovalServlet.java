@@ -12,9 +12,9 @@ import java.sql.*;
 
 @WebServlet("/SubmitApprovalServlet")
 @MultipartConfig(
-    fileSizeThreshold = 1024 * 1024,  
-    maxFileSize = 5 * 1024 * 1024,    
-    maxRequestSize = 10 * 1024 * 1024 
+        fileSizeThreshold = 1024 * 1024,
+        maxFileSize = 5 * 1024 * 1024,
+        maxRequestSize = 10 * 1024 * 1024
 )
 public class SubmitApprovalServlet extends HttpServlet {
 
@@ -42,7 +42,9 @@ public class SubmitApprovalServlet extends HttpServlet {
                     String uploadPath = applicationPath + File.separator + UPLOAD_DIRECTORY;
 
                     File uploadDir = new File(uploadPath);
-                    if (!uploadDir.exists()) uploadDir.mkdirs();
+                    if (!uploadDir.exists()) {
+                        uploadDir.mkdirs();
+                    }
 
                     File file = new File(uploadPath + File.separator + fileName);
                     InputStream originalStream = filePart.getInputStream();
@@ -80,11 +82,11 @@ public class SubmitApprovalServlet extends HttpServlet {
 
             String sql;
             if (exists) {
-                sql = "UPDATE parent_approval SET status = ?, reason = ?, approved_at = NOW(), resit_file = ?, resit_blob = ? " +
-                      "WHERE parent_id = ? AND event_id = ?";
+                sql = "UPDATE parent_approval SET status = ?, reason = ?, approved_at = NOW(), resit_file = ?, resit_blob = ? "
+                        + "WHERE parent_id = ? AND event_id = ?";
             } else {
-                sql = "INSERT INTO parent_approval (status, reason, approved_at, resit_file, resit_blob, parent_id, event_id) " +
-                      "VALUES (?, ?, NOW(), ?, ?, ?, ?)";
+                sql = "INSERT INTO parent_approval (status, reason, approved_at, resit_file, resit_blob, parent_id, event_id) "
+                        + "VALUES (?, ?, NOW(), ?, ?, ?, ?)";
             }
 
             try (PreparedStatement ps = con.prepareStatement(sql)) {
@@ -102,11 +104,7 @@ public class SubmitApprovalServlet extends HttpServlet {
                 ps.setInt(5, parentId);
                 ps.setInt(6, eventId);
 
-                if (!exists) {
-                    // insert requires 7 params
-                    ps.setInt(7, eventId);  // again for insert
-                }
-
+                // ❌ JANGAN ada ps.setInt(7, ...); kalau statement insert dah cukup 7 param.
                 ps.executeUpdate();
             }
 
@@ -116,6 +114,6 @@ public class SubmitApprovalServlet extends HttpServlet {
             return;
         }
 
-        response.sendRedirect(request.getContextPath() + "parent/studentEvent.jsp?success=true");
+        response.sendRedirect(request.getContextPath() + "/parent/studentEvent.jsp?success=true");
     }
 }

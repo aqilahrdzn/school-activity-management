@@ -43,7 +43,7 @@ public class TeacherRegisterServlet extends HttpServlet {
 
         if (isRegistered) {
             EmailUtil.sendRegistrationEmail(email, name, password);
-            response.sendRedirect(request.getContextPath() + "teacherList.jsp");
+            response.sendRedirect(request.getContextPath() + "/clerk/teacherList.jsp");
         } else {
             response.getWriter().write("Teacher registration failed. Please try again.");
         }

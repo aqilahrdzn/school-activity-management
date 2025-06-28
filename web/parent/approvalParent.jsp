@@ -15,6 +15,14 @@
 
 <%@page import="util.DBConfig"%>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%
+    String lang = request.getParameter("lang");
+    if (lang != null) session.setAttribute("lang", lang);
+    String currentLang = (String) session.getAttribute("lang");
+    if (currentLang == null) currentLang = "ms";
+    java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("messages", new java.util.Locale(currentLang));
+%>
+
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -293,8 +301,9 @@
                             <div class="collapse" id="forms">
                                 <ul class="nav flex-column sub-menu">
                                     <li class="nav-item">
-                                        <a class="nav-link" href="updateAccPr.jsp">Update Account</a>
-                                        <a class="nav-link" href="studentEvent.jsp">Student Event List</a>
+                                        <a class="nav-link" href="updateAccPr.jsp"><%= bundle.getString("update_account")%></a>
+                                        <a class="nav-link" href="studentEvent.jsp"><%= bundle.getString("student_event_list")%></a>
+
                                     </li>
                                 </ul>
                             </div>
@@ -333,12 +342,13 @@
                     <div class="col-md-6 grid-margin stretch-card">
                         <div class="card">
                             <div class="card-body">
-                                <h4 class="card-title">Parent Approval</h4>
+                                <h4 class="card-title"><%= bundle.getString("parent_approval")%></h4>
                                 <% if (alreadySubmitted) {%>
-                                <p class="text-success">✅ Approval already submitted.</p>
-                                <a href="editApproval.jsp?eventId=<%= eventId%>&parentId=<%= parentId%>" class="btn btn-warning">Edit Approval</a>
+                                <p class="text-success"><%= bundle.getString("approval_submitted")%></p>
+                                <a href="editApproval.jsp?eventId=<%= eventId%>&parentId=<%= parentId%>&eventTitle=<%= java.net.URLEncoder.encode(eventTitle, "UTF-8") %>&studentIc=<%= studentIc %>" class="btn btn-warning"><%= bundle.getString("edit_approval")%></a>
+
                                 <% } else {%>
-                                <p class="card-description">Please enter the details</p>
+                                <p class="card-description"><%= bundle.getString("enter_details")%></p>
 
                                 <form class="forms-sample" method="post" action="<%= request.getContextPath() %>/SubmitApprovalServlet" enctype="multipart/form-data">
                                     <input type="hidden" name="event_category" value="<%= eventCategory%>">
@@ -347,24 +357,24 @@
                                     <input type="hidden" name="student_ic" value="<%= studentIc%>">
 
                                     <div class="form-group">
-                                        <label for="status">Approve:</label><br>
-                                        <input type="radio" name="status" value="Approved" required> Approve
-                                        <input type="radio" name="status" value="Rejected"> Reject
+                                        <label for="status"><%= bundle.getString("update_status")%></label><br>
+                                        <input type="radio" name="status" value="Approved" required> <%= bundle.getString("approve")%>
+                                        <input type="radio" name="status" value="Rejected"> <%= bundle.getString("reject")%>
                                     </div>
 
                                     <div class="form-group">
-                                        <label for="reason">Reason (if reject):</label>
+                                        <label for="reason"><%= bundle.getString("reason_if_reject")%>:</label>
                                         <input type="text" class="form-control" id="reason" name="reason" placeholder="Reason">
                                     </div>
 
                                     <% if ("payment".equalsIgnoreCase(eventCategory)) { %>
                                     <div class="form-group">
-                                        <label for="resit">Upload Resit:</label>
+                                        <label for="resit"><%= bundle.getString("upload_resit")%></label>
                                         <input type="file" class="form-control" id="resit" name="resit" accept=".pdf,.jpg,.jpeg,.png" required>
                                     </div>
                                     <% } %>
 
-                                    <button type="submit" class="btn btn-gradient-primary me-2">Submit</button>
+                                    <button type="submit" class="btn btn-gradient-primary me-2"><%= bundle.getString("submit")%></button>
                                 </form>
                                 <% } %>
                             </div>

@@ -42,7 +42,7 @@
         <link rel="shortcut icon" href="../assets/images/favicon.png" />
     </head>
     <body>
-        
+
         <%
     String email = (String) session.getAttribute("email");
 
@@ -119,7 +119,7 @@
     } catch (SQLException e) {
         request.setAttribute("error", "Error retrieving approval list: " + e.getMessage());
     }
-%>
+        %>
         <div class="container-scroller">
             <!-- partial:../../partials/_navbar.html -->
             <nav class="navbar default-layout-navbar col-lg-12 col-12 p-0 fixed-top d-flex flex-row">
@@ -347,34 +347,47 @@
                                                     <th>Status</th>
                                                     <th>Reason</th>
                                                     <th>Approved At</th>
-                                                    <th>Resit File</th> <%-- ✅ New column --%>
+                                                    <th>Disqualified</th>
+                                                    <th>Resit File</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 <%
                                                     if (request.getAttribute("error") != null) {
                                                 %>
-                                                <tr><td colspan="10"><%= request.getAttribute("error")%></td></tr>
+                                                <tr><td colspan="10"><%= request.getAttribute("error") %></td></tr>
                                                     <%
-                                                    } else if (!approvalList.isEmpty()) {
-                                                        for (Map<String, String> row : approvalList) {
+                                                        } else if (!approvalList.isEmpty()) {
+                                                            for (Map<String, String> row : approvalList) {
+                                                                String status = row.get("status");
+                                                                String disqualified = row.get("disqualified");
                                                     %>
                                                 <tr>
-                                                    <td><%= row.get("student_name")%></td>
-                                                    <td><%= row.get("student_ic")%></td>
-                                                    <td><%= row.get("class")%></td>
-                                                    <td><%= row.get("status")%></td>
-                                                    <td><%= row.get("reason")%></td>
-                                                    <td><%= row.get("approved_at")%></td>
+                                                    <td><%= row.get("student_name") %></td>
+                                                    <td><%= row.get("student_ic") %></td>
+                                                    <td><%= row.get("class") %></td>
+                                                    <td>
+                                                        <% if ("Approved".equalsIgnoreCase(status)) { %>
+                                                        <span class="badge bg-success">Approved</span>
+                                                        <% } else if ("Rejected".equalsIgnoreCase(status)) { %>
+                                                        <span class="badge bg-warning text-dark">Rejected</span>
+                                                        <% } else if ("Disqualified".equalsIgnoreCase(status) || "true".equalsIgnoreCase(disqualified)) { %>
+                                                        <span class="badge bg-danger">Disqualified</span>
+                                                        <% } else { %>
+                                                        <span class="badge bg-secondary">Pending</span>
+                                                        <% } %>
+                                                    </td>
+                                                    <td><%= row.get("reason") != null ? row.get("reason") : "-" %></td>
+                                                    <td><%= row.get("approved_at") != null ? row.get("approved_at") : "-" %></td>
+                                                    <td><%= "true".equalsIgnoreCase(disqualified) ? "Yes" : "No" %></td>
                                                     <td>
                                                         <%
                                                             String resitPath = row.get("resit_file");
                                                             if (resitPath != null && !resitPath.trim().isEmpty()) {
                                                         %>
                                                         <a href="<%= request.getContextPath() %>/ViewResitServlet?event_id=<%= row.get("event_id") %>&parent_id=<%= row.get("parent_id") %>" target="_blank">View Resit</a>
-
                                                         <%
-                                                        } else {
+                                                            } else {
                                                         %>
                                                         No file
                                                         <%
@@ -383,21 +396,21 @@
                                                     </td>
                                                 </tr>
                                                 <%
-                                                    }
-                                                } else {
+                                                        }
+                                                    } else {
                                                 %>
                                                 <tr><td colspan="10">No approvals found for this event.</td></tr>
                                                 <%
                                                     }
                                                 %>
                                             </tbody>
-
                                         </table>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
+
                     <!-- content-wrapper ends -->
                     <!-- partial:../../partials/_footer.html -->
                     <footer class="footer">

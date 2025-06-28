@@ -4,7 +4,17 @@
     Author     : Lenovo
 --%>
 
+<%@page import="model.Teacher"%>
+<%@page import="dao.TeacherDAO"%>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%
+    String lang = request.getParameter("lang");
+    if (lang != null) session.setAttribute("lang", lang);
+    String currentLang = (String) session.getAttribute("lang");
+    if (currentLang == null) currentLang = "ms";
+    java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("messages", new java.util.Locale(currentLang));
+%>
+
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -30,6 +40,23 @@
         <link rel="shortcut icon" href="../assets/images/favicon.png" />
     </head>
     <body>
+        <%
+            String email = (String) session.getAttribute("email"); // Retrieve email from session
+
+            TeacherDAO teacherDAO = new TeacherDAO();
+            Teacher teacher = null;
+
+            if (email != null) {
+                teacher = teacherDAO.getTeacherDetails(email); // Pass email to fetch details
+            }
+
+            // Add a check to handle cases where teacher is null (e.g., not logged in)
+            if (teacher == null) {
+                // Redirect to login page or display an error message
+                response.sendRedirect(request.getContextPath() + "/login.jsp");
+                return; // Stop further processing of this JSP
+            }
+        %>
         <div class="container-scroller">
             <!-- partial:../../partials/_navbar.html -->
             <nav class="navbar default-layout-navbar col-lg-12 col-12 p-0 fixed-top d-flex flex-row">
@@ -164,7 +191,7 @@
                             </div>
                         </li>
                         <li class="nav-item nav-logout d-none d-lg-block">
-                            <a class="nav-link" href="#">
+                            <a class="nav-link" href="<%= request.getContextPath()%>/LoginServlet?action=logout">
                                 <i class="mdi mdi-power"></i>
                             </a>
                         </li>
@@ -187,56 +214,54 @@
                         <li class="nav-item nav-profile">
                             <a href="#" class="nav-link">
                                 <div class="nav-profile-image">
-                                    <img src="../../assets/images/faces/face1.jpg" alt="profile" />
+                                    <img src="<%= (teacher != null && teacher.getProfilePicture() != null) ? "../profile_pics/" + teacher.getProfilePicture() : "../assets/images/faces/default.jpg"%>" alt="profile" />
                                     <span class="login-status online"></span>
-                                    <!--change to offline or busy as needed-->
                                 </div>
+
                                 <div class="nav-profile-text d-flex flex-column">
-                                    <span class="font-weight-bold mb-2">David Grey. H</span>
-                                    <span class="text-secondary text-small">Project Manager</span>
+                                    <span class="font-weight-bold mb-2"><%= teacher.getName()%></span>
+                                    <span class="text-secondary text-small"><%= teacher.getRole()%></span>
                                 </div>
                                 <i class="mdi mdi-bookmark-check text-success nav-profile-badge"></i>
                             </a>
                         </li>
+                        <!--            dashboard-->
                         <li class="nav-item">
                             <a class="nav-link" href="clerkdashboard.jsp">
-                                <span class="menu-title">Dashboard</span>
+                                <span class="menu-title"><%= bundle.getString("dashboard")%></span>
                                 <i class="mdi mdi-home menu-icon"></i>
                             </a>
                         </li>
-
                         <li class="nav-item">
-                            <a class="nav-link" data-bs-toggle="collapse" href="#forms" aria-expanded="false" aria-controls="forms">
-                                <span class="menu-title">Forms</span>
+                            <a class="nav-link" data-bs-toggle="collapse" href="#forms">
+                                <span class="menu-title"><%= bundle.getString("forms")%></span>
                                 <i class="mdi mdi-format-list-bulleted menu-icon"></i>
                             </a>
                             <div class="collapse" id="forms">
                                 <ul class="nav flex-column sub-menu">
                                     <li class="nav-item">
-                                        <a class="nav-link" href="teacherRegistration.jsp">Teacher Registration</a>
-                                        <a class="nav-link" href="addVenue.jsp">Add New Venue</a>
-                                        <a class="nav-link" href="updateVenue.jsp">Update Venue Condition</a>
-                                        <a class="nav-link" href="updateAccCk.jsp">Update Account</a>
-                                        
+                                        <a class="nav-link" href="teacherRegistration.jsp"><%= bundle.getString("teacher_registration")%></a>
+                                        <a class="nav-link" href="addVenue.jsp"><%= bundle.getString("add_new_venue")%></a>
+                                        <a class="nav-link" href="updateVenue.jsp"><%= bundle.getString("update_venue_condition")%></a>
+                                        <a class="nav-link" href="updateAccCk.jsp"><%= bundle.getString("update_account")%></a>
                                     </li>
                                 </ul>
                             </div>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" data-bs-toggle="collapse" href="#charts" aria-expanded="false" aria-controls="charts">
-                                <span class="menu-title">List</span>
+                            <a class="nav-link" data-bs-toggle="collapse" href="#charts">
+                                <span class="menu-title"><%= bundle.getString("list")%></span>
                                 <i class="mdi mdi-chart-bar menu-icon"></i>
                             </a>
                             <div class="collapse" id="charts">
                                 <ul class="nav flex-column sub-menu">
                                     <li class="nav-item">
-                                        <a class="nav-link" href="studentListCk.jsp">Student List</a>
-                                        <a class="nav-link" href="teacherList.jsp">Teacher List</a>
+                                        <a class="nav-link" href="studentListCk.jsp"><%= bundle.getString("student_list")%></a>
+                                        <a class="nav-link" href="teacherList.jsp"><%= bundle.getString("teacher_list")%></a>
                                     </li>
                                 </ul>
                             </div>
                         </li>
-                        
                     </ul>
                 </nav>
                 <!-- partial -->
@@ -255,21 +280,21 @@
                             <div class="col-md-6 grid-margin stretch-card">
                                 <div class="card">
                                     <div class="card-body">
-                                        <h4 class="card-title">Add New Venue</h4>
+                                        <h4 class="card-title"><%= bundle.getString("add_new_venue") %></h4>
                                         <form class="forms-sample" action="<%= request.getContextPath() %>/AddClassroomController" method="post">
                                             <div class="form-group">
-                                                <label for="name">Classroom Name:</label>
+                                                <label for="name"><%= bundle.getString("classroom_name") %></label>
                                                 <input type="text" class="form-control" id="name" name="name" required>
                                             </div>
                                             <div class="form-group">
-                                                <label for="capacity">Capacity:</label>
+                                                <label for="capacity"><%= bundle.getString("capacity") %></label>
                                                 <input type="number" class="form-control" name="capacity" required>
                                             </div>
                                             <% if (request.getParameter("success") != null) { %>
-                                            <div class="success-message">Classroom added successfully!</div>
+                                            <div class="success-message"><%= bundle.getString("classroom_added_success") %></div>
                                             <% }%>
 
-                                            <button type="submit" class="btn btn-gradient-primary me-2">Add Venue</button>
+                                            <button type="submit" class="btn btn-gradient-primary me-2"><%= bundle.getString("add_venue_button") %></button>
 
                                         </form>
                                     </div>

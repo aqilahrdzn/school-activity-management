@@ -20,6 +20,13 @@
 
 <%@page import="util.DBConfig"%>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%
+    String lang = request.getParameter("lang");
+    if (lang != null) session.setAttribute("lang", lang);
+    String currentLang = (String) session.getAttribute("lang");
+    if (currentLang == null) currentLang = "ms";
+    java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("messages", new java.util.Locale(currentLang));
+%>
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -310,8 +317,9 @@
                             <div class="collapse" id="forms">
                                 <ul class="nav flex-column sub-menu">
                                     <li class="nav-item">
-                                        <a class="nav-link" href="updateAccPr.jsp">Update Account</a>
-                                        <a class="nav-link" href="studentEvent.jsp">Student Event List</a>
+                                        <a class="nav-link" href="updateAccPr.jsp"><%= bundle.getString("update_account")%></a>
+                                        <a class="nav-link" href="studentEvent.jsp"><%= bundle.getString("student_event_list")%></a>
+
                                     </li>
                                 </ul>
                             </div>
@@ -349,34 +357,34 @@
                     <div class="col-md-6 grid-margin stretch-card">
                         <div class="card">
                             <div class="card-body">
-                                <h4 class="card-title">Edit Approval Form</h4>
+                                <h4 class="card-title"><%= bundle.getString("edit_approval")%></h4>
                                 <form method="post" action="<%= request.getContextPath() %>/SubmitApprovalServlet" enctype="multipart/form-data">
                                     <input type="hidden" name="event_id" value="<%= eventId%>">
                                     <input type="hidden" name="parent_id" value="<%= parentId%>">
                                     <input type="hidden" name="event_category" value="<%= eventCategory%>">
 
                                     <div class="form-group">
-                                        <label>Approve:</label><br>
-                                        <input type="radio" name="status" value="Approved" <%= "Approved".equalsIgnoreCase(status) ? "checked" : ""%>> Approve
-                                        <input type="radio" name="status" value="Rejected" <%= "Rejected".equalsIgnoreCase(status) ? "checked" : ""%>> Reject
+                                        <label><%= bundle.getString("update_status")%></label><br>
+                                        <input type="radio" name="status" value="Approved" <%= "Approved".equalsIgnoreCase(status) ? "checked" : ""%>> <%= bundle.getString("approve")%>
+                                        <input type="radio" name="status" value="Rejected" <%= "Rejected".equalsIgnoreCase(status) ? "checked" : ""%>> <%= bundle.getString("reject")%>
                                     </div>
 
                                     <div class="form-group">
-                                        <label for="reason">Reason (if reject):</label>
+                                        <label for="reason"><%= bundle.getString("reason_if_reject")%>:</label>
                                         <input type="text" class="form-control" name="reason" value="<%= reason%>">
                                     </div>
 
                                     <% if ("payment".equalsIgnoreCase(eventCategory)) { %>
                                     <div class="form-group">
-                                        <label for="resit">Upload New Resit (optional):</label>
+                                        <label for="resit"><%= bundle.getString("upload_new_resit")%>:</label>
                                         <input type="file" class="form-control" name="resit" accept=".pdf,.jpg,.jpeg,.png">
                                         <% if (hasResit) {%>
-                                        <p>Current Resit: <a href="../ViewResitServlet?event_id=<%= eventId%>&parent_id=<%= parentId%>" target="_blank">View</a></p>
+                                        <p><%= bundle.getString("current_resit")%>: <a href="../ViewResitServlet?event_id=<%= eventId%>&parent_id=<%= parentId%>" target="_blank"><%= bundle.getString("view")%></a></p>
                                         <% } %>
                                     </div>
                                     <% }%>
 
-                                    <button type="submit" class="btn btn-primary">Update Approval</button>
+                                    <button type="submit" class="btn btn-primary"><%= bundle.getString("update_approval")%></button>
                                 </form>
                             </div>
                         </div>

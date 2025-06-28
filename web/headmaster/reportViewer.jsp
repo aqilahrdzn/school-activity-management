@@ -1,31 +1,19 @@
-<%-- 
-    Document   : studentList
-    Created on : Jun 19, 2025, 10:01:45 PM
-    Author     : Lenovo
---%>
-
-<%@page import="model.Student"%>
-<%@page contentType="text/html" pageEncoding="UTF-8"%>
-<%@page import="java.util.HashMap"%>
+<%@page import="java.time.format.TextStyle"%>
+<%@page import="java.util.Locale"%>
 <%@page import="java.util.ArrayList"%>
 <%@page import="java.util.List"%>
+<%@page import="java.time.format.DateTimeFormatter"%>
+<%@page import="java.util.LinkedHashMap"%>
 <%@page import="java.util.Map"%>
+<%@page import="java.time.YearMonth"%>
 <%@page import="model.Teacher"%>
-<%@page import="dao.TeacherDAO"%>
+<%@page import="java.sql.Statement"%>
 <%@page import="java.sql.ResultSet"%>
 <%@page import="java.sql.PreparedStatement"%>
 <%@page import="util.DBConfig"%>
 <%@page import="java.sql.Connection"%>
 <%@page import="java.sql.SQLException"%>
-<%
-    String lang = request.getParameter("lang");
-    if (lang != null) session.setAttribute("lang", lang);
-    String currentLang = (String) session.getAttribute("lang");
-    if (currentLang == null) currentLang = "ms";
-    java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("messages", new java.util.Locale(currentLang));
-%>
-
-
+<%@page contentType="text/html" pageEncoding="UTF-8"%>
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -52,70 +40,25 @@
     </head>
     <body>
         <%
-            // Retrieve email from session
-            String email = (String) session.getAttribute("email");
-
-            TeacherDAO teacherDAO = new TeacherDAO();
-            Teacher teacher = null;
-
-            if (email != null) {
-                teacher = teacherDAO.getTeacherDetails(email);
-            }
-
+            Teacher teacher = (Teacher) session.getAttribute("teacher");
             if (teacher == null) {
-                response.sendRedirect(request.getContextPath() + "/login.jsp");
+                response.sendRedirect("../login.jsp");
                 return;
             }
 
-            int totalTeachers = 0;
-            int totalStudents = 0;
-
-            try (Connection conn = DBConfig.getConnection()) {
-                try (PreparedStatement stmt = conn.prepareStatement("SELECT COUNT(*) AS total FROM teachers"); ResultSet rs = stmt.executeQuery()) {
-                    if (rs.next()) {
-                        totalTeachers = rs.getInt("total");
-                    }
-                }
-
-                try (PreparedStatement stmt = conn.prepareStatement("SELECT COUNT(*) AS total FROM student"); ResultSet rs = stmt.executeQuery()) {
-                    if (rs.next()) {
-                        totalStudents = rs.getInt("total");
-                    }
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-
-            // Retrieve events
-            List<Map<String, String>> events = new ArrayList<>();
-            String eventQuery = "SELECT id, title, description, start_time, end_time, target_class, status FROM events WHERE created_by = ?";
-
-            try (Connection connection = DBConfig.getConnection(); PreparedStatement eventStmt = connection.prepareStatement(eventQuery)) {
-
-                eventStmt.setString(1, email);
-                try (ResultSet rs = eventStmt.executeQuery()) {
-                    while (rs.next()) {
-                        Map<String, String> event = new HashMap<>();
-                        event.put("id", String.valueOf(rs.getInt("id")));
-                        event.put("title", rs.getString("title"));
-                        event.put("description", rs.getString("description"));
-                        event.put("start_time", rs.getString("start_time"));
-                        event.put("end_time", rs.getString("end_time"));
-                        event.put("target_class", rs.getString("target_class"));
-                        event.put("status", rs.getString("status"));
-                        events.add(event);
-                    }
-                }
-            } catch (SQLException e) {
-                request.setAttribute("eventError", "Error retrieving event data: " + e.getMessage());
-            }
+            boolean success = "true".equals(request.getParameter("success"));
         %>
+        <% String error = (String) request.getAttribute("error");
+            if (error != null) {%>
+        <div class="alert alert-danger"><strong>Error:</strong> <%= error%></div>
+        <% }%>
+
         <div class="container-scroller">
             <!-- partial:../../partials/_navbar.html -->
             <nav class="navbar default-layout-navbar col-lg-12 col-12 p-0 fixed-top d-flex flex-row">
                 <div class="text-center navbar-brand-wrapper d-flex align-items-center justify-content-start">
-                    <a class="navbar-brand brand-logo" href="teacherdashboard.jsp"><img src="../assets/images/skkj_logo.jpg" width="1000" height="50" alt="logo" /></a>
-                    <a class="navbar-brand brand-logo-mini" href="index.jsp"><img src="../assets/images/logo-mini.svg" alt="logo" /></a>
+                    <a class="navbar-brand brand-logo" href="../../index.html"><img src="../../assets/images/logo.svg" alt="logo" /></a>
+                    <a class="navbar-brand brand-logo-mini" href="../../index.html"><img src="../../assets/images/logo-mini.svg" alt="logo" /></a>
                 </div>
                 <div class="navbar-menu-wrapper d-flex align-items-stretch">
                     <button class="navbar-toggler navbar-toggler align-self-center" type="button" data-toggle="minimize">
@@ -134,6 +77,10 @@
                     <ul class="navbar-nav navbar-nav-right">
                         <li class="nav-item nav-profile dropdown">
                             <a class="nav-link dropdown-toggle" id="profileDropdown" href="#" data-bs-toggle="dropdown" aria-expanded="false">
+                                <div class="nav-profile-img">
+                                    <img src="../../assets/images/faces/face1.jpg" alt="image">
+                                    <span class="availability-status online"></span>
+                                </div>
                                 <div class="nav-profile-text">
                                     <p class="mb-1 text-black"><%= teacher.getName()%></p>
                                 </div>
@@ -144,7 +91,6 @@
                                 <div class="dropdown-divider"></div>
                                 <a class="dropdown-item" href="../login.jsp">
                                     <i class="mdi mdi-logout me-2 text-primary"></i> Signout </a>
-
                             </div>
                         </li>
 
@@ -237,7 +183,7 @@
                             </div>
                         </li>
                         <li class="nav-item nav-logout d-none d-lg-block">
-                            <a class="nav-link" href="<%= request.getContextPath()%>/LoginServlet?action=logout">
+                            <a class="nav-link" href="../login.jsp">
                                 <i class="mdi mdi-power"></i>
                             </a>
                         </li>
@@ -257,6 +203,7 @@
                             <a href="#" class="nav-link">
                                 <div class="nav-profile-image">
                                     <img src="<%= (teacher != null && teacher.getProfilePicture() != null) ? "../profile_pics/" + teacher.getProfilePicture() : "../assets/images/faces/default.jpg"%>" alt="profile" />
+
                                     <span class="login-status online"></span>
                                 </div>
 
@@ -267,43 +214,41 @@
                                 <i class="mdi mdi-bookmark-check text-success nav-profile-badge"></i>
                             </a>
                         </li>
-                        <!--            dashboard-->
                         <li class="nav-item">
-                            <a class="nav-link" href="clerkdashboard.jsp">
-                                <span class="menu-title"><%= bundle.getString("dashboard")%></span>
+                            <a class="nav-link" href="teacherdashboard.jsp">
+                                <span class="menu-title">Dashboard</span>
                                 <i class="mdi mdi-home menu-icon"></i>
                             </a>
                         </li>
+
                         <li class="nav-item">
-                            <a class="nav-link" data-bs-toggle="collapse" href="#forms">
-                                <span class="menu-title"><%= bundle.getString("forms")%></span>
+                            <a class="nav-link" data-bs-toggle="collapse" href="#forms" aria-expanded="false" aria-controls="forms">
+                                <span class="menu-title">Forms</span>
                                 <i class="mdi mdi-format-list-bulleted menu-icon"></i>
                             </a>
                             <div class="collapse" id="forms">
                                 <ul class="nav flex-column sub-menu">
                                     <li class="nav-item">
-                                        <a class="nav-link" href="teacherRegistration.jsp"><%= bundle.getString("teacher_registration")%></a>
-                                        <a class="nav-link" href="addVenue.jsp"><%= bundle.getString("add_new_venue")%></a>
-                                        <a class="nav-link" href="updateVenue.jsp"><%= bundle.getString("update_venue_condition")%></a>
-                                        <a class="nav-link" href="updateAccCk.jsp"><%= bundle.getString("update_account")%></a>
+                                        <a class="nav-link" href="reportList.jsp">View Report</a>
+                                        <a class="nav-link" href="updateAccHm.jsp">Update Account</a>
                                     </li>
                                 </ul>
                             </div>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" data-bs-toggle="collapse" href="#charts">
-                                <span class="menu-title"><%= bundle.getString("list")%></span>
+                            <a class="nav-link" data-bs-toggle="collapse" href="#charts" aria-expanded="false" aria-controls="charts">
+                                <span class="menu-title">Charts</span>
                                 <i class="mdi mdi-chart-bar menu-icon"></i>
                             </a>
                             <div class="collapse" id="charts">
                                 <ul class="nav flex-column sub-menu">
                                     <li class="nav-item">
-                                        <a class="nav-link" href="studentListCk.jsp"><%= bundle.getString("student_list")%></a>
-                                        <a class="nav-link" href="teacherList.jsp"><%= bundle.getString("teacher_list")%></a>
+                                        <a class="nav-link" href="../../pages/charts/chartjs.html">ChartJs</a>
                                     </li>
                                 </ul>
                             </div>
                         </li>
+
                     </ul>
                 </nav>
                 <!-- partial -->
@@ -321,166 +266,97 @@
 
                     </div>
 
-                    <%@page import="model.Teacher"%>
-                    <%@page import="java.util.List, model.Student, model.Teacher"%>
-                    <%
-                        // ... existing Teacher session retrieval and checks ...
-
-                        String successMessage = request.getParameter("successMessage");
-                        String errorMessage = request.getParameter("errorMessage");
-                    %>
-
-                    <!-- Add these div blocks near the top of your card-body in studentList.jsp -->
-                    <% if (successMessage != null) {%>
-                    <div class="alert alert-success mt-3" role="alert">
-                        <%= successMessage%>
-                    </div>
-                    <% } %>
-                    <% if (errorMessage != null) {%>
-                    <div class="alert alert-danger mt-3" role="alert">
-                        <%= errorMessage%>
-                    </div>
-                    <% } %>
-
-                    <!-- ... rest of your studentList.jsp ... -->
-                    <%
-                        Teacher loggedInTeacher = (Teacher) session.getAttribute("teacher");
-
-                        if (loggedInTeacher == null) {
-                            response.sendRedirect(request.getContextPath() + "/login.jsp");
-                            return;
-                        }
-
-                        boolean isCurrentUserGuruKelas = "Yes".equals(loggedInTeacher.getIsGuruKelas());
-                        String currentUserKelas = loggedInTeacher.getKelas();
-                    %>
-
                     <div class="row">
-                        <div class="col-12 grid-margin">
-                            <div class="card">
+                        <div class="col-12">
+
+
+                            <% Map<String, List<Map<String, String>>> tableData = (Map<String, List<Map<String, String>>>) request.getAttribute("tableData");
+                                if (tableData != null && !tableData.isEmpty()) {
+                                    for (Map.Entry<String, List<Map<String, String>>> entry : tableData.entrySet()) {
+                                        String tableName = entry.getKey();
+                                        List<Map<String, String>> columns = entry.getValue();
+                            %>
+                            <div class="card mb-4">
                                 <div class="card-body">
-                                    <h4 class="card-title"><%= bundle.getString("student_list") %></h4>
+                                    <h4 class="card-title">📁 <%= tableName%></h4>
 
-                                    <form id="studentClassForm"> <%-- Add an ID to the form --%>
-                                        <div class="form-group row">
-                                            <label for="studentClass" class="col-sm-2 col-form-label"><%= bundle.getString("select_class") %></label>
-                                            <div class="col-sm-6">
-                                                <select class="form-control" name="studentClass" id="studentClass" required>
-                                                    <option value=""><%= bundle.getString("select_class") %></option>
-                                                    <option value="1 Makkah">1 Makkah</option>
-                                                    <option value="1 Madinah">1 Madinah</option>
-                                                    <option value="2 Makkah">2 Makkah</option>
-                                                    <option value="2 Madinah">2 Madinah</option>
-                                                    <option value="3 Makkah">3 Makkah</option>
-                                                    <option value="3 Madinah">3 Madinah</option>
-                                                    <option value="4 Makkah">4 Makkah</option>
-                                                    <option value="4 Madinah">4 Madinah</option>
-                                                    <option value="5 Makkah">5 Makkah</option>
-                                                    <option value="5 Madinah">5 Madinah</option>
-                                                    <option value="6 Makkah">6 Makkah</option>
-                                                    <option value="6 Madinah">6 Madinah</option>
-                                                </select>
-                                            </div>
-                                            <div class="col-sm-2">
-                                                <button type="submit" class="btn btn-primary"><%= bundle.getString("view_button") %></button>
-                                            </div>
-                                        </div>
-                                    </form>
-                                  
+                                    <!-- Search input -->
+                                    <input type="text" class="form-control mb-2 search-input" placeholder="Search in <%= tableName%>" onkeyup="filterTable(this)">
 
-                                    <% String role = (String) session.getAttribute("role"); %>
-                                    <% if ("schoolclerk".equals(role)) { %>
-                                    <form action="../PromoteStudentsServlet" method="get" onsubmit="return confirmPromotion()">
-                                        <button type="submit" class="btn btn-warning mb-3"><%= bundle.getString("promote_all_students") %></button>
-                                    </form>
-                                    <% }%>
-
+                                    <!-- Export buttons -->
+                                    <div class="mb-3">
+                                        <button class="btn btn-sm btn-success" onclick="exportTable(this, 'excel')">Export to Excel</button>
+                                        <button class="btn btn-sm btn-danger" onclick="exportTable(this, 'pdf')">Export to PDF</button>
+                                    </div>
 
                                     <div class="table-responsive">
-                                        <table class="table">
+                                        <table class="table table-striped">
                                             <thead>
                                                 <tr>
-                                                    <th> <%= bundle.getString("name") %> </th>
-                                                    <th> <%= bundle.getString("ic_number") %> </th>
-                                                    <th> <%= bundle.getString("sport_team") %> </th>
-                                                    <th> <%= bundle.getString("uniform_unit") %> </th>
-
+                                                    <th>Field</th>
+                                                    <th>Type</th>
+                                                    <th>Null</th>
+                                                    <th>Key</th>
+                                                    <th>Default</th>
+                                                    <th>Extra</th>
                                                 </tr>
                                             </thead>
-                                            <tbody id="studentTableBody"> <%-- Add an ID to the tbody --%>
-                                                <tr><td colspan="4"><%= bundle.getString("please_select_class") %></td></tr>
-
+                                            <tbody>
+                                                <% for (Map<String, String> column : columns) {%>
+                                                <tr>
+                                                    <td><%= column.get("Field")%></td>
+                                                    <td><%= column.get("Type")%></td>
+                                                    <td><%= column.get("Null")%></td>
+                                                    <td><%= column.get("Key")%></td>
+                                                    <td><%= column.get("Default") != null ? column.get("Default") : ""%></td>
+                                                    <td><%= column.get("Extra")%></td>
+                                                </tr>
+                                                <% } %>
                                             </tbody>
                                         </table>
                                     </div>
                                 </div>
                             </div>
+                            <%   }
+                            } else { %>
+                            <p class="text-danger">No table data available.</p>
+                            <% }%>
                         </div>
                     </div>
 
-                    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+                    <!-- Scripts -->
+                    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+                    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+                    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
                     <script>
-        $(document).ready(function () {
-            // Pre-select the class if the user is Guru Kelas and has an assigned class
-            var isGuruKelas = "<%= isCurrentUserGuruKelas%>"; // Get boolean from JSP
-            var currentUserKelas = "<%= currentUserKelas%>"; // Get string from JSP
+                                            function filterTable(input) {
+                                                const value = input.value.toLowerCase();
+                                                const table = input.parentElement.querySelector("table");
+                                                const rows = table.querySelectorAll("tbody tr");
+                                                rows.forEach(row => {
+                                                    const match = [...row.cells].some(cell => cell.textContent.toLowerCase().includes(value));
+                                                    row.style.display = match ? "" : "none";
+                                                });
+                                            }
 
-            if (isGuruKelas === "true" && currentUserKelas && currentUserKelas !== "null" && currentUserKelas !== "") {
-                $('#studentClass').val(currentUserKelas).change(); // Set value and trigger change to load data
-            }
+                                            async function exportTable(button, type) {
+                                                const table = button.parentElement.nextElementSibling.querySelector("table");
+                                                const title = button.closest(".card-body").querySelector("h4").textContent.trim();
 
-            $('#studentClassForm').submit(function (event) {
-                event.preventDefault(); // Prevent default form submission
-
-                var selectedClass = $('#studentClass').val();
-                var tableBody = $('#studentTableBody');
-                tableBody.empty(); // Clear existing rows
-
-                if (selectedClass) {
-                    $.ajax({
-                        url: '<%= request.getContextPath()%>/StudentListJsonController', // Call the new JSON servlet
-                        type: 'GET',
-                        data: {studentClass: selectedClass},
-                        dataType: 'json', // Expect JSON response
-                        success: function (data) {
-                            if (data && data.length > 0) {
-                                $.each(data, function (index, student) {
-                                    var row = '<tr>' +
-                                            '<td>' + student.studentName + '</td>' +
-                                            '<td>' + student.icNumber + '</td>' +
-                                            '<td>' + student.sportTeam + '</td>' +
-                                            '<td>' + student.uniformUnit + '</td>';
-
-
-                                    row += '</tr>';
-                                    tableBody.append(row);
-                                });
-                            } else {
-                                tableBody.append('<tr><td colspan="4">No students found for selected class.</td></tr>');
-
-                            }
-                        },
-                        error: function (jqXHR, textStatus, errorThrown) {
-                            console.log("AJAX error: " + textStatus + ', ' + errorThrown);
-                            tableBody.append('<tr><td colspan="4">Error loading students.</td></tr>');
-
-                        }
-                    });
-                } else {
-                    tableBody.append('<tr><td colspan="<%= isCurrentUserGuruKelas ? "5" : "4"%>">Please select a class to view students.</td></tr>');
-                }
-            });
-            // Trigger submission on initial page load if class is pre-selected by Guru Kelas
-            if (isGuruKelas === "true" && currentUserKelas && currentUserKelas !== "null" && currentUserKelas !== "") {
-                $('#studentClassForm').submit();
-            }
-        });
+                                                if (type === 'excel') {
+                                                    const wb = XLSX.utils.table_to_book(table, {sheet: "Sheet"});
+                                                    XLSX.writeFile(wb, title + ".xlsx");
+                                                } else if (type === 'pdf') {
+                                                    const {jsPDF} = window.jspdf;
+                                                    const doc = new jsPDF();
+                                                    doc.autoTable({html: table});
+                                                    doc.save(title + ".pdf");
+                                                }
+                                            }
                     </script>
-                    <script>
-                        function confirmPromotion() {
-                            return confirm("Are you sure you want to promote all students to the next class?");
-                        }
-                    </script>
+
+
 
                     <!-- content-wrapper ends -->
                     <!-- partial:../../partials/_footer.html -->
@@ -519,6 +395,5 @@
         <!-- End custom js for this page -->
     </body>
 </html>
-
 
 

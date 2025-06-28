@@ -1,4 +1,13 @@
+<%@page contentType="text/html" pageEncoding="UTF-8"%>
 <!DOCTYPE html>
+<%
+    String lang = request.getParameter("lang");
+    if (lang != null) session.setAttribute("lang", lang);
+    String currentLang = (String) session.getAttribute("lang");
+    if (currentLang == null) currentLang = "ms";
+    java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("messages", new java.util.Locale(currentLang));
+%>
+
 <html lang="en">
     <head>
         <!-- Required meta tags -->
@@ -22,19 +31,19 @@
     </head>
     <body>
         <script>
-                            function addChildForm() {
-                                const container = document.createElement("div");
-                                container.classList.add("child-form");
+            function addChildForm() {
+                const container = document.createElement("div");
+                container.classList.add("child-form");
 
-                                container.innerHTML = `
+                container.innerHTML = `
         <label for="ic">IC number:</label>
         <input type="text" name="ic" required><br>
     `;
 
-                                document.getElementById("form-container").appendChild(container);
-                            }
+                document.getElementById("form-container").appendChild(container);
+            }
 
-                        </script>
+        </script>
         <div class="container-scroller">
             <div class="container-fluid page-body-wrapper full-page-wrapper">
                 <div class="content-wrapper d-flex align-items-center auth">
@@ -44,16 +53,16 @@
                                 <div class="brand-logo">
                                     <img src="../../assets/images/logo.svg">
                                 </div>
-                                <h4>New here?</h4>
-                                <h6 class="font-weight-light">Signing up is easy. It only takes a few steps</h6>
-                                <form class="forms-sample" action="<%= request.getContextPath() %>/ParentAuthServlet" method="post">
+                                <h4><%= bundle.getString("new_here")%></h4>
+                                <h6 class="font-weight-light"><%= bundle.getString("signup_easy")%></h6>
+                                <form class="forms-sample" action="<%= request.getContextPath()%>/ParentAuthServlet" method="post">
                                     <div id="form-container" class="form-group">
-                                        <label for="exampleInputUsername1">IC Number:</label>
+                                        <label for="exampleInputUsername1"><%= bundle.getString("ic_number")%></label>
                                         <input type="text" class="form-control" id="ic" name="ic" required>
                                     </div>
-                                    <button type="button" onclick="addChildForm()">Add Another Child</button>
+                                    <button type="button" onclick="addChildForm()"><%= bundle.getString("add_another_child")%></button>
                                     <br><br>
-                                    <button type="submit" class="btn btn-gradient-primary me-2">Submit</button>
+                                    <button type="submit" class="btn btn-gradient-primary me-2"><%= bundle.getString("submit")%></button>
 
                                 </form>
                             </div>

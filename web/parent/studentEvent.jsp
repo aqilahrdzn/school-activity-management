@@ -27,6 +27,14 @@
 <%@ page import="dao.ParentDAO" %>
 
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%
+    String lang = request.getParameter("lang");
+    if (lang != null) session.setAttribute("lang", lang);
+    String currentLang = (String) session.getAttribute("lang");
+    if (currentLang == null) currentLang = "ms";
+    java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("messages", new java.util.Locale(currentLang));
+%>
+
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -242,8 +250,9 @@
                             <div class="collapse" id="forms">
                                 <ul class="nav flex-column sub-menu">
                                     <li class="nav-item">
-                                        <a class="nav-link" href="updateAccPr.jsp">Update Account</a>
-                                        <a class="nav-link" href="studentEvent.jsp">Student Event List</a>
+                                        <a class="nav-link" href="updateAccPr.jsp"><%= bundle.getString("update_account")%></a>
+                                        <a class="nav-link" href="studentEvent.jsp"><%= bundle.getString("student_event_list")%></a>
+
                                     </li>
                                 </ul>
                             </div>
@@ -285,7 +294,7 @@
                                 <div class="card-body">
                                     <% if ("true".equals(request.getParameter("success"))) { %>
                                     <div class="alert alert-success" role="alert">
-                                        ✅ Your approval has been submitted successfully!
+                                        <%= bundle.getString("approval_submitted")%>
                                     </div>
                                     <% } %>
 
@@ -300,17 +309,17 @@
                                         %>
 
                                         <% if (studentEvents.isEmpty()) { %>
-                                        <p>No events found for your children.</p>
+                                        <p><%= bundle.getString("no_events")%></p>
                                         <% } else { %>
                                         <table class="table">
                                             <thead>
                                                 <tr>
-                                                    <th>Student Name </th>
-                                                    <th>Class</th>
-                                                    <th>IC Number</th>
-                                                    <th>Event Title</th>
-                                                    <th>Approval Letter</th>
-                                                    <th>Action</th>
+                                                    <th><%= bundle.getString("name")%> </th>
+                                                    <th><%= bundle.getString("classroom_name")%></th>
+                                                    <th><%= bundle.getString("ic_number")%></th>
+                                                    <th><%= bundle.getString("event_title")%></th>
+                                                    <th><%= bundle.getString("approval_letter")%></th>
+                                                    <th><%= bundle.getString("action")%></th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -330,18 +339,18 @@
                                                     <td>
                                                         <% if (surat != null && !surat.trim().isEmpty()) {%>
                                                         <a href="<%= request.getContextPath() + "/ViewSuratServlet?eventId=" + eventId%>" target="_blank" class="btn btn-sm btn-success">
-                                                            View Approval Letter
+                                                            <%= bundle.getString("view_approval_letter")%>
                                                         </a>
 
                                                         <% } else { %>
-                                                        <span>No Letter</span>
+                                                        <span><%= bundle.getString("no_letter")%></span>
                                                         <% }%>
                                                     </td>
                                                     <td>
                                                         <form method="get" action="approvalParent.jsp" style="display:inline;">
                                                             <input type="hidden" name="studentIc" value="<%= student.getIcNumber()%>" />
                                                             <input type="hidden" name="eventTitle" value="<%= event.get("title")%>" />
-                                                            <button type="submit" class="btn btn-sm btn-primary">Approval</button>
+                                                            <button type="submit" class="btn btn-sm btn-primary"><%= bundle.getString("approval_button")%></button>
                                                         </form>
 
                                                     </td>

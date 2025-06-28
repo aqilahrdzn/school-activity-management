@@ -4,6 +4,11 @@
     Author     : Lenovo
 --%>
 
+<%@page import="model.Parent"%>
+<%@page import="model.Student"%>
+<%@page import="dao.StudentDAO"%>
+<%@page import="dao.ParentDAO"%>
+<%@page import="java.util.HashMap"%>
 <%@page import="java.time.format.TextStyle"%>
 <%@page import="java.util.Locale"%>
 <%@page import="java.util.ArrayList"%>
@@ -20,6 +25,17 @@
 <%@page import="java.sql.Connection"%>
 <%@page import="java.sql.SQLException"%>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%
+    String lang = request.getParameter("lang");
+    if (lang != null) {
+        session.setAttribute("lang", lang);
+    }
+    String currentLang = (String) session.getAttribute("lang");
+    if (currentLang == null) {
+        currentLang = "ms";
+    }
+    java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("messages", new java.util.Locale(currentLang));
+%>
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -36,6 +52,7 @@
         <!-- Plugin css for this page -->
         <link rel="stylesheet" href="../assets/vendors/select2/select2.min.css">
         <link rel="stylesheet" href="../assets/vendors/select2-bootstrap-theme/select2-bootstrap.min.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
         <!-- End plugin css for this page -->
         <!-- inject:css -->
         <!-- endinject -->
@@ -266,119 +283,391 @@
                         </div>
 
                     </div>
-                    <div class="row">
-                        <div class="col-12 grid-margin">
-                            <div class="card">
-                                <div class="card-body">
-                                    <h4 class="card-title">Submitted Events</h4>
+                    <div class="container mt-4">
+                        <h3 class="mb-4 text-center">📊 Headmaster Report Center</h3>
 
-                                    <form class="form-inline mb-4" method="get" action="">
-                                        <label for="monthYearFilter" class="mr-2">Filter by Month:</label>
-                                        <input type="month" class="form-control mr-2" id="monthYearFilter" name="filterMonthYear"
-                                               value="<%= request.getParameter("filterMonthYear") != null ? request.getParameter("filterMonthYear") : ""%>"
-                                               max="<%= java.time.YearMonth.now().toString()%>"
-                                               onchange="this.form.submit()">
-                                    </form>
+                        <ul class="nav nav-tabs mb-3">
+                            <li class="nav-item">
+                                <a class="nav-link" id="parentTab-tab" href="#" onclick="showTab('parentTab')">Parent Report</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="studentTab-tab" href="#" onclick="showTab('studentTab')">Student Report</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="teacherTab-tab" href="#" onclick="showTab('teacherTab')">Teacher Report</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="eventTab-tab" href="#" onclick="showTab('eventTab')">Event Report</a>
+                            </li>
 
-                                    <div class="table-responsive">
-                                        <table class="table">
-                                            <thead>
-                                                <tr>
-                                                    <th> Event Category </th>
-                                                    <th> Event Title </th>
-                                                    <th> Description </th>
-                                                    <th> Start Time </th>
-                                                    <th> End Time </th>
-                                                    <th> Time Zone </th>
-                                                    <th> Target Student </th>
-                                                    <th> Status </th>
-                                                    <th> Created By </th>
-                                                    <th> Classroom </th>
-                                                    <th> Actions </th> <%-- Added for View Report button --%>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <%
-                                                    String filterMonthYear = request.getParameter("filterMonthYear");
-                                                    String sqlQuery = "SELECT * FROM events";
-                                                    List<Object> params = new ArrayList<>(); // Use List for dynamic parameters
+                        </ul>
 
-                                                    if (filterMonthYear != null && !filterMonthYear.isEmpty()) {
-                                                        // Extract year and month from "yyyy-MM" format
-                                                        String[] ym = filterMonthYear.split("-");
-                                                        int year = Integer.parseInt(ym[0]);
-                                                        int month = Integer.parseInt(ym[1]);
+                        <div class="report-tab" id="parentTab" style="display:none;">
+                            <h4>Parent List by Child's Class</h4>
 
-                                                        // For PostgreSQL or MySQL, DATE_TRUNC or YEAR/MONTH functions are efficient
-                                                        // Assuming start_time is a DATETIME/TIMESTAMP column
-                                                        sqlQuery += " WHERE EXTRACT(YEAR FROM start_time) = ? AND EXTRACT(MONTH FROM start_time) = ?"; // For PostgreSQL
-                                                        // For MySQL: sqlQuery += " WHERE YEAR(start_time) = ? AND MONTH(start_time) = ?";
+                            <form method="get" action="reportList.jsp" class="form-inline mb-3">
+                                <input type="hidden" name="tab" value="parentTab" />
+                                <label class="mr-2">Select Class:</label>
+                                <select name="classFilter" class="form-control mr-2" onchange="this.form.submit()">
+                                    <option value="">-- All Classes --</option>
+                                    <%
+                                        String[] classes = {"1 Makkah", "1 Madinah", "2 Makkah", "2 Madinah", "3 Makkah"};
+                                        String classFilter = request.getParameter("classFilter");
+                                        for (String c : classes) {
+                                            String selected = c.equals(classFilter) ? "selected" : "";
+                                    %>
+                                    <option value="<%= c%>" <%= selected%>><%= c%></option>
+                                    <% } %>
+                                </select>
+                            </form>
+                            <div class="table-responsive"> 
+                                <table class="table table-bordered table-hover">
+                                    <thead class="thead-light">
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Parent Name</th>
+                                            <th>Email</th>
+                                            <th>Phone</th>
+                                            <th>IC Number</th>
+                                            <th>Child(ren)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <%
+                                            ParentDAO parentDAO = new ParentDAO();
+                                            StudentDAO studentDAO = new StudentDAO();
+                                            List<Student> allStudents = new ArrayList<>();
+                                            if (classFilter != null && !classFilter.isEmpty()) {
+                                                allStudents = studentDAO.getStudentsByClass(classFilter);
+                                            }
 
-                                                        params.add(year);
-                                                        params.add(month);
+                                            Map<Integer, List<Student>> parentToChildren = new LinkedHashMap<>();
+                                            Map<Integer, Parent> parentMap = new HashMap<>();
+
+                                            for (Student s : allStudents) {
+                                                Parent p = parentDAO.getParentByStudentIc(s.getIcNumber());
+                                                if (p != null) {
+                                                    parentMap.put(p.getId(), p);
+                                                    if (!parentToChildren.containsKey(p.getId())) {
+                                                        parentToChildren.put(p.getId(), new ArrayList<Student>());
                                                     }
+                                                    parentToChildren.get(p.getId()).add(s);
+                                                }
+                                            }
 
-                                                    sqlQuery += " ORDER BY start_time DESC"; // Order by most recent events first
+                                            int count = 1;
+                                            for (Map.Entry<Integer, Parent> entry : parentMap.entrySet()) {
+                                                Parent p = entry.getValue();
+                                                List<Student> children = parentToChildren.get(p.getId());
+                                        %>
+                                        <tr>
+                                            <td><%= count++%></td>
+                                            <td><%= p.getName()%></td>
+                                            <td><%= p.getEmail()%></td>
+                                            <td><%= p.getContactNumber()%></td>
+                                            <td><%= p.getIcNumber()%></td>
+                                            <td>
+                                                <ul>
+                                                    <% for (Student child : children) {%>
+                                                    <li><%= child.getStudentName()%></li>
+                                                        <% } %>
+                                                </ul>
+                                            </td>
+                                        </tr>
+                                        <% }
+                                            if (parentMap.isEmpty()) { %>
+                                        <tr><td colspan="6" class="text-center">No parents found for this class.</td></tr>
+                                        <% }%>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <form method="get" action="parentReport.jsp" target="_blank" class="mb-3">
+                                <input type="hidden" name="classFilter" value="<%= classFilter != null ? classFilter : ""%>">
+                                <button type="submit" class="btn btn-outline-primary">
+                                    🖨️ Print Full Report
+                                </button>
+                            </form>
+                        </div>
 
-                                                    try (Connection conn = DBConfig.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sqlQuery)) {
+                        <div class="report-tab" id="studentTab" style="display:none;">
+                            <div class="container">
+                                <h4>Student List by Class</h4>
 
-                                                        // Set parameters if filter is applied
-                                                        for (int i = 0; i < params.size(); i++) {
-                                                            pstmt.setObject(i + 1, params.get(i));
-                                                        }
+                                <form method="get" action="studentReport.jsp" target="_blank" class="mb-3">
+                                    <input type="hidden" name="selectedClass" value="<%= request.getParameter("selectedClass") != null ? request.getParameter("selectedClass") : ""%>">
+                                    <button type="submit" class="btn btn-outline-primary">🖨️ Print Full Report</button>
+                                </form>
 
-                                                        try (ResultSet rs = pstmt.executeQuery()) {
-                                                            while (rs.next()) {
-                                                                int eventId = rs.getInt("id");
-                                                                String category = rs.getString("category");
-                                                                String title = rs.getString("title");
-                                                                String description = rs.getString("description");
-                                                                String start = rs.getString("start_time");
-                                                                String end = rs.getString("end_time");
-                                                                String timeZone = rs.getString("time_zone");
-                                                                String targetClass = rs.getString("target_class");
-                                                                String status = rs.getString("status");
-                                                                String createdBy = rs.getString("created_by");
-                                                                String classroom = rs.getString("classroom_id");
-                                                %>
-                                                <tr>
-                                                    <td><%= category%></td>
-                                                    <td><%= title%></td>
-                                                    <td><%= description%></td>
-                                                    <td><%= start%></td>
-                                                    <td><%= end%></td>
-                                                    <td><%= timeZone%></td>
-                                                    <td><%= targetClass%></td>
-                                                    <td><%= status%></td>
-                                                    <td><%= createdBy%></td>
-                                                    <td><%= classroom%></td>
-                                                    <td>
-                                                        <form action="viewOPR.jsp" method="get" style="display:inline;" target="_blank">
-                                                            <input type="hidden" name="eventId" value="<%= eventId%>">
-                                                            <button type="submit" class="btn btn-gradient-info btn-sm">View OPR</button>
-                                                        </form>
-                                                        <%-- If you also want to link to eventDetails.jsp for editing/uploading: --%>
-                                                        <a href="eventDetails.jsp?eventId=<%= eventId%>" class="btn btn-gradient-primary btn-sm ml-1">Upload Details</a>
-                                                    </td>
-                                                </tr>
-                                                <%
-                                                            }
-                                                        }
-                                                    } catch (Exception e) {
-                                                        out.println("<tr><td colspan='11'>Error: " + e.getMessage() + "</td></tr>");
-                                                        // For debugging, print stack trace:
-                                                        // e.printStackTrace(out);
-                                                    }
-                                                %>
-                                            </tbody>
-                                        </table>
-                                    </div>
+                                <form method="get" action="reportList.jsp" class="form-inline mb-3">
+                                    <input type="hidden" name="tab" value="studentTab" />
+                                    <label class="mr-2">Select Class:</label>
+                                    <select name="selectedClass" class="form-control mr-2" onchange="this.form.submit()">
+                                        <option value="">-- All Classes --</option>
+                                        <%
+                                            String[] studentClasses = {"1 Makkah", "1 Madinah", "2 Makkah", "2 Madinah", "3 Makkah"};
+                                            String selectedClass = request.getParameter("selectedClass");
+                                            for (String c : studentClasses) {
+                                                String selected = c.equals(selectedClass) ? "selected" : "";
+                                        %>
+                                        <option value="<%= c%>" <%= selected%>><%= c%></option>
+                                        <% } %>
+                                    </select>
+                                </form>
+                                <div class="table-responsive"> 
+                                    <table class="table table-bordered">
+                                        <thead class="thead-light">
+                                            <tr>
+                                                <th>#</th>
+                                                <th>Student Name</th>
+                                                <th>IC Number</th>
+                                                <th>Sport Team</th>
+                                                <th>Uniform Unit</th>
+                                                <th>Parent Details</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <%
+                                                dao.StudentDAO studentDAO_std = new dao.StudentDAO();
+                                                dao.ParentDAO parentDAO_std = new dao.ParentDAO();
+                                                List<model.Student> students = selectedClass != null && !selectedClass.isEmpty()
+                                                        ? studentDAO_std.getStudentsByClass(selectedClass)
+                                                        : new ArrayList<model.Student>();
+
+                                                int studentCount = 1;
+                                                for (model.Student s : students) {
+                                                    model.Parent parent = parentDAO_std.getParentByStudentIc(s.getIcNumber());
+                                            %>
+                                            <tr>
+                                                <td><%= studentCount++%></td>
+                                                <td><%= s.getStudentName()%></td>
+                                                <td><%= s.getIcNumber()%></td>
+                                                <td><%= s.getSportTeam()%></td>
+                                                <td><%= s.getUniformUnit()%></td>
+                                                <td>
+                                                    <% if (parent != null) {%>
+                                                    <button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#parentModal<%= s.getId()%>">
+                                                        View Parent
+                                                    </button>
+
+                                                    <div class="modal fade" id="parentModal<%= s.getId()%>" tabindex="-1" role="dialog" aria-labelledby="modalLabel<%= s.getId()%>" aria-hidden="true">
+                                                        <div class="modal-dialog" role="document">
+                                                            <div class="modal-content">
+                                                                <div class="modal-header">
+                                                                    <h5 class="modal-title" id="modalLabel<%= s.getId()%>">👨‍👩‍👧 Parent Details</h5>
+                                                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                                        <span aria-hidden="true">&times;</span>
+                                                                    </button>
+                                                                </div>
+                                                                <div class="modal-body">
+                                                                    <p><strong>Name:</strong> <%= parent.getName()%></p>
+                                                                    <p><strong>Email:</strong> <%= parent.getEmail()%></p>
+                                                                    <p><strong>Phone:</strong> <%= parent.getContactNumber()%></p>
+                                                                    <p><strong>IC Number:</strong> <%= parent.getIcNumber()%></p>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <% } else { %>
+                                                    <span class="text-danger">No parent linked</span>
+                                                    <% } %>
+                                                </td>
+                                            </tr>
+                                            <% }
+                                            if (students.isEmpty()) { %>
+                                            <tr><td colspan="6" class="text-center">No students found for selected class.</td></tr>
+                                            <% }%>
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- content-wrapper ends -->
+
+                        <div class="report-tab" id="teacherTab" style="display:none;">
+                            <div class="container">
+                                <h4>Teacher List by Class</h4>
+
+                                <form method="get" action="teacherReport.jsp" target="_blank" class="mb-3">
+                                    <input type="hidden" name="classFilter" value="<%= request.getParameter("classFilter") != null ? request.getParameter("classFilter") : ""%>">
+                                    <button type="submit" class="btn btn-outline-primary">🖨️ Print Full Report</button>
+                                </form>
+
+                                <form method="get" action="reportList.jsp" class="form-inline mb-3">
+                                    <input type="hidden" name="tab" value="teacherTab" />
+                                    <label class="mr-2">Filter by Class:</label>
+                                    <select name="classFilter" class="form-control mr-2" onchange="this.form.submit()">
+                                        <option value="">-- All Classes --</option>
+                                        <%
+                                            dao.TeacherDAO teacherDAO = new dao.TeacherDAO();
+                                            List<String> assignedClasses = teacherDAO.getAssignedClasses();
+                                            String selectedTeacherClass = request.getParameter("classFilter");
+
+                                            for (String cls : assignedClasses) {
+                                                String selected = cls.equals(selectedTeacherClass) ? "selected" : "";
+                                        %>
+                                        <option value="<%= cls%>" <%= selected%>><%= cls%></option>
+                                        <% } %>
+                                    </select>
+                                </form>
+                                <div class="table-responsive"> 
+                                    <table class="table table-bordered table-hover">
+                                        <thead class="thead-light">
+                                            <tr>
+                                                <th>#</th>
+                                                <th>Teacher Name</th>
+                                                <th>Email</th>
+                                                <th>Contact Number</th>
+                                                <th>Role</th>
+                                                <th>Class Assigned</th>
+                                                <th>Guru Kelas</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <%
+                                                List<model.Teacher> teachers;
+
+                                                if (selectedTeacherClass != null && !selectedTeacherClass.isEmpty()) {
+                                                    teachers = new ArrayList<model.Teacher>();
+                                                    model.Teacher filteredTeacher = teacherDAO.getTeacherByClass(selectedTeacherClass);
+                                                    if (filteredTeacher != null) {
+                                                        teachers.add(filteredTeacher);
+                                                    }
+                                                } else {
+                                                    teachers = teacherDAO.getTeachersByRole("Teacher");
+                                                }
+
+                                                int i = 1;
+                                                for (model.Teacher t : teachers) {
+                                            %>
+                                            <tr>
+                                                <td><%= i++%></td>
+                                                <td><%= t.getName()%></td>
+                                                <td><%= t.getEmail()%></td>
+                                                <td><%= t.getContactNumber()%></td>
+                                                <td><%= t.getRole()%></td>
+                                                <td><%= t.getKelas() != null ? t.getKelas() : "-"%></td>
+                                                <td><%= "Yes".equalsIgnoreCase(t.getIsGuruKelas()) ? "Yes" : "No"%></td>
+                                            </tr>
+                                            <% }
+                                            if (teachers.isEmpty()) { %>
+                                            <tr><td colspan="7" class="text-center">No teacher found for this class.</td></tr>
+                                            <% }%>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="report-tab" id="eventTab" style="display:none;">
+                            <div class="container">
+                                <h4>Event Report</h4>
+
+                                <form method="get" action="eventReport.jsp" target="_blank" class="mb-3">
+                                    <input type="hidden" name="category" value="<%= request.getParameter("category") != null ? request.getParameter("category") : ""%>">
+                                    <input type="hidden" name="filterMonthYear" value="<%= request.getParameter("filterMonthYear") != null ? request.getParameter("filterMonthYear") : ""%>">
+                                    <button type="submit" class="btn btn-outline-primary">🖨️ Print Full Report</button>
+                                </form>
+
+                                <form class="form-inline mb-3" method="get" action="reportList.jsp">
+                                    <input type="hidden" name="tab" value="eventTab" />
+                                    <label class="mr-2">Filter by Category:</label>
+                                    <select name="category" class="form-control mr-3" onchange="this.form.submit()">
+                                        <option value="">All</option>
+                                        <%
+                                            String[] categories = {"School", "External", "Payment"};
+                                            String selectedCat = request.getParameter("category");
+                                            for (String cat : categories) {
+                                                String selected = cat.equalsIgnoreCase(selectedCat) ? "selected" : "";
+                                        %>
+                                        <option value="<%= cat%>" <%= selected%>><%= cat%></option>
+                                        <% }%>
+                                    </select>
+
+                                    <label class="mr-2">Filter by Month:</label>
+                                    <input type="month" class="form-control" name="filterMonthYear"
+                                           value="<%= request.getParameter("filterMonthYear") != null ? request.getParameter("filterMonthYear") : ""%>"
+                                           onchange="this.form.submit()">
+                                </form>
+                                <div class="table-responsive"> 
+                                    <table class="table table-bordered table-striped">
+                                        <thead class="thead-light">
+                                            <tr>
+                                                <th>#</th>
+                                                <th>Title</th>
+                                                <th>Category</th>
+                                                <th>Start</th>
+                                                <th>End</th>
+                                                <th>Created By</th>
+                                                <th>Payment (RM)</th>
+                                                <th>Participants</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <%
+                                                dao.EventDAO eventDAO = new dao.EventDAO();
+                                                dao.EventParticipantDAO participantDAO = new dao.EventParticipantDAO();
+
+                                                List<model.Event> events = eventDAO.getAllEvents();
+                                                String categoryFilter = request.getParameter("category");
+                                                String monthYearFilter = request.getParameter("filterMonthYear");
+                                                int eventCount = 1;
+
+                                                for (model.Event ev : events) {
+                                                    boolean show = true;
+
+                                                    if (categoryFilter != null && !categoryFilter.isEmpty()
+                                                            && !ev.getCategory().equalsIgnoreCase(categoryFilter)) {
+                                                        show = false;
+                                                    }
+
+                                                    if (monthYearFilter != null && !monthYearFilter.isEmpty()) {
+                                                        String eventMonth = ev.getStartTime().substring(0, 7); // yyyy-MM
+                                                        if (!eventMonth.equals(monthYearFilter)) {
+                                                            show = false;
+                                                        }
+                                                    }
+
+                                                    if (!show) {
+                                                        continue;
+                                                    }
+
+                                                    int eventId = -1;
+                                                    try {
+                                                        eventId = Integer.parseInt(ev.getId());
+                                                    } catch (Exception e) {
+                                                        out.println("<tr><td colspan='8'>Invalid event ID for: " + ev.getTitle() + "</td></tr>");
+                                                        continue;
+                                                    }
+                                            %>
+                                            <tr>
+                                                <td><%= eventCount++%></td>
+                                                <td><%= ev.getTitle()%></td>
+                                                <td><%= ev.getCategory()%></td>
+                                                <td><%= ev.getStartTime()%></td>
+                                                <td><%= ev.getEndTime()%></td>
+                                                <td><%= ev.getCreatedBy()%></td>
+                                                <td><%= ev.getPaymentAmount() > 0 ? String.format("%.2f", ev.getPaymentAmount()) : "-"%></td>
+                                                <td>
+                                                    <a href="eventParticipant.jsp?eventId=<%= eventId%>" class="btn btn-info btn-sm" target="_blank">View Participants</a>
+                                                </td>
+                                            </tr>
+                                            <% }
+                                            if (eventCount == 1) { %>
+                                            <tr><td colspan="8" class="text-center">No events found.</td></tr>
+                                            <% }%>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+
+
+                        <!-- Back -->
+                        <div class="mt-4">
+                            <a href="hmdashboard.jsp" class="btn btn-secondary">← Back to Dashboard</a>
+                        </div>
+                    </div>             <!-- content-wrapper ends -->
                     <!-- partial:../../partials/_footer.html -->
                     <footer class="footer">
                         <div class="d-sm-flex justify-content-center justify-content-sm-between">
@@ -392,6 +681,19 @@
             </div>
             <!-- page-body-wrapper ends -->
         </div>
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script>
+                                               function showTab(tabId) {
+                                                   $(".report-tab").hide();
+                                                   $("#" + tabId).show();
+                                                   $(".nav-link").removeClass("active");
+                                                   $("#" + tabId + "-tab").addClass("active");
+                                               }
+
+                                               $(document).ready(function () {
+                                                   showTab("<%= request.getParameter("tab") != null ? request.getParameter("tab") : "parentTab"%>");
+                                               });
+        </script>
         <!-- container-scroller -->
         <!-- plugins:js -->
         <script src="../assets/vendors/js/vendor.bundle.base.js"></script>

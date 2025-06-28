@@ -19,6 +19,14 @@
 <%@page import="util.DBConfig"%>
 <%@page import="java.sql.Connection"%>
 <%@page import="java.sql.SQLException"%>
+<%
+    String lang = request.getParameter("lang");
+    if (lang != null) session.setAttribute("lang", lang);
+    String currentLang = (String) session.getAttribute("lang");
+    if (currentLang == null) currentLang = "ms";
+    java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("messages", new java.util.Locale(currentLang));
+%>
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -252,7 +260,7 @@
                             </div>
                         </li>
                         <li class="nav-item nav-logout d-none d-lg-block">
-                            <a class="nav-link" href="../login.jsp">
+                            <a class="nav-link" href="<%= request.getContextPath()%>/LoginServlet?action=logout">
                                 <i class="mdi mdi-power"></i>
                             </a>
                         </li>
@@ -272,7 +280,6 @@
                             <a href="#" class="nav-link">
                                 <div class="nav-profile-image">
                                     <img src="<%= (teacher != null && teacher.getProfilePicture() != null) ? "../profile_pics/" + teacher.getProfilePicture() : "../assets/images/faces/default.jpg"%>" alt="profile" />
-
                                     <span class="login-status online"></span>
                                 </div>
 
@@ -283,45 +290,43 @@
                                 <i class="mdi mdi-bookmark-check text-success nav-profile-badge"></i>
                             </a>
                         </li>
+                        <!--            dashboard-->
                         <li class="nav-item">
-                            <a class="nav-link" href="teacherdashboard.jsp">
-                                <span class="menu-title">Dashboard</span>
+                            <a class="nav-link" href="clerkdashboard.jsp">
+                                <span class="menu-title"><%= bundle.getString("dashboard")%></span>
                                 <i class="mdi mdi-home menu-icon"></i>
                             </a>
                         </li>
-
                         <li class="nav-item">
-                            <a class="nav-link" data-bs-toggle="collapse" href="#forms" aria-expanded="false" aria-controls="forms">
-                                <span class="menu-title">Forms</span>
+                            <a class="nav-link" data-bs-toggle="collapse" href="#forms">
+                                <span class="menu-title"><%= bundle.getString("forms")%></span>
                                 <i class="mdi mdi-format-list-bulleted menu-icon"></i>
                             </a>
                             <div class="collapse" id="forms">
                                 <ul class="nav flex-column sub-menu">
                                     <li class="nav-item">
-                                        <a class="nav-link" href="teacherRegistration.jsp">Teacher Registration</a>
-                                        <a class="nav-link" href="addVenue.jsp">Add New Venue</a>
-                                        <a class="nav-link" href="updateVenue.jsp">Update Venue Condition</a>
-                                        <a class="nav-link" href="updateAccCk.jsp">Update Account</a>
-                                        
+                                        <a class="nav-link" href="teacherRegistration.jsp"><%= bundle.getString("teacher_registration")%></a>
+                                        <a class="nav-link" href="addVenue.jsp"><%= bundle.getString("add_new_venue")%></a>
+                                        <a class="nav-link" href="updateVenue.jsp"><%= bundle.getString("update_venue_condition")%></a>
+                                        <a class="nav-link" href="updateAccCk.jsp"><%= bundle.getString("update_account")%></a>
                                     </li>
                                 </ul>
                             </div>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" data-bs-toggle="collapse" href="#charts" aria-expanded="false" aria-controls="charts">
-                                <span class="menu-title">List</span>
+                            <a class="nav-link" data-bs-toggle="collapse" href="#charts">
+                                <span class="menu-title"><%= bundle.getString("list")%></span>
                                 <i class="mdi mdi-chart-bar menu-icon"></i>
                             </a>
                             <div class="collapse" id="charts">
                                 <ul class="nav flex-column sub-menu">
                                     <li class="nav-item">
-                                        <a class="nav-link" href="studentListCk.jsp">Student List</a>
-                                        <a class="nav-link" href="teacherList.jsp">Teacher List</a>
+                                        <a class="nav-link" href="studentListCk.jsp"><%= bundle.getString("student_list")%></a>
+                                        <a class="nav-link" href="teacherList.jsp"><%= bundle.getString("teacher_list")%></a>
                                     </li>
                                 </ul>
                             </div>
                         </li>
-
                     </ul>
                 </nav>
                 <!-- partial -->
@@ -340,7 +345,7 @@
                     </div>
                     <!-- Select Academic Year -->
                     <form method="get" action="">
-                        <label for="year">Select Academic Year:</label>
+                        <label for="year"><%= bundle.getString("welcome_to") %></label>
                         <select name="selectedYear" id="year" onchange="this.form.submit()" class="form-control" style="width: 200px;">
                             <% for (String y : years) {%>
                             <option value="<%= y%>" <%= y.equals(selectedYear) ? "selected" : ""%>><%= y%></option>
@@ -360,16 +365,16 @@
                         <div class="col-12 grid-margin">
                             <div class="card">
                                 <div class="card-body">
-                                    <h4 class="card-title">Teacher List - <%= selectedYear%></h4>
+                                    <h4 class="card-title"><%= bundle.getString("teacher_list") %> - <%= selectedYear%></h4>
                                     <div class="table-responsive">
                                         <table class="table">
                                             <thead>
                                                 <tr>
-                                                    <th>Name</th>
-                                                    <th>Email</th>
-                                                    <th>Contact Number</th>
-                                                    <th>Class (Year)</th>
-                                                    <th>Actions</th>
+                                                    <th><%= bundle.getString("name") %></th>
+                                                    <th><%= bundle.getString("email") %></th>
+                                                    <th><%= bundle.getString("contact_number") %></th>
+                                                    <th><%= bundle.getString("class_year") %></th>
+                                                    <th><%= bundle.getString("actions") %></th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -394,7 +399,7 @@
                                                                 <input type="hidden" name="selectedYear" value="<%= selectedYear%>">
 
                                                                 <select class="form-control" name="kelas">
-                                                                    <option value="">-- Assign Class --</option>
+                                                                    <option value=""><%= bundle.getString("assign_class") %></option>
                                                                     <% for (String className : allClasses) {
                                                                             boolean isAssigned = assignedClassesThisYear.contains(className);
                                                                             boolean isAssignedToCurrentTeacher = className.equals(currentTeacherClass);
@@ -406,7 +411,7 @@
                                                                     </option>
                                                                     <% }%>
                                                                 </select>
-                                                                <button type="submit" class="btn btn-gradient-primary btn-sm">Update</button>
+                                                                <button type="submit" class="btn btn-gradient-primary btn-sm"><%= bundle.getString("update") %></button>
                                                             </form>
 
                                                             <!-- Delete Teacher Form -->
@@ -414,7 +419,7 @@
                                                                 <input type="hidden" name="action" value="delete">
                                                                 <input type="hidden" name="teacherId" value="<%= t.getId()%>">
                                                                 <button type="submit" class="btn btn-gradient-danger btn-sm"
-                                                                        onclick="return confirm('Are you sure you want to delete this teacher?')">Delete</button>
+                                                                        onclick="return confirm('<%= bundle.getString("confirm_delete_teacher") %>')"><%= bundle.getString("delete") %></button>
                                                             </form>
                                                         </div>
                                                     </td>

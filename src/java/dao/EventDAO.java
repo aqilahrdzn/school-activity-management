@@ -184,30 +184,38 @@ public class EventDAO {
 
     }
     public List<Event> getAllEvents() {
-        List<Event> events = new ArrayList<>();
-        String sql = "SELECT category, title, description, start_time, end_time, created_by FROM events";
+    List<Event> events = new ArrayList<>();
+    String sql = "SELECT id, category, title, description, start_time, end_time, created_by, payment_amount FROM events";
 
-        try (Connection conn = DBConfig.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
+    try (Connection conn = DBConfig.getConnection();
+         PreparedStatement ps = conn.prepareStatement(sql);
+         ResultSet rs = ps.executeQuery()) {
 
-            while (rs.next()) {
-                Event event = new Event();
-                
-                event.setCategory(rs.getString("category"));
-                event.setTitle(rs.getString("title"));
-                event.setDescription(rs.getString("description"));
-                event.setStartTime(rs.getString("start_time"));
-                event.setEndTime(rs.getString("end_time"));
-                event.setCreatedBy(rs.getString("created_by"));
-                events.add(event);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
+        while (rs.next()) {
+            Event event = new Event();
+
+            // ✅ Set ID to avoid "Invalid event ID"
+            event.setId(String.valueOf(rs.getInt("id")));
+
+            event.setCategory(rs.getString("category"));
+            event.setTitle(rs.getString("title"));
+            event.setDescription(rs.getString("description"));
+            event.setStartTime(rs.getString("start_time"));
+            event.setEndTime(rs.getString("end_time"));
+            event.setCreatedBy(rs.getString("created_by"));
+
+            // ✅ Set paymentAmount if exists
+            event.setPaymentAmount(rs.getDouble("payment_amount"));
+
+            events.add(event);
         }
-
-        return events;
+    } catch (SQLException e) {
+        e.printStackTrace();
     }
+
+    return events;
+}
+
     public int insertEventAndReturnId(Event event) {
         // MODIFICATION: Update the SQL query to include the new column
         String sql = "INSERT INTO events (category, title, description, start_time, end_time, time_zone, created_by, target_class, payment_amount) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";

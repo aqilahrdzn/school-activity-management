@@ -1,6 +1,16 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ page language="java" import="java.sql.*" %>
 
+<%
+    String lang = request.getParameter("lang");
+    if (lang != null) {
+        session.setAttribute("lang", lang);
+    }
+    String currentLang = (String) session.getAttribute("lang");
+    if (currentLang == null) currentLang = "ms"; // Default: BM
+
+    java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("messages", new java.util.Locale(currentLang));
+%>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -35,7 +45,7 @@
                                     <img src="assets/images/skkj_logo.jpg">
                                 </div>
                                 <h4>Sekolah Kebangsaan Kerayong Jaya</h4>
-                                <h6 class="font-weight-light">Sign in to continue.</h6>
+                                <h6 class="font-weight-light"><%= bundle.getString("sign_in_continue") %></h6>
 
                                 <%--
                                     This is the part where we add the alert.
@@ -59,23 +69,17 @@
                                 <form class="pt-3" action="<%= request.getContextPath() %>/LoginServlet" method="post">
 
                                     <div class="form-group">
-                                        <input type="email" class="form-control form-control-lg" id="email" name="email" placeholder="Email">
+                                        <input type="email" class="form-control form-control-lg" id="email" name="email" placeholder="<%= bundle.getString("email_placeholder") %>">
                                     </div>
                                     <div class="form-group">
-                                        <input type="password" class="form-control form-control-lg" id="password" name="password" placeholder="Password">
+                                        <input type="password" class="form-control form-control-lg" id="password" name="password" placeholder="<%= bundle.getString("password_placeholder") %>">
                                     </div>
                                     <div class="mt-3 d-grid gap-2">
-                                        <button class="btn btn-block btn-gradient-primary btn-lg font-weight-medium auth-form-btn" type="submit">Login</button>
+                                        <button class="btn btn-block btn-gradient-primary btn-lg font-weight-medium auth-form-btn" type="submit"><%= bundle.getString("login_button") %></button>
                                     </div>
                                     <div class="my-2 d-flex justify-content-between align-items-center">
-                                        <div class="form-check">
-                                            <label class="form-check-label text-muted">
-                                                <input type="checkbox" class="form-check-input"> Keep me signed in </label>
-                                        </div>
-                                        <a href="#" class="auth-link text-primary">Forgot password?</a>
-                                    </div>
 
-                                    <div class="text-center mt-4 font-weight-light"> Don't have an account? <a href="parent/parentAuth.jsp" class="text-primary">Create</a>
+                                    <div class="text-center mt-4 font-weight-light"><%= bundle.getString("no_account") %><a href="parent/parentAuth.jsp" class="text-primary"><%= bundle.getString("create_account") %></a>
                                     </div>
                                 </form>
                             </div>

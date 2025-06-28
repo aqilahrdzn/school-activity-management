@@ -1,5 +1,17 @@
 <%@page import="model.Student"%>
 <%@page import="java.util.List"%>
+<%
+    String lang = request.getParameter("lang");
+    if (lang != null) {
+        session.setAttribute("lang", lang);
+    }
+    String currentLang = (String) session.getAttribute("lang");
+    if (currentLang == null) {
+        currentLang = "ms";
+    }
+    java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("messages", new java.util.Locale(currentLang));
+%>
+
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -24,19 +36,19 @@
     </head>
     <body>
         <script>
-                            function addChildForm() {
-                                const container = document.createElement("div");
-                                container.classList.add("child-form");
+            function addChildForm() {
+                const container = document.createElement("div");
+                container.classList.add("child-form");
 
-                                container.innerHTML = `
+                container.innerHTML = `
         <label for="ic">IC number:</label>
         <input type="text" name="ic" required><br>
     `;
 
-                                document.getElementById("form-container").appendChild(container);
-                            }
+                document.getElementById("form-container").appendChild(container);
+            }
 
-                        </script>
+        </script>
         <div class="container-scroller">
             <div class="container-fluid page-body-wrapper full-page-wrapper">
                 <div class="content-wrapper d-flex align-items-center auth">
@@ -46,52 +58,52 @@
                                 <div class="brand-logo">
                                     <img src="../../assets/images/logo.svg">
                                 </div>
-                                <h4>New here?</h4>
-                                <h6 class="font-weight-light">Signing up is easy. It only takes a few steps</h6>
-                                <form class="forms-sample" method="post" action="<%= request.getContextPath() %>/ParentRegisterServlet">
+                                <h4><%= bundle.getString("new_here")%></h4>
+                                <h6 class="font-weight-light"><%= bundle.getString("signup_easy")%></h6>
+                                <form class="forms-sample" method="post" action="<%= request.getContextPath()%>/ParentRegisterServlet">
                                     <div class="form-group">
-                                        <label for="exampleInputUsername1">Name:</label>
+                                        <label for="exampleInputUsername1"><%= bundle.getString("name")%></label>
                                         <input type="text" class="form-control" id="exampleInputUsername1" name="name" placeholder="Name">
                                     </div>
                                     <div class="form-group">
-                                        <label for="exampleInputEmail1">Email:</label>
+                                        <label for="exampleInputEmail1"><%= bundle.getString("email")%></label>
                                         <input type="email" class="form-control" id="exampleInputEmail1" name="email" placeholder="Email">
                                     </div>
                                     <div class="form-group">
-                                        <label for="exampleInputPassword1">Password:</label>
+                                        <label for="exampleInputPassword1"><%= bundle.getString("password_placeholder")%></label>
                                         <input type="password" class="form-control" id="exampleInputPassword1" name="password" placeholder="Password">
                                     </div>
                                     <div class="form-group">
-                                        <label for="contactNumber">Contact Number:</label>
+                                        <label for="contactNumber"><%= bundle.getString("contact_number")%></label>
                                         <input type="text" class="form-control" id="contactNumber" name="contact_number" placeholder="Contact Number">
                                     </div>
                                     <div class="form-group">
-                                        <label for="icNumber">IC Number:</label>
+                                        <label for="icNumber"><%= bundle.getString("ic_number")%></label>
                                         <input type="text" class="form-control" id="icNumber" name="ic_number" placeholder="IC Number">
                                     </div>
 
                                     <!-- Children details as is -->
-                                    <h3>Children Details</h3>
+                                    <h3><%= bundle.getString("child_info")%></h3>
                                     <div>
                                         <%
                                             List<Student> children = (List<Student>) session.getAttribute("children");
                                             if (children != null && !children.isEmpty()) {
                                                 for (Student child : children) {
                                         %>
-                                        <p><strong>Child Name:</strong> <%= child.getStudentName()%></p>
-                                        <p><strong>Class:</strong> <%= child.getStudentClass()%></p>
+                                        <p><strong><%= bundle.getString("child_name")%>:</strong> <%= child.getStudentName()%></p>
+                                        <p><strong><%= bundle.getString("child_class")%>:</strong> <%= child.getStudentClass()%></p>
                                         <input type="hidden" name="child_ic_numbers" value="<%= child.getIcNumber()%>">
                                         <%
                                             }
                                         } else {
                                         %>
-                                        <p>No children found. Please ensure your child is registered by their teacher.</p>
+                                        <p><%= bundle.getString("no_children")%></p>
                                         <%
                                             }
                                         %>
                                     </div>
 
-                                    <button type="submit" class="btn btn-gradient-primary me-2">Register</button>
+                                    <button type="submit" class="btn btn-gradient-primary me-2"><%= bundle.getString("register")%></button>
                                 </form>
                             </div>
                         </div>

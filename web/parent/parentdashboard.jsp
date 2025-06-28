@@ -12,6 +12,14 @@
 <%@page import="util.DBConfig"%>
 <%@page import="java.sql.Connection"%>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%
+    String lang = request.getParameter("lang");
+    if (lang != null) session.setAttribute("lang", lang);
+    String currentLang = (String) session.getAttribute("lang");
+    if (currentLang == null) currentLang = "ms";
+    java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("messages", new java.util.Locale(currentLang));
+%>
+
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -246,7 +254,7 @@
                         <!--            dashboard-->
                         <li class="nav-item">
                             <a class="nav-link" href="parentdashboard.jsp">
-                                <span class="menu-title">Dashboard</span>
+                                <span class="menu-title"><%= bundle.getString("dashboard")%></span>
                                 <i class="mdi mdi-home menu-icon"></i>
                             </a>
                         </li>
@@ -254,14 +262,14 @@
 
                         <li class="nav-item">
                             <a class="nav-link" data-bs-toggle="collapse" href="#forms" aria-expanded="false" aria-controls="forms">
-                                <span class="menu-title">Forms</span>
+                                <span class="menu-title"><%= bundle.getString("forms")%></span>
                                 <i class="mdi mdi-format-list-bulleted menu-icon"></i>
                             </a>
                             <div class="collapse" id="forms">
                                 <ul class="nav flex-column sub-menu">
                                     <li class="nav-item">
-                                        <a class="nav-link" href="updateAccPr.jsp">Update Account</a>
-                                        <a class="nav-link" href="studentEvent.jsp">Student Event List</a>
+                                        <a class="nav-link" href="updateAccPr.jsp"><%= bundle.getString("update_account")%></a>
+                                        <a class="nav-link" href="studentEvent.jsp"><%= bundle.getString("student_event_list")%></a>
 
                                     </li>
                                 </ul>
@@ -269,7 +277,7 @@
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" data-bs-toggle="collapse" href="#charts" aria-expanded="false" aria-controls="charts">
-                                <span class="menu-title">Charts</span>
+                                <span class="menu-title"><%= bundle.getString("list")%></span>
                                 <i class="mdi mdi-chart-bar menu-icon"></i>
                             </a>
                             <div class="collapse" id="charts">
@@ -290,12 +298,12 @@
                             <h3 class="page-title">
                                 <span class="page-title-icon bg-gradient-primary text-white me-2">
                                     <i class="mdi mdi-home"></i>
-                                </span> Dashboard
+                                </span> <%= bundle.getString("dashboard")%>
                             </h3>
                             <nav aria-label="breadcrumb">
                                 <ul class="breadcrumb">
                                     <li class="breadcrumb-item active" aria-current="page">
-                                        <span></span>Overview <i class="mdi mdi-alert-circle-outline icon-sm text-primary align-middle"></i>
+                                        <span></span><%= bundle.getString("overview")%> <i class="mdi mdi-alert-circle-outline icon-sm text-primary align-middle"></i>
                                     </li>
                                 </ul>
                             </nav>
@@ -304,10 +312,10 @@
                             <div class="col-md-4 stretch-card grid-margin">
                                 <div class="card bg-gradient-danger card-img-holder text-white">
                                     <div class="card-body">
-                                        
-                                        <h4 class="font-weight-normal mb-3">Total Teachers <i class="mdi mdi-account-multiple mdi-24px float-end"></i></h4>
-                                        <h2 class="mb-5"><%= totalTeachers%> Teachers</h2>
-                                        <h6 class="card-text">Updated in real-time</h6>
+                                    
+                                        <h4 class="font-weight-normal mb-3"><%= bundle.getString("total_teachers")%> <i class="mdi mdi-account-multiple mdi-24px float-end"></i></h4>
+                                        <h2 class="mb-5"><%= totalTeachers%> <%= bundle.getString("teachers_label")%></h2>
+                                        <h6 class="card-text"><%= bundle.getString("updated_realtime")%></h6>
                                     </div>
                                 </div>
                             </div>
@@ -316,9 +324,9 @@
                                 <div class="card bg-gradient-info card-img-holder text-white">
                                     <div class="card-body">
                                         
-                                        <h4 class="font-weight-normal mb-3">Total Students <i class="mdi mdi-account-multiple mdi-24px float-end"></i></h4>
-                                        <h2 class="mb-5"><%= totalStudents%> Students</h2>
-                                        <h6 class="card-text">Updated in real-time</h6>
+                                        <h4 class="font-weight-normal mb-3"><%= bundle.getString("total_students")%> <i class="mdi mdi-account-multiple mdi-24px float-end"></i></h4>
+                                        <h2 class="mb-5"><%= totalStudents%> <%= bundle.getString("student")%></h2>
+                                        <h6 class="card-text"><%= bundle.getString("updated_realtime")%></h6>
                                     </div>
                                 </div>
                             </div>
@@ -326,10 +334,10 @@
                                 <div class="card bg-gradient-success card-img-holder text-white">
                                     <div class="card-body">
                                         
-                                        <h4 class="font-weight-normal mb-3">Total Registered Parents<i class="mdi mdi-account-multiple mdi-24px float-end"></i>
+                                        <h4 class="font-weight-normal mb-3"><%= bundle.getString("total_registered_parents")%><i class="mdi mdi-account-multiple mdi-24px float-end"></i>
                                         </h4>
-                                        <h2 class="mb-5"><%= totalParents%> Parents</h2>
-                                        <h6 class="card-text">Updated in real-time</h6>
+                                        <h2 class="mb-5"><%= totalParents%> <%= bundle.getString("parent")%></h2>
+                                        <h6 class="card-text"><%= bundle.getString("updated_realtime")%></h6>
                                     </div>
                                 </div>
                             </div>
@@ -338,7 +346,7 @@
                             <div class="col-lg-6 grid-margin stretch-card">
                                 <div class="card">
                                     <div class="card-body">
-                                        <h4 class="card-title">Event Created per Month</h4>
+                                        <h4 class="card-title"><%= bundle.getString("event_created_per_month")%></h4>
                                         <canvas id="barChart" style="height:300px"></canvas>
                                     </div>
                                 </div>
@@ -347,7 +355,7 @@
                             <div class="col-md-5 grid-margin stretch-card">
                                 <div class="card">
                                     <div class="card-body">
-                                        <h4 class="card-title">Traffic Sources</h4>
+                                        <h4 class="card-title"><%= bundle.getString("traffic_sources")%></h4>
                                         <div class="doughnutjs-wrapper d-flex justify-content-center">
                                             <canvas id="traffic-chart"></canvas>
                                         </div>

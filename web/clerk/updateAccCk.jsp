@@ -13,6 +13,13 @@
 <%@page import="dao.TeacherDAO"%>
 <%@page import="model.Teacher"%>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%
+    String lang = request.getParameter("lang");
+    if (lang != null) session.setAttribute("lang", lang);
+    String currentLang = (String) session.getAttribute("lang");
+    if (currentLang == null) currentLang = "ms";
+    java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("messages", new java.util.Locale(currentLang));
+%>
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -206,7 +213,7 @@
                             </div>
                         </li>
                         <li class="nav-item nav-logout d-none d-lg-block">
-                            <a class="nav-link" href="../login.jsp">
+                            <a class="nav-link" href="<%= request.getContextPath()%>/LoginServlet?action=logout">
                                 <i class="mdi mdi-power"></i>
                             </a>
                         </li>
@@ -226,7 +233,6 @@
                             <a href="#" class="nav-link">
                                 <div class="nav-profile-image">
                                     <img src="<%= (teacher != null && teacher.getProfilePicture() != null) ? "../profile_pics/" + teacher.getProfilePicture() : "../assets/images/faces/default.jpg"%>" alt="profile" />
-
                                     <span class="login-status online"></span>
                                 </div>
 
@@ -237,40 +243,39 @@
                                 <i class="mdi mdi-bookmark-check text-success nav-profile-badge"></i>
                             </a>
                         </li>
+                        <!--            dashboard-->
                         <li class="nav-item">
-                            <a class="nav-link" href="teacherdashboard.jsp">
-                                <span class="menu-title">Dashboard</span>
+                            <a class="nav-link" href="clerkdashboard.jsp">
+                                <span class="menu-title"><%= bundle.getString("dashboard")%></span>
                                 <i class="mdi mdi-home menu-icon"></i>
                             </a>
                         </li>
-
                         <li class="nav-item">
-                            <a class="nav-link" data-bs-toggle="collapse" href="#forms" aria-expanded="false" aria-controls="forms">
-                                <span class="menu-title">Forms</span>
+                            <a class="nav-link" data-bs-toggle="collapse" href="#forms">
+                                <span class="menu-title"><%= bundle.getString("forms")%></span>
                                 <i class="mdi mdi-format-list-bulleted menu-icon"></i>
                             </a>
                             <div class="collapse" id="forms">
                                 <ul class="nav flex-column sub-menu">
                                     <li class="nav-item">
-                                        <a class="nav-link" href="teacherRegistration.jsp">Teacher Registration</a>
-                                        <a class="nav-link" href="addVenue.jsp">Add New Venue</a>
-                                        <a class="nav-link" href="updateVenue.jsp">Update Venue Condition</a>
-                                        <a class="nav-link" href="updateAccCk.jsp">Update Account</a>
-                                        
+                                        <a class="nav-link" href="teacherRegistration.jsp"><%= bundle.getString("teacher_registration")%></a>
+                                        <a class="nav-link" href="addVenue.jsp"><%= bundle.getString("add_new_venue")%></a>
+                                        <a class="nav-link" href="updateVenue.jsp"><%= bundle.getString("update_venue_condition")%></a>
+                                        <a class="nav-link" href="updateAccCk.jsp"><%= bundle.getString("update_account")%></a>
                                     </li>
                                 </ul>
                             </div>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" data-bs-toggle="collapse" href="#charts" aria-expanded="false" aria-controls="charts">
-                                <span class="menu-title">List</span>
+                            <a class="nav-link" data-bs-toggle="collapse" href="#charts">
+                                <span class="menu-title"><%= bundle.getString("list")%></span>
                                 <i class="mdi mdi-chart-bar menu-icon"></i>
                             </a>
                             <div class="collapse" id="charts">
                                 <ul class="nav flex-column sub-menu">
                                     <li class="nav-item">
-                                        <a class="nav-link" href="studentListCk.jsp">Student List</a>
-                                        <a class="nav-link" href="teacherList.jsp">Teacher List</a>
+                                        <a class="nav-link" href="studentListCk.jsp"><%= bundle.getString("student_list")%></a>
+                                        <a class="nav-link" href="teacherList.jsp"><%= bundle.getString("teacher_list")%></a>
                                     </li>
                                 </ul>
                             </div>
@@ -294,53 +299,53 @@
         <div class="card">
             <div class="card-body">
                 <% if (request.getParameter("success") != null) { %>
-                    <p style="color: green;">Profile updated successfully!</p>
+                    <p style="color: green;"><%= bundle.getString("success_message") %></p>
                 <% } else if (request.getParameter("error") != null) { %>
                     <p style="color: red;"><%= request.getParameter("error") %></p>
                 <% } %>
 
-                <h4 class="card-title">Update Account</h4>
+                <h4 class="card-title"><%= bundle.getString("update_account") %></h4>
                 <form class="forms-sample" action="<%= request.getContextPath() %>/UpdateClerkProfileServlet" method="post" enctype="multipart/form-data" autocomplete="off">
 
                     <!-- View-only Name -->
                     <div class="form-group">
-                        <label for="name">Name:</label>
+                        <label for="name"><%= bundle.getString("name") %>:</label>
                         <input type="text" class="form-control" id="name" name="name" value="<%= teacher.getName() %>" readonly>
                     </div>
 
                     <!-- Editable Phone Number -->
                     <div class="form-group">
-                        <label for="phone">Phone Number:</label>
+                        <label for="phone"><%= bundle.getString("contact_number") %>:</label>
                         <input type="text" class="form-control" id="phone" name="phone" value="<%= teacher.getContactNumber() %>" required>
                     </div>
 
                     <!-- Editable Email -->
                     <div class="form-group">
-                        <label for="email">Email:</label>
+                        <label for="email"><%= bundle.getString("email") %>:</label>
                         <input type="email" class="form-control" id="email" name="email" value="<%= teacher.getEmail() %>" required>
                     </div>
 
                     <!-- Old Password (required if new password is filled) -->
                     <div class="form-group">
-                        <label for="oldPassword">Old Password:</label>
-                        <input type="password" class="form-control" id="oldPassword" name="oldPassword" placeholder="Enter your current password">
+                        <label for="oldPassword"><%= bundle.getString("oldpass") %>:</label>
+                        <input type="password" class="form-control" id="oldPassword" name="oldPassword" placeholder="<%= bundle.getString("enter_current_pass") %>">
                     </div>
 
                     <!-- New Password -->
                     <div class="form-group">
-                        <label for="newPassword">New Password:</label>
-                        <input type="password" class="form-control" id="newPassword" name="newPassword" placeholder="Enter new password">
+                        <label for="newPassword"><%= bundle.getString("newpass") %>:</label>
+                        <input type="password" class="form-control" id="newPassword" name="newPassword" placeholder="<%= bundle.getString("enter_new_pass") %>">
                     </div>
 
                     <!-- Confirm New Password -->
                     <div class="form-group">
-                        <label for="confirmPassword">Confirm New Password:</label>
-                        <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" placeholder="Re-enter new password">
+                        <label for="confirmPassword"><%= bundle.getString("confirmpass") %>:</label>
+                        <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" placeholder="<%= bundle.getString("re_enter_pass") %>">
                     </div>
 
                     <!-- Profile Picture Upload -->
                     <div class="form-group">
-                        <label for="profilePic">Profile Picture:</label>
+                        <label for="profilePic"><%= bundle.getString("profilepic") %>:</label>
                         <input type="file" class="form-control" id="profilePic" name="profilePic" accept="image/*">
                     </div>
 
@@ -351,7 +356,7 @@
                         <img src="assets/images/faces/default.jpg" width="100" height="100" alt="Default Picture" />
                     <% } %>
 
-                    <button type="submit" class="btn btn-gradient-primary me-2">Update Account</button>
+                    <button type="submit" class="btn btn-gradient-primary me-2"><%= bundle.getString("update_account") %></button>
                 </form>
             </div>
         </div>
