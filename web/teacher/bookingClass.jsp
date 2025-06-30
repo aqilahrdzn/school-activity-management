@@ -20,6 +20,16 @@
 <%@page import="dao.EventDAO"%>
 <%@page import="model.Event"%>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%
+    String lang = request.getParameter("lang");
+    if (lang != null) {
+        session.setAttribute("lang", lang);
+    }
+    String currentLang = (String) session.getAttribute("lang");
+    if (currentLang == null) currentLang = "ms"; // Default: BM
+
+    java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("messages", new java.util.Locale(currentLang));
+%>
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -346,7 +356,7 @@
                                 <div class="card">
                                     <div class="card-body">
 
-                                        <h4 class="card-title">Book Event Venue</h4>
+                                        <h4 class="card-title"><%= bundle.getString("book_event_venue") %></h4>
                                         <form class="forms-sample" action="bookingClass.jsp" method="get">
 
                                             <div class="form-group">
@@ -355,9 +365,9 @@
                                                 <% if (eventTitle != null && eventStart != null && eventEnd != null) {%>
                                                 <div class="form-group">
 
-                                                    <p><strong>Title:</strong> <%= eventTitle%></p>
-                                                    <p><strong>Start Time:</strong> <%= eventStart%></p>
-                                                    <p><strong>End Time:</strong> <%= eventEnd%></p>
+                                                    <p><strong><%= bundle.getString("title_label") %></strong> <%= eventTitle%></p>
+                                                    <p><strong><%= bundle.getString("start_time_label") %></strong> <%= eventStart%></p>
+                                                    <p><strong><%= bundle.getString("end_time_label") %></strong> <%= eventEnd%></p>
                                                     <!-- Hidden inputs to send values in the request -->
                                                     <input type="hidden" name="eventTitle" value="<%= eventTitle%>" />
                                                     <input type="datetime-local" name="eventStart" value="<%= eventStart%>" readonly />
@@ -366,18 +376,18 @@
 
                                                 </div>
                                                 <% } else { %>
-                                                <p style="color:orange;">No recent event found in session.</p>
+                                                <p style="color:orange;"><%= bundle.getString("no_event_in_session") %></p>
                                                 <% }%>
                                             </div>
                                             <div class="form-group">
-                                                <label for="duration">Duration (minutes):</label>
+                                                <label for="duration"><%= bundle.getString("duration_label") %>:</label>
                                                 <input type="number" name="duration" id="duration" min="1"
                                                        value="<%= (durationParam != null) ? durationParam : calculatedDuration%>" 
                                                        readonly />
                                                 <input type="hidden" value="<%= (durationParam != null) ? durationParam : calculatedDuration%>">
                                             </div>
                                             <br><br>
-                                            <input type="submit" value="Find Available Classrooms" <%= buttonEnabled ? "" : "disabled"%> />
+                                            <input type="submit" value="<%= bundle.getString("find_available_classroom") %>" <%= buttonEnabled ? "" : "disabled"%> />
 
 
                                         </form> 
@@ -386,14 +396,14 @@
                                         <!-- Step 1: Classroom Selection -->
                                         <div class="form-group">
                                             <form id="selectForm">
-                                                <label for="classroomSelect">Select Classroom:</label>
+                                                <label for="classroomSelect"><%= bundle.getString("select_classroom_label") %></label>
                                                 <select name="classroomId" id="classroomSelect" required>
                                                     <% for (Classroom c : available) {%>
                                                     <option value="<%= c.getId()%>"><%= c.getName()%></option>
                                                     <% }%>
                                                 </select>
                                                 <br><br>
-                                                <button type="button" onclick="showConfirmation()">Continue</button>
+                                                <button type="button" onclick="showConfirmation()"><%= bundle.getString("continue_button") %></button>
                                             </form>
                                         </div>
 
@@ -404,17 +414,17 @@
                                                 <input type="hidden" name="classroomId" id="hiddenClassroomId"/>
                                                 <input type="hidden" name="eventId" value="<%= eventIdParam%>"/>
 
-                                                <p><strong>Classroom:</strong> <span id="confirmClassroomName"></span></p>
-                                                <p><strong>Start Time:</strong> <%= formattedStart%></p>
-                                                <p><strong>Duration:</strong> <%= duration%> minutes</p>
+                                                <p><strong><%= bundle.getString("confirm_classroom") %>:</strong> <span id="confirmClassroomName"></span></p>
+                                                <p><strong><%= bundle.getString("confirm_booking") %>:</strong> <%= formattedStart%></p>
+                                                <p><strong><%= bundle.getString("duration_label") %>:</strong> <%= duration%> minutes</p>
 
                                                 <input type="submit" value="Confirm Booking"/>
-                                                <button type="button" onclick="cancelConfirmation()">Cancel</button>
+                                                <button type="button" onclick="cancelConfirmation()"><%= bundle.getString("cancel_button") %></button>
                                             </form>
                                         </div>
 
                                         <% } else if (startParam != null && durationParam != null && eventIdParam != null) { %>
-                                        <p style="color:orange;">No classrooms available during that time.</p>
+                                        <p style="color:orange;"><%= bundle.getString("no_classroom_available") %>.</p>
                                         <% }%>
 
 

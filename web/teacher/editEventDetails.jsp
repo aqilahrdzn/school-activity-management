@@ -18,6 +18,16 @@
 <%@page import="dao.TeacherDAO"%>
 <%@page import="model.Teacher"%>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%
+    String lang = request.getParameter("lang");
+    if (lang != null) {
+        session.setAttribute("lang", lang);
+    }
+    String currentLang = (String) session.getAttribute("lang");
+    if (currentLang == null) currentLang = "ms"; // Default: BM
+
+    java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("messages", new java.util.Locale(currentLang));
+%>
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -317,29 +327,29 @@
                         </div>
                         <div class="card">
                             <div class="card-body">
-                                <h4 class="card-title">Edit Event Details</h4>
+                                <h4 class="card-title"><%= bundle.getString("edit_event_details") %></h4>
 
                                 <form class="forms-sample" method="post" action="<%= request.getContextPath()%>/UploadEventFileServlet" enctype="multipart/form-data">
                                     <input type="hidden" name="eventId" value="<%= eventId%>">
 
                                     <div class="form-group">
-                                        <label>Event Title</label>
+                                        <label><%= bundle.getString("event_title_field") %></label>
                                         <input type="text" class="form-control" value="<%= eventTitle%>" readonly>
                                     </div>
 
                                     <div class="form-group">
-                                        <label>Replace Uploaded Files</label>
+                                        <label><%= bundle.getString("replace_uploaded_files") %></label>
                                         <input type="file" name="eventFile" class="form-control" multiple>
-                                        <small class="form-text text-muted">Leave empty if you don't want to change existing files.</small>
+                                        <small class="form-text text-muted"><%= bundle.getString("leave_blank_to_keep") %>.</small>
                                     </div>
 
                                     <div class="form-group">
-                                        <label>Edit Description</label>
+                                        <label><%= bundle.getString("edit_description") %></label>
                                         <textarea name="description" class="form-control" rows="4"><%= uploadedDescription%></textarea>
                                     </div>
 
-                                    <button type="submit" class="btn btn-gradient-primary">Update</button>
-                                    <a href="eventDetails.jsp?eventId=<%= eventId%>" class="btn btn-light">Cancel</a>
+                                    <button type="submit" class="btn btn-gradient-primary"><%= bundle.getString("update_button") %></button>
+                                    <a href="eventDetails.jsp?eventId=<%= eventId%>" class="btn btn-light"><%= bundle.getString("cancel_button") %></a>
                                 </form>
                             </div>
                         </div>

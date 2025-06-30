@@ -4,6 +4,8 @@
     Author     : Lenovo
 --%>
 
+<%@page import="dao.NotificationDAO"%>
+<%@page import="model.Notification"%>
 <%@page import="model.Parent"%>
 <%@page import="java.sql.ResultSet"%>
 <%@page import="java.sql.PreparedStatement"%>
@@ -17,9 +19,13 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%
     String lang = request.getParameter("lang");
-    if (lang != null) session.setAttribute("lang", lang);
+    if (lang != null) {
+        session.setAttribute("lang", lang);
+    }
     String currentLang = (String) session.getAttribute("lang");
-    if (currentLang == null) currentLang = "ms";
+    if (currentLang == null) {
+        currentLang = "ms";
+    }
     java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("messages", new java.util.Locale(currentLang));
 %>
 
@@ -48,6 +54,22 @@
         <link rel="shortcut icon" href="../assets/images/favicon.png" />
     </head>
     <body>
+        <%
+            Parent loggedInParent = (Parent) session.getAttribute("parent");
+            List<Notification> notifications = null;
+            int unreadCount = 0;
+
+            if (loggedInParent != null) {
+                NotificationDAO notificationDAO = new NotificationDAO();
+                notifications = notificationDAO.getNotificationsByUserIdAndRole(loggedInParent.getId(), "parent");
+
+                for (Notification note : notifications) {
+                    if (note.getIsRead() == 0) {
+                        unreadCount++;
+                    }
+                }
+            }
+        %>
         <%
             Parent parent = (Parent) session.getAttribute("parent");
             if (parent == null) {
@@ -208,53 +230,45 @@
                                 <h6 class="p-3 mb-0 text-center">4 new messages</h6>
                             </div>
                         </li>
+
+
                         <li class="nav-item dropdown">
                             <a class="nav-link count-indicator dropdown-toggle" id="notificationDropdown" href="#" data-bs-toggle="dropdown">
                                 <i class="mdi mdi-bell-outline"></i>
-                                <span class="count-symbol bg-danger"></span>
+                                <% if (unreadCount > 0) {%>
+                                <span class="count-symbol bg-danger"><%= unreadCount%></span>
+                                <% } %>
                             </a>
                             <div class="dropdown-menu dropdown-menu-end navbar-dropdown preview-list" aria-labelledby="notificationDropdown">
                                 <h6 class="p-3 mb-0">Notifications</h6>
                                 <div class="dropdown-divider"></div>
-                                <a class="dropdown-item preview-item">
+
+                                <% if (notifications != null && !notifications.isEmpty()) {
+                for (Notification note : notifications) {%>
+                                <a href="../MarkNotificationRead?id=<%= note.getId()%>" class="dropdown-item preview-item">
                                     <div class="preview-thumbnail">
-                                        <div class="preview-icon bg-success">
-                                            <i class="mdi mdi-calendar"></i>
+                                        <div class="preview-icon <%= note.getIsRead() == 0 ? "bg-info" : "bg-secondary"%>">
+                                            <i class="mdi mdi-information-outline"></i>
                                         </div>
                                     </div>
                                     <div class="preview-item-content d-flex align-items-start flex-column justify-content-center">
-                                        <h6 class="preview-subject font-weight-normal mb-1">Event today</h6>
-                                        <p class="text-gray ellipsis mb-0"> Just a reminder that you have an event today </p>
+                                        <h6 class="preview-subject font-weight-normal mb-1">
+                                            <%= note.getIsRead() == 0 ? "New Notification" : "Notification"%>
+                                        </h6>
+                                        <p class="text-gray ellipsis mb-0"><%= note.getMessage()%></p>
                                     </div>
                                 </a>
                                 <div class="dropdown-divider"></div>
-                                <a class="dropdown-item preview-item">
-                                    <div class="preview-thumbnail">
-                                        <div class="preview-icon bg-warning">
-                                            <i class="mdi mdi-cog"></i>
-                                        </div>
-                                    </div>
-                                    <div class="preview-item-content d-flex align-items-start flex-column justify-content-center">
-                                        <h6 class="preview-subject font-weight-normal mb-1">Settings</h6>
-                                        <p class="text-gray ellipsis mb-0"> Update dashboard </p>
-                                    </div>
-                                </a>
-                                <div class="dropdown-divider"></div>
-                                <a class="dropdown-item preview-item">
-                                    <div class="preview-thumbnail">
-                                        <div class="preview-icon bg-info">
-                                            <i class="mdi mdi-link-variant"></i>
-                                        </div>
-                                    </div>
-                                    <div class="preview-item-content d-flex align-items-start flex-column justify-content-center">
-                                        <h6 class="preview-subject font-weight-normal mb-1">Launch Admin</h6>
-                                        <p class="text-gray ellipsis mb-0"> New admin wow! </p>
-                                    </div>
-                                </a>
-                                <div class="dropdown-divider"></div>
+                                <% }
+        } else { %>
+                                <p class="text-center">No notifications</p>
+                                <% }%>
+
                                 <h6 class="p-3 mb-0 text-center">See all notifications</h6>
                             </div>
                         </li>
+
+
                         <li class="nav-item nav-logout d-none d-lg-block">
                             <a class="nav-link" href="../login.jsp">
                                 <i class="mdi mdi-power"></i>
@@ -338,19 +352,19 @@
                         </div>
 
                     </div>
-                    <% if ("external".equalsIgnoreCase(eventCategory) || "payment".equalsIgnoreCase(eventCategory)) { %>
+                    <% if ("external".equalsIgnoreCase(eventCategory) || "payment".equalsIgnoreCase(eventCategory)) {%>
                     <div class="col-md-6 grid-margin stretch-card">
                         <div class="card">
                             <div class="card-body">
                                 <h4 class="card-title"><%= bundle.getString("parent_approval")%></h4>
                                 <% if (alreadySubmitted) {%>
                                 <p class="text-success"><%= bundle.getString("approval_submitted")%></p>
-                                <a href="editApproval.jsp?eventId=<%= eventId%>&parentId=<%= parentId%>&eventTitle=<%= java.net.URLEncoder.encode(eventTitle, "UTF-8") %>&studentIc=<%= studentIc %>" class="btn btn-warning"><%= bundle.getString("edit_approval")%></a>
+                                <a href="editApproval.jsp?eventId=<%= eventId%>&parentId=<%= parentId%>&eventTitle=<%= java.net.URLEncoder.encode(eventTitle, "UTF-8")%>&studentIc=<%= studentIc%>" class="btn btn-warning"><%= bundle.getString("edit_approval")%></a>
 
                                 <% } else {%>
                                 <p class="card-description"><%= bundle.getString("enter_details")%></p>
 
-                                <form class="forms-sample" method="post" action="<%= request.getContextPath() %>/SubmitApprovalServlet" enctype="multipart/form-data">
+                                <form class="forms-sample" method="post" action="<%= request.getContextPath()%>/SubmitApprovalServlet" enctype="multipart/form-data">
                                     <input type="hidden" name="event_category" value="<%= eventCategory%>">
                                     <input type="hidden" name="event_id" value="<%= eventId%>">
                                     <input type="hidden" name="parent_id" value="<%= parentId%>">
@@ -367,12 +381,12 @@
                                         <input type="text" class="form-control" id="reason" name="reason" placeholder="Reason">
                                     </div>
 
-                                    <% if ("payment".equalsIgnoreCase(eventCategory)) { %>
+                                    <% if ("payment".equalsIgnoreCase(eventCategory)) {%>
                                     <div class="form-group">
                                         <label for="resit"><%= bundle.getString("upload_resit")%></label>
                                         <input type="file" class="form-control" id="resit" name="resit" accept=".pdf,.jpg,.jpeg,.png" required>
                                     </div>
-                                    <% } %>
+                                    <% }%>
 
                                     <button type="submit" class="btn btn-gradient-primary me-2"><%= bundle.getString("submit")%></button>
                                 </form>

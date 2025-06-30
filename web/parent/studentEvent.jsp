@@ -3,6 +3,8 @@
     Created on : May 25, 2025, 2:30:44 PM
     Author     : Lenovo
 --%>
+<%@page import="dao.NotificationDAO"%>
+<%@page import="model.Notification"%>
 <%@page import="model.Event"%>
 <%@page import="model.Parent"%>
 <%@page import="dao.ParentDAO"%>
@@ -29,9 +31,13 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%
     String lang = request.getParameter("lang");
-    if (lang != null) session.setAttribute("lang", lang);
+    if (lang != null) {
+        session.setAttribute("lang", lang);
+    }
     String currentLang = (String) session.getAttribute("lang");
-    if (currentLang == null) currentLang = "ms";
+    if (currentLang == null) {
+        currentLang = "ms";
+    }
     java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("messages", new java.util.Locale(currentLang));
 %>
 
@@ -60,6 +66,29 @@
         <link rel="shortcut icon" href="../assets/images/favicon.png" />
     </head>
     <body>
+        <%@ page import="dao.NotificationDAO" %>
+        <%@ page import="model.Notification" %>
+        <%@ page import="model.Parent" %>
+        <%@ page import="java.util.List" %>
+
+        <%
+            Parent loggedInParent = (Parent) session.getAttribute("parent");
+            List<Notification> notifications = null;
+            int unreadCount = 0;
+
+            if (loggedInParent != null) {
+                NotificationDAO notificationDAO = new NotificationDAO();
+                notifications = notificationDAO.getNotificationsByUserIdAndRole(loggedInParent.getId(), "parent");
+
+                for (Notification note : notifications) {
+                    if (note.getIsRead() == 0) {
+                        unreadCount++;
+                    }
+                }
+            }
+        %>
+
+
         <%
             String email = (String) session.getAttribute("email"); // Retrieve email from session
 
@@ -76,7 +105,7 @@
             }
 
             session.setAttribute("parent", parent); // Optional: store in session for later use
-        %>
+%>
 
         <div class="container-scroller">
             <!-- partial:../../partials/_navbar.html -->
@@ -157,53 +186,46 @@
                                 <h6 class="p-3 mb-0 text-center">4 new messages</h6>
                             </div>
                         </li>
+
                         <li class="nav-item dropdown">
                             <a class="nav-link count-indicator dropdown-toggle" id="notificationDropdown" href="#" data-bs-toggle="dropdown">
                                 <i class="mdi mdi-bell-outline"></i>
-                                <span class="count-symbol bg-danger"></span>
+                                
+
+                                <% if (unreadCount > 0) {%>
+                                <span class="count-symbol bg-danger"><%= unreadCount%></span>
+                                <% } %>
                             </a>
                             <div class="dropdown-menu dropdown-menu-end navbar-dropdown preview-list" aria-labelledby="notificationDropdown">
                                 <h6 class="p-3 mb-0">Notifications</h6>
                                 <div class="dropdown-divider"></div>
-                                <a class="dropdown-item preview-item">
+
+                                <% if (notifications != null && !notifications.isEmpty()) {
+                for (Notification note : notifications) {%>
+                                <a href="../MarkNotificationRead?id=<%= note.getId()%>" class="dropdown-item preview-item">
                                     <div class="preview-thumbnail">
-                                        <div class="preview-icon bg-success">
-                                            <i class="mdi mdi-calendar"></i>
+                                        <div class="preview-icon <%= note.getIsRead() == 0 ? "bg-info" : "bg-secondary"%>">
+                                            <i class="mdi mdi-information-outline"></i>
                                         </div>
                                     </div>
                                     <div class="preview-item-content d-flex align-items-start flex-column justify-content-center">
-                                        <h6 class="preview-subject font-weight-normal mb-1">Event today</h6>
-                                        <p class="text-gray ellipsis mb-0"> Just a reminder that you have an event today </p>
+                                        <h6 class="preview-subject font-weight-normal mb-1">
+                                            <%= note.getIsRead() == 0 ? "New Notification" : "Notification"%>
+                                        </h6>
+                                        <p class="text-gray ellipsis mb-0"><%= note.getMessage()%></p>
                                     </div>
                                 </a>
                                 <div class="dropdown-divider"></div>
-                                <a class="dropdown-item preview-item">
-                                    <div class="preview-thumbnail">
-                                        <div class="preview-icon bg-warning">
-                                            <i class="mdi mdi-cog"></i>
-                                        </div>
-                                    </div>
-                                    <div class="preview-item-content d-flex align-items-start flex-column justify-content-center">
-                                        <h6 class="preview-subject font-weight-normal mb-1">Settings</h6>
-                                        <p class="text-gray ellipsis mb-0"> Update dashboard </p>
-                                    </div>
-                                </a>
-                                <div class="dropdown-divider"></div>
-                                <a class="dropdown-item preview-item">
-                                    <div class="preview-thumbnail">
-                                        <div class="preview-icon bg-info">
-                                            <i class="mdi mdi-link-variant"></i>
-                                        </div>
-                                    </div>
-                                    <div class="preview-item-content d-flex align-items-start flex-column justify-content-center">
-                                        <h6 class="preview-subject font-weight-normal mb-1">Launch Admin</h6>
-                                        <p class="text-gray ellipsis mb-0"> New admin wow! </p>
-                                    </div>
-                                </a>
-                                <div class="dropdown-divider"></div>
+                                <% }
+        } else { %>
+                                <p class="text-center">No notifications</p>
+                                <% }%>
+
                                 <h6 class="p-3 mb-0 text-center">See all notifications</h6>
                             </div>
                         </li>
+
+
                         <li class="nav-item nav-logout d-none d-lg-block">
                             <a class="nav-link" href="../login.jsp">
                                 <i class="mdi mdi-power"></i>
@@ -292,7 +314,7 @@
                         <div class="col-12 grid-margin">
                             <div class="card">
                                 <div class="card-body">
-                                    <% if ("true".equals(request.getParameter("success"))) { %>
+                                    <% if ("true".equals(request.getParameter("success"))) {%>
                                     <div class="alert alert-success" role="alert">
                                         <%= bundle.getString("approval_submitted")%>
                                     </div>
@@ -308,9 +330,9 @@
                                             Map<Student, List<Map<String, String>>> studentEvents = dao.getStudentEventsByParentEmail(parentEmail);
                                         %>
 
-                                        <% if (studentEvents.isEmpty()) { %>
+                                        <% if (studentEvents.isEmpty()) {%>
                                         <p><%= bundle.getString("no_events")%></p>
-                                        <% } else { %>
+                                        <% } else {%>
                                         <table class="table">
                                             <thead>
                                                 <tr>
@@ -330,7 +352,7 @@
                                                         for (Map<String, String> event : events) {
                                                             String surat = event.get("surat_pengesahan");
                                                             String eventId = event.get("id"); // Get event ID here
-                                                %>
+%>
                                                 <tr>
                                                     <td><%= student.getStudentName()%></td>
                                                     <td><%= student.getStudentClass()%></td>
@@ -342,7 +364,7 @@
                                                             <%= bundle.getString("view_approval_letter")%>
                                                         </a>
 
-                                                        <% } else { %>
+                                                        <% } else {%>
                                                         <span><%= bundle.getString("no_letter")%></span>
                                                         <% }%>
                                                     </td>

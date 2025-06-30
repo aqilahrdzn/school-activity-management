@@ -15,6 +15,16 @@
 <%@page import="java.sql.Connection"%>
 <%@page import="java.sql.Connection"%>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%
+    String lang = request.getParameter("lang");
+    if (lang != null) {
+        session.setAttribute("lang", lang);
+    }
+    String currentLang = (String) session.getAttribute("lang");
+    if (currentLang == null) currentLang = "ms"; // Default: BM
+
+    java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("messages", new java.util.Locale(currentLang));
+%>
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -320,14 +330,14 @@
                             <div class="col-md-6 grid-margin stretch-card">
                                 <div class="card">
                                     <div class="card-body">
-                                        <h4 class="card-title">Upload Surat Pengesahan</h4>
-                                        <p><strong>Event:</strong> <%= title%></p>
-                                        <p><strong>Description:</strong> <%= description%></p>
-                                        <p><strong>Date and Time:</strong> <%= startTime%></p>
+                                        <h4 class="card-title"><%= bundle.getString("upload_surat_title") %></h4>
+                                        <p><strong><%= bundle.getString("event_label") %>:</strong> <%= title%></p>
+                                        <p><strong><%= bundle.getString("description_label") %>:</strong> <%= description%></p>
+                                        <p><strong><%= bundle.getString("date_time_label") %>:</strong> <%= startTime%></p>
 
                                         <% if (alreadyUploaded) {%>
                                         <div class="alert alert-info" role="alert">
-                                            Surat Pengesahan has already been uploaded.
+                                            <%= bundle.getString("surat_already_uploaded") %>.
                                         </div>
 
                                         <% } else {%>
@@ -335,10 +345,10 @@
 
                                             <input type="hidden" name="eventId" value="<%= eventId%>">
                                             <div class="form-group">
-                                                <label for="approvalLetter">Upload PDF</label>
+                                                <label for="approvalLetter"><%= bundle.getString("upload_pdf_label") %></label>
                                                 <input type="file" class="form-control" id="approvalLetter" name="approvalLetter" accept="application/pdf" required>
                                             </div>
-                                            <button type="submit" class="btn btn-gradient-primary me-2">Submit</button>
+                                            <button type="submit" class="btn btn-gradient-primary me-2"><%= bundle.getString("submit") %></button>
                                         </form>
                                         <% }%>
                                     </div>

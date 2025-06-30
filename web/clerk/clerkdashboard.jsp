@@ -3,6 +3,8 @@
     Created on : May 6, 2025, 8:36:45 PM
     Author     : Lenovo
 --%>
+<%@page import="model.Notification"%>
+<%@page import="java.util.List"%>
 <%@page import="model.Teacher"%>
 <%@page import="dao.TeacherDAO"%>
 <%@ page import="java.sql.*, util.DBConfig" %>
@@ -172,6 +174,8 @@
                                 <h6 class="p-3 mb-0 text-center">4 new messages</h6>
                             </div>
                         </li>
+                        <% List<Notification> notifications = (List<Notification>) request.getAttribute("notifications"); %>
+
                         <li class="nav-item dropdown">
                             <a class="nav-link count-indicator dropdown-toggle" id="notificationDropdown" href="#" data-bs-toggle="dropdown">
                                 <i class="mdi mdi-bell-outline"></i>
@@ -180,45 +184,30 @@
                             <div class="dropdown-menu dropdown-menu-end navbar-dropdown preview-list" aria-labelledby="notificationDropdown">
                                 <h6 class="p-3 mb-0">Notifications</h6>
                                 <div class="dropdown-divider"></div>
-                                <a class="dropdown-item preview-item">
-                                    <div class="preview-thumbnail">
-                                        <div class="preview-icon bg-success">
-                                            <i class="mdi mdi-calendar"></i>
-                                        </div>
-                                    </div>
-                                    <div class="preview-item-content d-flex align-items-start flex-column justify-content-center">
-                                        <h6 class="preview-subject font-weight-normal mb-1">Event today</h6>
-                                        <p class="text-gray ellipsis mb-0"> Just a reminder that you have an event today </p>
-                                    </div>
-                                </a>
-                                <div class="dropdown-divider"></div>
-                                <a class="dropdown-item preview-item">
-                                    <div class="preview-thumbnail">
-                                        <div class="preview-icon bg-warning">
-                                            <i class="mdi mdi-cog"></i>
-                                        </div>
-                                    </div>
-                                    <div class="preview-item-content d-flex align-items-start flex-column justify-content-center">
-                                        <h6 class="preview-subject font-weight-normal mb-1">Settings</h6>
-                                        <p class="text-gray ellipsis mb-0"> Update dashboard </p>
-                                    </div>
-                                </a>
-                                <div class="dropdown-divider"></div>
+
+                                <% if (notifications != null && !notifications.isEmpty()) {
+                for (Notification note : notifications) {%>
                                 <a class="dropdown-item preview-item">
                                     <div class="preview-thumbnail">
                                         <div class="preview-icon bg-info">
-                                            <i class="mdi mdi-link-variant"></i>
+                                            <i class="mdi mdi-information-outline"></i>
                                         </div>
                                     </div>
                                     <div class="preview-item-content d-flex align-items-start flex-column justify-content-center">
-                                        <h6 class="preview-subject font-weight-normal mb-1">Launch Admin</h6>
-                                        <p class="text-gray ellipsis mb-0"> New admin wow! </p>
+                                        <h6 class="preview-subject font-weight-normal mb-1">New Notification</h6>
+                                        <p class="text-gray ellipsis mb-0"><%= note.getMessage()%></p>
                                     </div>
                                 </a>
                                 <div class="dropdown-divider"></div>
+                                <%  }
+        } else { %>
+                                <p class="text-center">No notifications</p>
+                                <% }%>
+
                                 <h6 class="p-3 mb-0 text-center">See all notifications</h6>
                             </div>
                         </li>
+
                         <li class="nav-item nav-logout d-none d-lg-block">
                             <a class="nav-link" href="<%= request.getContextPath()%>/LoginServlet?action=logout">
                                 <i class="mdi mdi-power"></i>
@@ -364,7 +353,7 @@
 
 
                         </div>
-                                        
+
                         <!-- content-wrapper ends -->
                         <!-- partial:partials/_footer.html -->
                         <footer class="footer">
@@ -379,7 +368,7 @@
                 </div>
                 <!-- page-body-wrapper ends -->
             </div>
-                 
+
 
             <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
             <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>

@@ -23,12 +23,15 @@ import com.itextpdf.text.*;
 import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
+import dao.NotificationDAO;
+import dao.ParentDAO;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.Locale;
 import javax.mail.util.ByteArrayDataSource;
+import model.Parent;
 
 @WebServlet("/SendConfirmationLetterController")
 public class SendConfirmationLetterController extends HttpServlet {
@@ -44,6 +47,8 @@ public class SendConfirmationLetterController extends HttpServlet {
         EventDAO eventDAO = new EventDAO();
         StudentDAO studentDAO = new StudentDAO();
         EventParticipantDAO participantDAO = new EventParticipantDAO();
+        ParentDAO parentDAO = new ParentDAO();
+        NotificationDAO notificationDAO = new NotificationDAO();
 
         Event event = eventDAO.getEventById(eventId);
         if (event == null) {
@@ -76,12 +81,21 @@ public class SendConfirmationLetterController extends HttpServlet {
                 ps.executeUpdate();
             }
 
-            // Email to each parent
+            // Email and notify each parent
             for (String studentIC : studentICs) {
                 Student student = studentDAO.getStudentByIC(studentIC);
                 if (student != null && student.getParentEmail() != null && !student.getParentEmail().isEmpty()) {
                     sendEmailWithAttachment(student.getParentEmail(), student.getStudentName(),
                             event.getTitle(), event.getDescription(), pdfBytes, pdfFileName);
+
+                    Parent parent = parentDAO.getParentByStudentId(student.getId()); // fixed method
+                    if (parent != null) {
+                        notificationDAO.insertNotification(
+                            parent.getId(),
+                            "parent",
+                            "Surat kebenaran telah diterima. Sila semak surat lampiran."
+                        );
+                    }
                 }
             }
 

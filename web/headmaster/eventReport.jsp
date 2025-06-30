@@ -24,19 +24,19 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Event Report</title>
+    <title><%= bundle.getString("event_report") %></title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 </head>
 <body>
 
 <div class="container mt-5">
-    <h3>📅 Event Report</h3>
+    <h3><%= bundle.getString("event_report") %></h3>
 
     <!-- Filter Form -->
     <form class="form-inline mb-4" method="get">
-        <label class="mr-2">Filter by Category:</label>
+        <label class="mr-2"><%= bundle.getString("filter_by_category") %></label>
         <select name="category" class="form-control mr-3" onchange="this.form.submit()">
-            <option value="">All</option>
+            <option value=""><%= bundle.getString("all") %></option>
             <%
                 String[] categories = {"School", "External", "Payment"};
                 String selectedCat = request.getParameter("category");
@@ -49,7 +49,7 @@
             %>
         </select>
 
-        <label class="mr-2">Filter by Month:</label>
+        <label class="mr-2"><%= bundle.getString("filter_by_month") %>:</label>
         <input type="month" class="form-control" name="filterMonthYear"
                value="<%= request.getParameter("filterMonthYear") != null ? request.getParameter("filterMonthYear") : "" %>"
                onchange="this.form.submit()">
@@ -60,13 +60,13 @@
         <thead class="thead-light">
         <tr>
             <th>#</th>
-            <th>Title</th>
-            <th>Category</th>
-            <th>Start</th>
-            <th>End</th>
-            <th>Created By</th>
-            <th>Payment (RM)</th>
-            <th>Participants</th>
+            <th><%= bundle.getString("event_title") %></th>
+            <th><%= bundle.getString("category") %></th>
+            <th><%= bundle.getString("start_date") %></th>
+            <th><%= bundle.getString("end_date") %></th>
+            <th><%= bundle.getString("created_by") %></th>
+            <th><%= bundle.getString("payment") %> (RM)</th>
+            <th><%= bundle.getString("participant") %></th>
         </tr>
         </thead>
         <tbody>
@@ -114,14 +114,14 @@
             <td><%= ev.getCreatedBy() %></td>
             <td><%= ev.getPaymentAmount() > 0 ? String.format("%.2f", ev.getPaymentAmount()) : "-" %></td>
             <td>
-                <a href="eventParticipant.jsp?eventId=<%= eventId %>" class="btn btn-info btn-sm">View Participants</a>
+                <a href="eventParticipant.jsp?eventId=<%= eventId %>" class="btn btn-info btn-sm"><%= bundle.getString("view_participant") %></a>
 
                 <!-- Modal -->
                 <div class="modal fade" id="participantsModal<%= eventId %>" tabindex="-1" role="dialog" aria-labelledby="modalLabel<%= eventId %>" aria-hidden="true">
                     <div class="modal-dialog modal-lg" role="document">
                         <div class="modal-content">
                             <div class="modal-header">
-                                <h5 class="modal-title" id="modalLabel<%= eventId %>">Participants for <%= ev.getTitle() %></h5>
+                                <h5 class="modal-title" id="modalLabel<%= eventId %>"><%= bundle.getString("event_participant_list") %> <%= ev.getTitle() %></h5>
                                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                                     <span aria-hidden="true">&times;</span>
                                 </button>
@@ -130,9 +130,9 @@
                                 <table class="table table-sm table-bordered">
                                     <thead>
                                     <tr>
-                                        <th>Name</th>
-                                        <th>IC Number</th>
-                                        <th>Approval Status</th>
+                                        <th><%= bundle.getString("name") %></th>
+                                        <th><%= bundle.getString("ic_number") %></th>
+                                        <th><%= bundle.getString("approval_status") %></th>
                                     </tr>
                                     </thead>
                                     <tbody>

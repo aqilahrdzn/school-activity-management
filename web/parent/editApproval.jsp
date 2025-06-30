@@ -3,6 +3,8 @@
     Created on : Jun 27, 2025, 12:56:56 AM
     Author     : Lenovo
 --%>
+<%@page import="dao.NotificationDAO"%>
+<%@page import="model.Notification"%>
 <%-- 
     Document   : approvalParent
     Created on : May 25, 2025, 2:39:25 PM
@@ -53,6 +55,22 @@
     </head>
     <body>
         <%@ page import="java.sql.*, model.Parent, util.DBConfig" %>
+      <%
+            Parent loggedInParent = (Parent) session.getAttribute("parent");
+            List<Notification> notifications = null;
+            int unreadCount = 0;
+
+            if (loggedInParent != null) {
+                NotificationDAO notificationDAO = new NotificationDAO();
+                notifications = notificationDAO.getNotificationsByUserIdAndRole(loggedInParent.getId(), "parent");
+
+                for (Notification note : notifications) {
+                    if (note.getIsRead() == 0) {
+                        unreadCount++;
+                    }
+                }
+            }
+        %>
         <%
             Parent parent = (Parent) session.getAttribute("parent");
             if (parent == null) {
@@ -224,53 +242,44 @@
                                 <h6 class="p-3 mb-0 text-center">4 new messages</h6>
                             </div>
                         </li>
-                        <li class="nav-item dropdown">
-                            <a class="nav-link count-indicator dropdown-toggle" id="notificationDropdown" href="#" data-bs-toggle="dropdown">
-                                <i class="mdi mdi-bell-outline"></i>
-                                <span class="count-symbol bg-danger"></span>
-                            </a>
-                            <div class="dropdown-menu dropdown-menu-end navbar-dropdown preview-list" aria-labelledby="notificationDropdown">
-                                <h6 class="p-3 mb-0">Notifications</h6>
-                                <div class="dropdown-divider"></div>
-                                <a class="dropdown-item preview-item">
-                                    <div class="preview-thumbnail">
-                                        <div class="preview-icon bg-success">
-                                            <i class="mdi mdi-calendar"></i>
-                                        </div>
-                                    </div>
-                                    <div class="preview-item-content d-flex align-items-start flex-column justify-content-center">
-                                        <h6 class="preview-subject font-weight-normal mb-1">Event today</h6>
-                                        <p class="text-gray ellipsis mb-0"> Just a reminder that you have an event today </p>
-                                    </div>
-                                </a>
-                                <div class="dropdown-divider"></div>
-                                <a class="dropdown-item preview-item">
-                                    <div class="preview-thumbnail">
-                                        <div class="preview-icon bg-warning">
-                                            <i class="mdi mdi-cog"></i>
-                                        </div>
-                                    </div>
-                                    <div class="preview-item-content d-flex align-items-start flex-column justify-content-center">
-                                        <h6 class="preview-subject font-weight-normal mb-1">Settings</h6>
-                                        <p class="text-gray ellipsis mb-0"> Update dashboard </p>
-                                    </div>
-                                </a>
-                                <div class="dropdown-divider"></div>
-                                <a class="dropdown-item preview-item">
-                                    <div class="preview-thumbnail">
-                                        <div class="preview-icon bg-info">
-                                            <i class="mdi mdi-link-variant"></i>
-                                        </div>
-                                    </div>
-                                    <div class="preview-item-content d-flex align-items-start flex-column justify-content-center">
-                                        <h6 class="preview-subject font-weight-normal mb-1">Launch Admin</h6>
-                                        <p class="text-gray ellipsis mb-0"> New admin wow! </p>
-                                    </div>
-                                </a>
-                                <div class="dropdown-divider"></div>
-                                <h6 class="p-3 mb-0 text-center">See all notifications</h6>
-                            </div>
-                        </li>
+  
+
+<<li class="nav-item dropdown">
+    <a class="nav-link count-indicator dropdown-toggle" id="notificationDropdown" href="#" data-bs-toggle="dropdown">
+        <i class="mdi mdi-bell-outline"></i>
+        <% if (unreadCount > 0) { %>
+            <span class="count-symbol bg-danger"><%= unreadCount %></span>
+        <% } %>
+    </a>
+    <div class="dropdown-menu dropdown-menu-end navbar-dropdown preview-list" aria-labelledby="notificationDropdown">
+        <h6 class="p-3 mb-0">Notifications</h6>
+        <div class="dropdown-divider"></div>
+
+        <% if (notifications != null && !notifications.isEmpty()) {
+            for (Notification note : notifications) { %>
+            <a href="../MarkNotificationRead?id=<%= note.getId() %>" class="dropdown-item preview-item">
+                <div class="preview-thumbnail">
+                    <div class="preview-icon <%= note.getIsRead() == 0 ? "bg-info" : "bg-secondary" %>">
+                        <i class="mdi mdi-information-outline"></i>
+                    </div>
+                </div>
+                <div class="preview-item-content d-flex align-items-start flex-column justify-content-center">
+                    <h6 class="preview-subject font-weight-normal mb-1">
+                        <%= note.getIsRead() == 0 ? "New Notification" : "Notification" %>
+                    </h6>
+                    <p class="text-gray ellipsis mb-0"><%= note.getMessage() %></p>
+                </div>
+            </a>
+            <div class="dropdown-divider"></div>
+        <% }} else { %>
+            <p class="text-center">No notifications</p>
+        <% } %>
+
+        <h6 class="p-3 mb-0 text-center">See all notifications</h6>
+    </div>
+</li>
+
+
                         <li class="nav-item nav-logout d-none d-lg-block">
                             <a class="nav-link" href="../login.jsp">
                                 <i class="mdi mdi-power"></i>

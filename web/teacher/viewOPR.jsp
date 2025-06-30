@@ -3,16 +3,23 @@
 <%@ page import="java.util.ArrayList" %>
 <%@ page import="java.util.List" %>
 <%
+    String lang = request.getParameter("lang");
+    if (lang != null) {
+        session.setAttribute("lang", lang);
+    }
+    String currentLang = (String) session.getAttribute("lang");
+    if (currentLang == null) currentLang = "ms"; // Default: BM
+
+    java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("messages", new java.util.Locale(currentLang));
+%>
+<%
     String eventId = request.getParameter("eventId");
     if (eventId == null || eventId.isEmpty()) {
-        response.sendRedirect("eventList.jsp"); // Redirect if no event ID is provided
+        response.sendRedirect("eventList.jsp");
         return;
     }
 
-    String eventTitle = "";
-    String eventStartTime = "";
-    String eventEndTime = "";
-    String eventDescription = "";
+    String eventTitle = "", eventStartTime = "", eventEndTime = "", eventDescription = "";
     List<String> imagePaths = new ArrayList<>();
 
     try (Connection connection = DBConfig.getConnection();
@@ -36,17 +43,14 @@
             while (uploadsRs.next()) {
                 String filePath = uploadsRs.getString("file_path");
                 String fileDescription = uploadsRs.getString("description");
-                // For simplicity, we'll treat all uploaded files as images for this basic report.
-                // You might want to handle different file types (PDFs) differently.
                 if (filePath.toLowerCase().endsWith(".png") || filePath.toLowerCase().endsWith(".jpg") || filePath.toLowerCase().endsWith(".jpeg")) {
                     imagePaths.add(request.getContextPath() + "/" + filePath);
                 }
                 if (eventDescription.isEmpty()) {
-                    eventDescription = (fileDescription == null) ? "" : fileDescription; // Use the first description found
+                    eventDescription = (fileDescription == null) ? "" : fileDescription;
                 }
             }
         }
-
     } catch (SQLException e) {
         out.println("Error fetching event details: " + e.getMessage());
         return;
@@ -57,79 +61,136 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>One Page Report - <%= eventTitle %></title>
+    <title>Event Report - <%= eventTitle %></title>
     <style>
+    body {
+        font-family: "Segoe UI", Tahoma, sans-serif;
+        width: 100%;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        line-height: 1.4;
+        color: #333;
+        font-size: 11pt;
+    }
+
+    .header {
+        text-align: center;
+        border-bottom: 1px solid #444;
+        padding-bottom: 10px;
+        margin-bottom: 20px;
+    }
+
+    .header img {
+        max-width: 120px; /* Enlarged logo */
+        margin: 0 20px;
+    }
+
+    .event-title {
+        font-size: 22pt;
+        margin: 10px 0 5px;
+    }
+
+    .event-info {
+        background-color: #f9f9f9;
+        padding: 8px 12px;
+        border-left: 3px solid #007bff;
+        margin-bottom: 15px;
+        font-size: 10pt;
+    }
+
+    .section-title {
+        font-size: 14pt;
+        margin-bottom: 8px;
+        border-bottom: 1px solid #ccc;
+        padding-bottom: 3px;
+    }
+
+    .description {
+        white-space: pre-line;
+        margin-bottom: 20px;
+    }
+
+    .image-section {
+        margin-bottom: 10px;
+        text-align: center;
+    }
+
+    .report-image {
+        width: 100%;
+        max-width: 330px; /* Larger image */
+        display: inline-block;
+        margin: 10px;
+        border: 1px solid #ccc;
+        padding: 4px;
+        vertical-align: top;
+        page-break-inside: avoid;
+    }
+
+    .no-image {
+        font-style: italic;
+        color: #777;
+        text-align: center;
+    }
+
+    @media print {
+        @page {
+            size: A4;
+            margin: 10mm;
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
+            font-size: 10pt;
+            padding: 0;
         }
-        .header {
-            text-align: center;
-            margin-bottom: 20px;
+
+        .header img {
+            max-width: 100px;
         }
-        .logos {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-        .logo {
-            max-width: 150px;
-            height: auto;
-        }
+
         .event-title {
-            font-size: 24px;
-            font-weight: bold;
-            margin-bottom: 10px;
+            font-size: 20pt;
         }
-        .event-date {
-            margin-bottom: 10px;
-        }
-        .event-description {
-            margin-bottom: 15px;
-            white-space: pre-line; /* Preserve line breaks */
-        }
-        .image-gallery {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
+
         .report-image {
             max-width: 300px;
-            height: auto;
-            border: 1px solid #ccc;
-            padding: 5px;
+            margin: 8px;
         }
-    </style>
+    }
+</style>
+
+
 </head>
 <body>
-    <div class="header">
-        <div class="logos">
-            <img src="../assets/images/SKKJ.png" alt="School Logo" class="logo">
-            <img src="../assets/images/kementerian (2).png" alt="Kementerian Logo" class="logo">
-        </div>
-        <h1 class="event-title"><%= eventTitle %></h1>
-        <p class="event-date">Date & Time: <%= eventStartTime %> - <%= eventEndTime %></p>
-    </div>
 
+<div class="header">
     <div>
-        <h3>Description:</h3>
-        <p class="event-description"><%= eventDescription %></p>
+        <img src="../assets/images/SKKJ.png" alt="School Logo">
+        <img src="../assets/images/kementerian (2).png" alt="Kementerian Logo">
     </div>
+    <h1 class="event-title"><%= eventTitle %></h1>
+</div>
 
-    <% if (!imagePaths.isEmpty()) { %>
-    <div>
-        <h3>Event Pictures:</h3>
-        <div class="image-gallery">
-            <% for (String imagePath : imagePaths) { %>
-                <img src="<%= imagePath %>" alt="Event Picture" class="report-image">
-            <% } %>
-        </div>
-    </div>
-    <% } else { %>
-        <p>No pictures uploaded for this event.</p>
+<div class="event-info">
+    <strong><%= bundle.getString("event_time_label") %>:</strong><br>
+    <%= eventStartTime %> &nbsp; to &nbsp; <%= eventEndTime %>
+</div>
+
+<div>
+    <div class="section-title"><%= bundle.getString("event_description_section_title") %></div>
+    <p class="description"><%= eventDescription %></p>
+</div>
+
+<div class="image-section">
+    <div class="section-title"><%= bundle.getString("event_pictures_section_title") %></div>
+    <% if (!imagePaths.isEmpty()) { 
+        for (String path : imagePaths) { %>
+            <img src="<%= path %>" class="report-image" alt="Event Image">
+    <%  }
+    } else { %>
+        <p class="no-image"><%= bundle.getString("no_images_uploaded") %></p>
     <% } %>
+</div>
 
 </body>
 </html>

@@ -13,6 +13,16 @@
 <%@page import="java.sql.PreparedStatement"%>
 <%@page import="java.sql.SQLException"%>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%
+    String lang = request.getParameter("lang");
+    if (lang != null) {
+        session.setAttribute("lang", lang);
+    }
+    String currentLang = (String) session.getAttribute("lang");
+    if (currentLang == null) currentLang = "ms"; // Default: BM
+
+    java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("messages", new java.util.Locale(currentLang));
+%>
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -306,42 +316,42 @@
                                             <c:remove var="successMessage" scope="session" />
                                         </c:if>
 
-                                        <h4 class="card-title">Student Registration Form</h4>
+                                        <h4 class="card-title"><%= bundle.getString("student_registration_title") %></h4>
 
                                         <% if ("Yes".equalsIgnoreCase(isGuruKelas) && assignedClass != null && !assignedClass.isEmpty()) {%>
 
                                         <form class="forms-sample" action="<%= request.getContextPath() %>/StudentRegistrationServlet" method="post">
 
                                             <div class="form-group">
-                                                <label for="class">Student Class</label>
+                                                <label for="class"><%= bundle.getString("student_class_label") %></label>
                                                 <input type="text" class="form-control" id="class" name="class" value="<%= assignedClass%>" readonly>
                                             </div>
 
                                             <div class="form-group">
-                                                <label for="studentname">Student Name</label>
+                                                <label for="studentname"><%= bundle.getString("student_name") %></label>
                                                 <input type="text" class="form-control" id="studentname" name="studentname" required>
                                             </div>
 
                                             <div class="form-group">
-                                                <label for="ic">IC Number</label>
-                                                <input type="text" class="form-control" id="ic" name="ic" placeholder="IC Number without (-)" required>
+                                                <label for="ic"><%= bundle.getString("ic_number_label") %></label>
+                                                <input type="text" class="form-control" id="ic" name="ic" placeholder="<%= bundle.getString("ic_number_placeholder") %>" required>
                                             </div>
 
                                             <div class="form-group">
-                                                <label for="sport_team">Sport Team</label>
+                                                <label for="sport_team"><%= bundle.getString("select_sport_team") %></label>
                                                 <select class="form-control" id="sport_team" name="sport_team">
-                                                    <option value="">Select Sport Team</option>
-                                                    <option value="Red Team">Red Team</option>
-                                                    <option value="Green Team">Green Team</option>
-                                                    <option value="Yellow Team">Yellow Team</option>
-                                                    <option value="Blue Team">Blue Team</option>
+                                                    <option value=""><%= bundle.getString("description_label") %></option>
+                                                    <option value="Red Team"><%= bundle.getString("red_team") %></option>
+                                                    <option value="Green Team"><%= bundle.getString("green_team") %></option>
+                                                    <option value="Yellow Team"><%= bundle.getString("yellow_team") %></option>
+                                                    <option value="Blue Team"><%= bundle.getString("blue_team") %></option>
                                                 </select><br>
                                             </div>
 
                                             <div class="form-group">
-                                                <label for="uniform_unit">Uniform Unit</label>
+                                                <label for="uniform_unit"><%= bundle.getString("select_uniform_unit") %>t</label>
                                                 <select class="form-control" id="uniform_unit" name="uniform_unit">
-                                                    <option value="">Select Uniform Unit</option>
+                                                    <option value=""><%= bundle.getString("description_label") %></option>
                                                     <option value="Tunas Puteri">Tunas Puteri</option>
                                                     <option value="Puteri Islam">Puteri Islam</option>
                                                     <option value="Tunas Kadet Remaja Sekolah">Tunas Kadet Remaja Sekolah</option>
@@ -349,14 +359,14 @@
                                                 </select><br>
                                             </div>
 
-                                            <button type="submit" class="btn btn-gradient-primary me-2">Submit</button>
+                                            <button type="submit" class="btn btn-gradient-primary me-2"><%= bundle.getString("submit") %></button>
 
                                         </form>
 
                                         <% } else { %>
 
                                         <div class="alert alert-warning mt-3">
-                                            You are not authorized to register students. Only <strong>Guru Kelas</strong> can access this form.
+                                            <%= bundle.getString("not_authorized_message") %>
                                         </div>
 
                                         <% }%>

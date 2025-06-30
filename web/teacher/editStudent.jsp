@@ -23,6 +23,16 @@
 <%@page import="util.DBConfig"%>
 <%@page import="java.sql.Connection"%>
 <%@page import="java.sql.SQLException"%>
+<%
+    String lang = request.getParameter("lang");
+    if (lang != null) {
+        session.setAttribute("lang", lang);
+    }
+    String currentLang = (String) session.getAttribute("lang");
+    if (currentLang == null) currentLang = "ms"; // Default: BM
+
+    java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("messages", new java.util.Locale(currentLang));
+%>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -336,39 +346,39 @@
                         <div class="col-12 grid-margin">
                             <div class="card">
                                 <div class="card-body">
-                                    <h4 class="card-title">Edit Student: <%= student.getStudentName()%></h4>
+                                    <h4 class="card-title"><%= bundle.getString("edit_student") %> <%= student.getStudentName()%></h4>
 
                                     <form method="post" action="<%= request.getContextPath() %>/StudentEditController?action=update">
                                         <input type="hidden" name="id" value="<%= student.getId()%>"/>
                                         <input type="hidden" name="studentClass" value="<%= student.getStudentClass()%>"/> <%-- Keep student's original class --%>
 
                                         <div class="form-group row">
-                                            <label for="studentName" class="col-sm-3 col-form-label">Student Name:</label>
+                                            <label for="studentName" class="col-sm-3 col-form-label"><%= bundle.getString("student_name_label") %>:</label>
                                             <div class="col-sm-9">
                                                 <input type="text" class="form-control" id="studentName" name="studentName" value="<%= student.getStudentName()%>" required>
                                             </div>
                                         </div>
                                         <div class="form-group row">
-                                            <label for="icNumber" class="col-sm-3 col-form-label">IC Number:</label>
+                                            <label for="icNumber" class="col-sm-3 col-form-label"><%= bundle.getString("student_ic_label") %>:</label>
                                             <div class="col-sm-9">
                                                 <input type="text" class="form-control" id="icNumber" name="icNumber" value="<%= student.getIcNumber()%>" required>
                                             </div>
                                         </div>
                                         <div class="form-group row">
-                                            <label for="sportTeam" class="col-sm-3 col-form-label">Sport Team:</label>
+                                            <label for="sportTeam" class="col-sm-3 col-form-label"><%= bundle.getString("sport_team_label") %>:</label>
                                             <div class="col-sm-9">
                                                 <input type="text" class="form-control" id="sportTeam" name="sportTeam" value="<%= student.getSportTeam()%>">
                                             </div>
                                         </div>
                                         <div class="form-group row">
-                                            <label for="uniformUnit" class="col-sm-3 col-form-label">Uniform Unit:</label>
+                                            <label for="uniformUnit" class="col-sm-3 col-form-label"><%= bundle.getString("uniform_unit_label") %>:</label>
                                             <div class="col-sm-9">
                                                 <input type="text" class="form-control" id="uniformUnit" name="uniformUnit" value="<%= student.getUniformUnit()%>">
                                             </div>
                                         </div>
                                         <%-- Display class but disable editing it here directly --%>
                                         <div class="form-group row">
-                                            <label for="studentClassDisplay" class="col-sm-3 col-form-label">Class:</label>
+                                            <label for="studentClassDisplay" class="col-sm-3 col-form-label"><%= bundle.getString("class_label") %>:</label>
                                             <div class="col-sm-9">
                                                 <input type="text" class="form-control" id="studentClassDisplay" value="<%= student.getStudentClass()%>" readonly>
                                             </div>
@@ -376,8 +386,8 @@
 
                                         <div class="form-group row">
                                             <div class="col-sm-12 text-center">
-                                                <button type="submit" class="btn btn-success">Update Student</button>
-                                                <a href="<%= request.getContextPath()%>/StudentListController?studentClass=<%= student.getStudentClass()%>" class="btn btn-secondary">Cancel</a>
+                                                <button type="submit" class="btn btn-success"><%= bundle.getString("update_student_button") %></button>
+                                                <a href="<%= request.getContextPath()%>/StudentListController?studentClass=<%= student.getStudentClass()%>" class="btn btn-secondary"><%= bundle.getString("cancel_update_button") %></a>
                                             </div>
                                         </div>
                                     </form>

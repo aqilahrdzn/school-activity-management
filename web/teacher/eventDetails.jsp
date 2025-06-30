@@ -10,6 +10,16 @@
 <%@page import="dao.TeacherDAO"%>
 <%@page import="util.DBConfig"%>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%
+    String lang = request.getParameter("lang");
+    if (lang != null) {
+        session.setAttribute("lang", lang);
+    }
+    String currentLang = (String) session.getAttribute("lang");
+    if (currentLang == null) currentLang = "ms"; // Default: BM
+
+    java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("messages", new java.util.Locale(currentLang));
+%>
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -291,8 +301,8 @@
                     <div class="col-12 grid-margin stretch-card">
                         <div class="card">
                             <div class="card-body">
-                                <h4 class="card-title">Event Details</h4>
-                                <p class="card-description"> Upload event picture(s) for One Page Report(OPR) </p>
+                                <h4 class="card-title"><%= bundle.getString("event_details_title") %></h4>
+                                <p class="card-description"> <%= bundle.getString("event_description_upload") %> </p>
                                 <%@ page import="java.sql.*" %>
                                 <%@ page import="util.DBConfig" %>
                                 <%
@@ -343,27 +353,27 @@
                                     <input type="hidden" name="eventId" value="<%= eventId != null ? eventId : ""%>">
 
                                     <div class="form-group">
-                                        <label>Event Title</label>
+                                        <label><%= bundle.getString("event_title_label") %></label>
                                         <input type="text" class="form-control" value="<%= eventTitle%>" readonly>
                                     </div>
 
                                     <div class="form-group">
-                                        <label>Date and Time</label>
+                                        <label><%= bundle.getString("event_datetime_label") %></label>
                                         <input type="text" class="form-control" value="<%= eventStartTime%> - <%= eventEndTime%>" readonly>
                                     </div>
 
                                     <div class="form-group">
-                                        <label>Upload File(s)</label>
+                                        <label><%= bundle.getString("upload_files_label") %></label>
                                         <input type="file" name="eventFile" class="form-control" multiple required>
-                                        <small class="form-text text-muted">You can select multiple files (images or PDFs).</small>
+                                        <small class="form-text text-muted"><%= bundle.getString("upload_files_hint") %></small>
                                     </div>
 
                                     <div class="form-group">
-                                        <label>Description</label>
+                                        <label><%= bundle.getString("description_label") %></label>
                                         <textarea name="description" class="form-control" rows="4"><%= uploadedDescription%></textarea>
                                     </div>
 
-                                    <button type="submit" class="btn btn-gradient-primary">Submit</button>
+                                    <button type="submit" class="btn btn-gradient-primary"><%= bundle.getString("submit_button") %></button>
 
                                     <%-- The "View OPR" button logic should now consider if *any* file has been uploaded --%>
                                     <%
@@ -384,11 +394,11 @@
                                     %>
 
                                     <% if (eventId != null && !eventId.isEmpty() && hasUploadedFiles) {%>
-                                    <a href="<%= request.getContextPath()%>/teacher/viewOPR.jsp?eventId=<%= eventId%>" target="_blank" class="btn btn-gradient-info ml-2">View OPR</a>
+                                    <a href="<%= request.getContextPath()%>/teacher/viewOPR.jsp?eventId=<%= eventId%>" target="_blank" class="btn btn-gradient-info ml-2"><%= bundle.getString("view_opr_button") %></a>
                                     <% } else if (eventId != null && !eventId.isEmpty()) { %>
-                                    <p class="mt-3 text-info">Upload files to enable "View OPR".</p>
+                                    <p class="mt-3 text-info"><%= bundle.getString("view_opr_button") %></p>
                                     <% }%>
-                                    <a href="editEventDetails.jsp?eventId=<%= eventId%>" class="btn btn-warning ml-2">Edit</a>
+                                    <a href="editEventDetails.jsp?eventId=<%= eventId%>" class="btn btn-warning ml-2"><%= bundle.getString("edit_event_details_button") %></a>
 
                                 </form>
 

@@ -13,6 +13,16 @@
 <%@page import="dao.TeacherDAO"%>
 <%@page import="model.Teacher"%>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%
+    String lang = request.getParameter("lang");
+    if (lang != null) {
+        session.setAttribute("lang", lang);
+    }
+    String currentLang = (String) session.getAttribute("lang");
+    if (currentLang == null) currentLang = "ms"; // Default: BM
+
+    java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("messages", new java.util.Locale(currentLang));
+%>
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -294,53 +304,53 @@
         <div class="card">
             <div class="card-body">
                 <% if (request.getParameter("success") != null) { %>
-                    <p style="color: green;">Profile updated successfully!</p>
+                    <p style="color: green;"><%= bundle.getString("profile_updated_message") %></p>
                 <% } else if (request.getParameter("error") != null) { %>
                     <p style="color: red;"><%= request.getParameter("error") %></p>
                 <% } %>
 
-                <h4 class="card-title">Update Account</h4>
+                <h4 class="card-title"><%= bundle.getString("update_account_title") %></h4>
                 <form class="forms-sample" action="<%= request.getContextPath() %>/UpdateTeacherProfileServlet" method="post" enctype="multipart/form-data" autocomplete="off">
 
                     <!-- View-only Name -->
                     <div class="form-group">
-                        <label for="name">Name:</label>
+                        <label for="name"><%= bundle.getString("name_label") %>:</label>
                         <input type="text" class="form-control" id="name" name="name" value="<%= teacher.getName() %>" readonly>
                     </div>
 
                     <!-- Editable Phone Number -->
                     <div class="form-group">
-                        <label for="phone">Phone Number:</label>
+                        <label for="phone"><%= bundle.getString("phone_number_label") %>:</label>
                         <input type="text" class="form-control" id="phone" name="phone" value="<%= teacher.getContactNumber() %>" required>
                     </div>
 
                     <!-- Editable Email -->
                     <div class="form-group">
-                        <label for="email">Email:</label>
+                        <label for="email"><%= bundle.getString("email") %>:</label>
                         <input type="email" class="form-control" id="email" name="email" value="<%= teacher.getEmail() %>" required>
                     </div>
 
                     <!-- Old Password (required if new password is filled) -->
                     <div class="form-group">
-                        <label for="oldPassword">Old Password:</label>
-                        <input type="password" class="form-control" id="oldPassword" name="oldPassword" placeholder="Enter your current password">
+                        <label for="oldPassword"><%= bundle.getString("old_password_label") %>:</label>
+                        <input type="password" class="form-control" id="oldPassword" name="oldPassword" placeholder="<%= bundle.getString("old_password_placeholder") %>">
                     </div>
 
                     <!-- New Password -->
                     <div class="form-group">
-                        <label for="newPassword">New Password:</label>
-                        <input type="password" class="form-control" id="newPassword" name="newPassword" placeholder="Enter new password">
+                        <label for="newPassword"><%= bundle.getString("new_password_label") %>:</label>
+                        <input type="password" class="form-control" id="newPassword" name="newPassword" placeholder="<%= bundle.getString("new_password_placeholder") %>">
                     </div>
 
                     <!-- Confirm New Password -->
                     <div class="form-group">
-                        <label for="confirmPassword">Confirm New Password:</label>
-                        <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" placeholder="Re-enter new password">
+                        <label for="confirmPassword"><%= bundle.getString("confirm_password_label") %>:</label>
+                        <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" placeholder="<%= bundle.getString("confirm_password_placeholder") %>">
                     </div>
 
                     <!-- Profile Picture Upload -->
                     <div class="form-group">
-                        <label for="profilePic">Profile Picture:</label>
+                        <label for="profilePic"><%= bundle.getString("profile_picture_label") %>:</label>
                         <input type="file" class="form-control" id="profilePic" name="profilePic" accept="image/*">
                     </div>
 
@@ -351,7 +361,7 @@
                         <img src="assets/images/faces/default.jpg" width="100" height="100" alt="Default Picture" />
                     <% } %>
 
-                    <button type="submit" class="btn btn-gradient-primary me-2">Update Account</button>
+                    <button type="submit" class="btn btn-gradient-primary me-2"><%= bundle.getString("update_account_button") %></button>
                 </form>
             </div>
         </div>

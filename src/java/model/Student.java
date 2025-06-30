@@ -12,6 +12,15 @@ public class Student {
     private String sportTeam;
     private String uniformUnit;
     private String parentEmail;
+    private int parentId;
+
+    public int getParentId() {
+        return parentId;
+    }
+
+    public void setParentId(int parentId) {
+        this.parentId = parentId;
+    }
 
     // Constructors
     public Student() {
@@ -30,13 +39,14 @@ public class Student {
         this.sportTeam = sportTeam;
         this.uniformUnit = uniformUnit;
     }
+
     public Student(String studentClass, String studentName, String icNumber, String sportTeam, String uniformUnit, String parentEmail) {
         this.studentClass = studentClass;
         this.studentName = studentName;
         this.icNumber = icNumber;
         this.sportTeam = sportTeam;
         this.uniformUnit = uniformUnit;
-        this.parentEmail = parentEmail; 
+        this.parentEmail = parentEmail;
     }
 
     // Getters and Setters
@@ -113,6 +123,5 @@ public class Student {
     public void setParentEmail(String parentEmail) {
         this.parentEmail = parentEmail;
     }
-    
 
 }

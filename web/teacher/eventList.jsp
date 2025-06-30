@@ -17,6 +17,16 @@
 <%@page import="java.sql.Connection"%>
 <%@page import="java.sql.SQLException"%>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%
+    String lang = request.getParameter("lang");
+    if (lang != null) {
+        session.setAttribute("lang", lang);
+    }
+    String currentLang = (String) session.getAttribute("lang");
+    if (currentLang == null) currentLang = "ms"; // Default: BM
+
+    java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("messages", new java.util.Locale(currentLang));
+%>
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -323,27 +333,27 @@
                         <div class="col-12 grid-margin">
                             <div class="card">
                                 <div class="card-body">
-                                    <h4 class="card-title">Event List</h4>
+                                    <h4 class="card-title"><%= bundle.getString("event_list_title") %></h4>
 
                                     <%-- Display success/error messages from redirects --%>
                                     <% if ("created".equals(request.getParameter("status"))) { %>
-                                    <div class="alert alert-success">Event created successfully.</div>
+                                    <div class="alert alert-success"><%= bundle.getString("event_created_success") %></div>
                                     <% } else if ("updated".equals(request.getParameter("status"))) { %>
-                                    <div class="alert alert-success">Event updated successfully.</div>
+                                    <div class="alert alert-success"><%= bundle.getString("event_updated_success") %></div>
                                     <% } else if ("deleted".equals(request.getParameter("status"))) { %>
-                                    <div class="alert alert-success">Event deleted successfully.</div>
+                                    <div class="alert alert-success"><%= bundle.getString("event_deleted_success") %></div>
                                     <% } %>
 
                                     <div class="table-responsive">
                                         <table class="table">
                                             <thead>
                                                 <tr>
-                                                    <th>Title</th>
-                                                    <th>Status</th>
-                                                    <th>Start Time</th>
-                                                    <th>Approval</th>
-                                                    <th>Post-Event</th>
-                                                    <th>Manage</th>  <%-- NEW COLUMN --%>
+                                                    <th><%= bundle.getString("title_column") %></th>
+                                                    <th><%= bundle.getString("status_column") %></th>
+                                                    <th><%= bundle.getString("start_time_column") %> Time</th>
+                                                    <th><%= bundle.getString("approval_column") %></th>
+                                                    <th><%= bundle.getString("post_event_column") %></th>
+                                                    <th><%= bundle.getString("manage_column") %></th>  <%-- NEW COLUMN --%>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -364,23 +374,23 @@
                                                         <%-- This form remains as you had it --%>
                                                         <form method="post" action="parentApprovals.jsp" style="display:inline;">
                                                             <input type="hidden" name="eventId" value="<%= event.get("id")%>" />
-                                                            <button type="submit" class="btn btn-sm btn-info">Approval List</button>
+                                                            <button type="submit" class="btn btn-sm btn-info"><%= bundle.getString("approval_list_button") %></button>
                                                         </form>
                                                     </td>
                                                     <td>
                                                         <%-- This form remains as you had it --%>
                                                         <form method="post" action="eventDetails.jsp" style="display:inline;">
                                                             <input type="hidden" name="eventId" value="<%= event.get("id")%>" />
-                                                            <button type="submit" class="btn btn-sm btn-dark">Post-Event</button>
+                                                            <button type="submit" class="btn btn-sm btn-dark"><%= bundle.getString("post_event_button") %></button>
                                                         </form>
                                                     </td>
                                                     <td>
-                                                        <a href="editEvent.jsp?eventId=<%= event.get("id")%>" class="btn btn-sm btn-warning">Edit</a>
+                                                        <a href="editEvent.jsp?eventId=<%= event.get("id")%>" class="btn btn-sm btn-warning"><%= bundle.getString("edit_button") %></a>
 
-                                                        <form method="post" action="EventController" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this event? This cannot be undone.');">
+                                                        <form method="post" action="../EventController" style="display:inline;" onsubmit="return confirm('<%= bundle.getString("delete_event_confirm") %>');">
                                                             <input type="hidden" name="action" value="delete">
                                                             <input type="hidden" name="eventId" value="<%= event.get("id")%>" />
-                                                            <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                                                            <button type="submit" class="btn btn-sm btn-danger"><%= bundle.getString("delete_button") %></button>
                                                         </form>
 
                                                         <%
@@ -389,8 +399,8 @@
                                                         %>
                                                         <a href="<%= request.getContextPath()%>/SendConfirmationLetterController?eventId=<%= event.get("id")%>" 
                                                            class="btn btn-sm btn-success" 
-                                                           onclick="return confirm('This will regenerate and send the confirmation letter to all parents. Continue?');">
-                                                            Send Letter
+                                                           onclick="return confirm('<%= bundle.getString("send_letter_confirm") %>');">
+                                                            <%= bundle.getString("send_letter_button") %>
                                                         </a>
                                                         <%
                                                             }
@@ -404,7 +414,7 @@
                                                     }
                                                 } else {
                                                 %>
-                                                <tr><td colspan="7">No events found.</td></tr>
+                                                <tr><td colspan="7"><%= bundle.getString("no_events_found") %></td></tr>
                                                 <%
                                                     }
                                                 %>

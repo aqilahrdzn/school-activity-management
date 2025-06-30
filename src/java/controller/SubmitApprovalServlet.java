@@ -1,5 +1,6 @@
 package controller;
 
+import dao.NotificationDAO;
 import util.DBConfig;
 
 import javax.servlet.ServletException;
@@ -24,11 +25,27 @@ public class SubmitApprovalServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        int parentId = Integer.parseInt(request.getParameter("parent_id"));
-        int eventId = Integer.parseInt(request.getParameter("event_id"));
+        String parentIdStr = request.getParameter("parent_id");
+        String eventIdStr = request.getParameter("event_id");
         String status = request.getParameter("status");
         String reason = request.getParameter("reason") != null ? request.getParameter("reason") : "";
         String eventCategory = request.getParameter("event_category");
+
+        // Validate and parse IDs safely
+        if (parentIdStr == null || eventIdStr == null) {
+            response.getWriter().println("Missing parent or event ID.");
+            return;
+        }
+
+        int parentId;
+        int eventId;
+        try {
+            parentId = Integer.parseInt(parentIdStr);
+            eventId = Integer.parseInt(eventIdStr);
+        } catch (NumberFormatException e) {
+            response.getWriter().println("Invalid ID format.");
+            return;
+        }
 
         String resitFilePath = null;
         ByteArrayOutputStream baos = null;
@@ -104,8 +121,35 @@ public class SubmitApprovalServlet extends HttpServlet {
                 ps.setInt(5, parentId);
                 ps.setInt(6, eventId);
 
-                // ❌ JANGAN ada ps.setInt(7, ...); kalau statement insert dah cukup 7 param.
                 ps.executeUpdate();
+            }
+
+            // ✅ Get the creator's email from events
+            String teacherEmail = null;
+            String getEmailSql = "SELECT created_by FROM events WHERE id = ?";
+            try (PreparedStatement stmt = con.prepareStatement(getEmailSql)) {
+                stmt.setInt(1, eventId);
+                try (ResultSet rs = stmt.executeQuery()) {
+                    if (rs.next()) {
+                        teacherEmail = rs.getString("created_by");
+                    }
+                }
+            }
+
+// ✅ If email was found, fetch teacher ID and send notification
+            if (teacherEmail != null) {
+                String getTeacherIdSql = "SELECT id FROM teachers WHERE email = ?";
+                try (PreparedStatement stmt = con.prepareStatement(getTeacherIdSql)) {
+                    stmt.setString(1, teacherEmail);
+                    try (ResultSet rs = stmt.executeQuery()) {
+                        if (rs.next()) {
+                            int teacherId = rs.getInt("id");
+                            NotificationDAO dao = new NotificationDAO();
+                            dao.insertNotifications(teacherId, "teacher", "New approval by parent, review it.", eventId);
+
+                        }
+                    }
+                }
             }
 
         } catch (SQLException e) {

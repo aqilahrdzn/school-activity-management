@@ -4,6 +4,9 @@
     Author     : Lenovo
 --%>
 
+<%@page import="dao.NotificationDAO"%>
+<%@page import="java.util.List"%>
+<%@page import="model.Notification"%>
 <%@page import="model.Teacher"%>
 <%@page import="dao.TeacherDAO"%>
 <%@page import="java.sql.SQLException"%>
@@ -12,6 +15,17 @@
 <%@page import="util.DBConfig"%>
 <%@page import="java.sql.Connection"%>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%
+    String lang = request.getParameter("lang");
+    if (lang != null) {
+        session.setAttribute("lang", lang);
+    }
+    String currentLang = (String) session.getAttribute("lang");
+    if (currentLang == null) {
+        currentLang = "ms"; // Default: BM
+    }
+    java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("messages", new java.util.Locale(currentLang));
+%>
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -37,52 +51,67 @@
         <link rel="shortcut icon" href="../assets/images/favicon.png" />
     </head>
     <body>
-        <%
-            String email = (String) session.getAttribute("email"); // Retrieve email from session
+       <%
+    // Get teacher session email
+    String email = (String) session.getAttribute("email");
+    TeacherDAO teacherDAO = new TeacherDAO();
+    Teacher teacher = null;
 
-            TeacherDAO teacherDAO = new TeacherDAO();
-            Teacher teacher = null;
+    if (email != null) {
+        teacher = teacherDAO.getTeacherDetails(email); // Fetch teacher by email
+    }
 
-            if (email != null) {
-                teacher = teacherDAO.getTeacherDetails(email); // Pass email to fetch details
+    if (teacher == null) {
+        response.sendRedirect(request.getContextPath() + "/login.jsp");
+        return;
+    }
+
+    // ✅ Now you can use teacher to load notifications
+    NotificationDAO notificationDAO = new NotificationDAO();
+    List<Notification> notifications = null;
+    int unreadCount = 0;
+
+    notifications = notificationDAO.getNotificationsByUserIdAndRole(teacher.getId(), "teacher");
+
+    for (Notification note : notifications) {
+        if (note.getIsRead() == 0) {
+            unreadCount++;
+        }
+    }
+%>
+
+<%
+    int totalTeachers = 0;
+    int totalStudents = 0;
+    int totalParents = 0;
+
+    try (Connection conn = DBConfig.getConnection()) {
+        try (PreparedStatement stmt = conn.prepareStatement("SELECT COUNT(*) AS total FROM teachers");
+             ResultSet rs = stmt.executeQuery()) {
+            if (rs.next()) {
+                totalTeachers = rs.getInt("total");
             }
+        }
 
-            // Add a check to handle cases where teacher is null (e.g., not logged in)
-            if (teacher == null) {
-                // Redirect to login page or display an error message
-                response.sendRedirect(request.getContextPath() + "/login.jsp");
-                return; // Stop further processing of this JSP
+        try (PreparedStatement stmt = conn.prepareStatement("SELECT COUNT(*) AS total FROM student");
+             ResultSet rs = stmt.executeQuery()) {
+            if (rs.next()) {
+                totalStudents = rs.getInt("total");
             }
-        %>
-        <%
-            int totalTeachers = 0;
-            int totalStudents = 0;
-            int totalParents = 0;
+        }
 
-            try (Connection conn = DBConfig.getConnection()) {
-                // Get total teachers
-                try (PreparedStatement stmt = conn.prepareStatement("SELECT COUNT(*) AS total FROM teachers"); ResultSet rs = stmt.executeQuery()) {
-                    if (rs.next()) {
-                        totalTeachers = rs.getInt("total");
-                    }
-                }
-
-                // Get total students
-                try (PreparedStatement stmt = conn.prepareStatement("SELECT COUNT(*) AS total FROM student"); ResultSet rs = stmt.executeQuery()) {
-                    if (rs.next()) {
-                        totalStudents = rs.getInt("total");
-                    }
-                }
-                try (PreparedStatement stmt = conn.prepareStatement("SELECT COUNT(*) AS total FROM parent"); ResultSet rs = stmt.executeQuery()) {
-                    if (rs.next()) {
-                        totalParents = rs.getInt("total");
-                    }
-                }
-
-            } catch (SQLException e) {
-                e.printStackTrace();
+        try (PreparedStatement stmt = conn.prepareStatement("SELECT COUNT(*) AS total FROM parent");
+             ResultSet rs = stmt.executeQuery()) {
+            if (rs.next()) {
+                totalParents = rs.getInt("total");
             }
-        %>
+        }
+
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+%>
+
         <div class="container-scroller">
 
             <!-- partial:partials/_navbar.html -->
@@ -166,47 +195,37 @@
                         <li class="nav-item dropdown">
                             <a class="nav-link count-indicator dropdown-toggle" id="notificationDropdown" href="#" data-bs-toggle="dropdown">
                                 <i class="mdi mdi-bell-outline"></i>
-                                <span class="count-symbol bg-danger"></span>
+                                <% if (unreadCount > 0) {%>
+                                <span class="count-symbol bg-danger"><%= unreadCount%></span>
+                                <% } %>
                             </a>
+
                             <div class="dropdown-menu dropdown-menu-end navbar-dropdown preview-list" aria-labelledby="notificationDropdown">
                                 <h6 class="p-3 mb-0">Notifications</h6>
                                 <div class="dropdown-divider"></div>
-                                <a class="dropdown-item preview-item">
+
+                                <% if (notifications != null && !notifications.isEmpty()) {
+                                        for (Notification note : notifications) {
+                                %>
+                                <a class="dropdown-item preview-item" href="<%= request.getContextPath()%>/MarkNotificationRead?id=<%= note.getId()%>">
                                     <div class="preview-thumbnail">
-                                        <div class="preview-icon bg-success">
-                                            <i class="mdi mdi-calendar"></i>
+                                        <div class="preview-icon <%= note.getIsRead() == 0 ? "bg-info" : "bg-secondary"%>">
+                                            <i class="mdi mdi-information-outline"></i>
                                         </div>
                                     </div>
                                     <div class="preview-item-content d-flex align-items-start flex-column justify-content-center">
-                                        <h6 class="preview-subject font-weight-normal mb-1">Event today</h6>
-                                        <p class="text-gray ellipsis mb-0"> Just a reminder that you have an event today </p>
+                                        <h6 class="preview-subject font-weight-normal mb-1">
+                                            <%= note.getIsRead() == 0 ? "New Notification" : "Notification"%>
+                                        </h6>
+                                        <p class="text-gray ellipsis mb-0"><%= note.getMessage()%></p>
                                     </div>
                                 </a>
                                 <div class="dropdown-divider"></div>
-                                <a class="dropdown-item preview-item">
-                                    <div class="preview-thumbnail">
-                                        <div class="preview-icon bg-warning">
-                                            <i class="mdi mdi-cog"></i>
-                                        </div>
-                                    </div>
-                                    <div class="preview-item-content d-flex align-items-start flex-column justify-content-center">
-                                        <h6 class="preview-subject font-weight-normal mb-1">Settings</h6>
-                                        <p class="text-gray ellipsis mb-0"> Update dashboard </p>
-                                    </div>
-                                </a>
-                                <div class="dropdown-divider"></div>
-                                <a class="dropdown-item preview-item">
-                                    <div class="preview-thumbnail">
-                                        <div class="preview-icon bg-info">
-                                            <i class="mdi mdi-link-variant"></i>
-                                        </div>
-                                    </div>
-                                    <div class="preview-item-content d-flex align-items-start flex-column justify-content-center">
-                                        <h6 class="preview-subject font-weight-normal mb-1">Launch Admin</h6>
-                                        <p class="text-gray ellipsis mb-0"> New admin wow! </p>
-                                    </div>
-                                </a>
-                                <div class="dropdown-divider"></div>
+                                <%  }
+                                } else { %>
+                                <p class="text-center p-3">No notifications</p>
+                                <% }%>
+
                                 <h6 class="p-3 mb-0 text-center">See all notifications</h6>
                             </div>
                         </li>
@@ -245,7 +264,7 @@
                         <!--            dashboard-->
                         <li class="nav-item">
                             <a class="nav-link" href="teacherdashboard.jsp">
-                                <span class="menu-title">Dashboard</span>
+                                <span class="menu-title"><%= bundle.getString("dashboard")%></span>
                                 <i class="mdi mdi-home menu-icon"></i>
                             </a>
                         </li>
@@ -253,31 +272,30 @@
 
                         <li class="nav-item">
                             <a class="nav-link" data-bs-toggle="collapse" href="#forms" aria-expanded="false" aria-controls="forms">
-                                <span class="menu-title">Forms</span>
+                                <span class="menu-title"><%= bundle.getString("forms")%></span>
                                 <i class="mdi mdi-format-list-bulleted menu-icon"></i>
                             </a>
                             <div class="collapse" id="forms">
                                 <ul class="nav flex-column sub-menu">
                                     <li class="nav-item">
-                                        <a class="nav-link" href="studentRegistration.jsp">Student Registration</a>
-                                        <a class="nav-link" href="createEvent.jsp">Create Event/Activity</a>
-                                        <a class="nav-link" href="bookingClass.jsp">Booking Event Venue</a>
-                                        <a class="nav-link" href="updateAccTc.jsp">Update Account</a>
-                                       
+                                        <a class="nav-link" href="studentRegistration.jsp"><%= bundle.getString("student_register_nav")%></a>
+                                        <a class="nav-link" href="createEvent.jsp"><%= bundle.getString("create_event_nav")%></a>
+                                        <a class="nav-link" href="updateAccTc.jsp"><%= bundle.getString("update_account_nav")%></a>
+
                                     </li>
                                 </ul>
                             </div>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" data-bs-toggle="collapse" href="#charts" aria-expanded="false" aria-controls="charts">
-                                <span class="menu-title">List</span>
+                                <span class="menu-title"><%= bundle.getString("list")%></span>
                                 <i class="mdi mdi-chart-bar menu-icon"></i>
                             </a>
                             <div class="collapse" id="charts">
                                 <ul class="nav flex-column sub-menu">
                                     <li class="nav-item">
-                                        <a class="nav-link" href="studentList.jsp">Student List</a>
-                                        <a class="nav-link" href="eventList.jsp">Event List</a>
+                                        <a class="nav-link" href="studentList.jsp"><%= bundle.getString("student_list")%></a>
+                                        <a class="nav-link" href="eventList.jsp"><%= bundle.getString("event_list")%></a>
                                     </li>
                                 </ul>
                             </div>
@@ -292,12 +310,12 @@
                             <h3 class="page-title">
                                 <span class="page-title-icon bg-gradient-primary text-white me-2">
                                     <i class="mdi mdi-home"></i>
-                                </span> Dashboard
+                                </span> <%= bundle.getString("dashboard")%>
                             </h3>
                             <nav aria-label="breadcrumb">
                                 <ul class="breadcrumb">
                                     <li class="breadcrumb-item active" aria-current="page">
-                                        <span></span>Overview <i class="mdi mdi-alert-circle-outline icon-sm text-primary align-middle"></i>
+                                        <span></span><%= bundle.getString("overview")%> <i class="mdi mdi-alert-circle-outline icon-sm text-primary align-middle"></i>
                                     </li>
                                 </ul>
                             </nav>
@@ -306,10 +324,9 @@
                             <div class="col-md-4 stretch-card grid-margin">
                                 <div class="card bg-gradient-danger card-img-holder text-white">
                                     <div class="card-body">
-
-                                        <h4 class="font-weight-normal mb-3">Total Teachers <i class="mdi mdi-account-multiple mdi-24px float-end"></i></h4>
-                                        <h2 class="mb-5"><%= totalTeachers%> Teachers</h2>
-                                        <h6 class="card-text">Updated in real-time</h6>
+                                        <h4 class="font-weight-normal mb-3"><%= bundle.getString("total_teachers")%> <i class="mdi mdi-account-multiple mdi-24px float-end"></i></h4>
+                                        <h2 class="mb-5"><%= totalTeachers%> <%= bundle.getString("teachers_label")%></h2>
+                                        <h6 class="card-text"><%= bundle.getString("updated_realtime")%></h6>
                                     </div>
                                 </div>
                             </div>
@@ -317,21 +334,18 @@
                             <div class="col-md-4 stretch-card grid-margin">
                                 <div class="card bg-gradient-info card-img-holder text-white">
                                     <div class="card-body">
-
-                                        <h4 class="font-weight-normal mb-3">Total Students <i class="mdi mdi-account-multiple mdi-24px float-end"></i></h4>
-                                        <h2 class="mb-5"><%= totalStudents%> Students</h2>
-                                        <h6 class="card-text">Updated in real-time</h6>
+                                        <h4 class="font-weight-normal mb-3"><%= bundle.getString("total_students")%> <i class="mdi mdi-account-multiple mdi-24px float-end"></i></h4>
+                                        <h2 class="mb-5"><%= totalStudents%> <%= bundle.getString("student")%></h2>
+                                        <h6 class="card-text"><%= bundle.getString("updated_realtime")%></h6>
                                     </div>
                                 </div>
                             </div>
                             <div class="col-md-4 stretch-card grid-margin">
                                 <div class="card bg-gradient-success card-img-holder text-white">
                                     <div class="card-body">
-
-                                        <h4 class="font-weight-normal mb-3">Total Registered Parents<i class="mdi mdi-account-multiple mdi-24px float-end"></i>
-                                        </h4>
-                                        <h2 class="mb-5"><%= totalParents%> Parents</h2>
-                                        <h6 class="card-text">Updated in real-time</h6>
+                                        <h4 class="font-weight-normal mb-3"><%= bundle.getString("total_registered_parents")%> <i class="mdi mdi-account-multiple mdi-24px float-end"></i></h4>
+                                        <h2 class="mb-5"><%= totalParents%> <%= bundle.getString("parent")%></h2>
+                                        <h6 class="card-text"><%= bundle.getString("updated_realtime")%></h6>
                                     </div>
                                 </div>
                             </div>
@@ -341,7 +355,7 @@
                             <div class="col-lg-6 grid-margin stretch-card">
                                 <div class="card">
                                     <div class="card-body">
-                                        <h4 class="card-title">Event Created per Month</h4>
+                                        <h4 class="card-title"><%= bundle.getString("event_created_per_month")%></h4>
                                         <canvas id="barChart" style="height:300px"></canvas>
                                     </div>
                                 </div>
@@ -350,7 +364,7 @@
                             <div class="col-md-5 grid-margin stretch-card">
                                 <div class="card">
                                     <div class="card-body">
-                                        <h4 class="card-title">Traffic Sources</h4>
+                                        <h4 class="card-title"><%= bundle.getString("traffic_sources")%></h4>
                                         <div class="doughnutjs-wrapper d-flex justify-content-center">
                                             <canvas id="traffic-chart"></canvas>
                                         </div>
@@ -375,6 +389,8 @@
             </div>
             <!-- page-body-wrapper ends -->
         </div>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
         <script src="<%= request.getContextPath()%>/assets/js/chart.js"></script>

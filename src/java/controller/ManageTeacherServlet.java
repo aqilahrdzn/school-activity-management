@@ -2,6 +2,7 @@ package controller;
 
 import dao.TeacherDAO;
 import java.io.IOException;
+import java.util.Calendar;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -25,7 +26,13 @@ public class ManageTeacherServlet extends HttpServlet {
                 String selectedYearStr = request.getParameter("selectedYear");
                 int selectedYear = (selectedYearStr != null && !selectedYearStr.isEmpty())
                         ? Integer.parseInt(selectedYearStr)
-                        : 2025; // default year
+                        : 2025; // default fallback year
+
+                int currentYear = Calendar.getInstance().get(Calendar.YEAR);
+                if (selectedYear <= currentYear) {
+                    response.sendRedirect(request.getContextPath() + "/clerk/teacherList.jsp?error=Class assignment is locked for " + selectedYear + ".&selectedYear=" + selectedYear);
+                    return;
+                }
 
                 // Validate input
                 if (newClass == null || newClass.trim().isEmpty()) {
@@ -33,13 +40,14 @@ public class ManageTeacherServlet extends HttpServlet {
                     return;
                 }
 
-                // Check if the class is already assigned to a different teacher
+                // Check if class is already assigned to someone else
                 boolean isAlreadyAssigned = teacherDAO.isClassAlreadyAssigned(newClass, selectedYear, teacherId);
                 if (isAlreadyAssigned) {
                     response.sendRedirect(request.getContextPath() + "/clerk/teacherList.jsp?error=Class already assigned to another teacher for " + selectedYear + ".&selectedYear=" + selectedYear);
                     return;
                 }
 
+                // Proceed with update
                 boolean success = teacherDAO.updateTeacherClass(teacherId, newClass, selectedYear);
                 if (success) {
                     response.sendRedirect(request.getContextPath() + "/clerk/teacherList.jsp?success=Class updated successfully!&selectedYear=" + selectedYear);
@@ -48,7 +56,7 @@ public class ManageTeacherServlet extends HttpServlet {
                 }
 
             } catch (NumberFormatException e) {
-                response.sendRedirect(request.getContextPath() + "/clerk/teacherList.jsp?error=Invalid input for teacher ID or year.");
+                response.sendRedirect(request.getContextPath() + "/clerk/teacherList.jsp?error=Invalid teacher ID or year.");
             }
 
         } else if ("delete".equals(action)) {

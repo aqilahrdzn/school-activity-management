@@ -1,6 +1,7 @@
 package controller;
 
 import dao.LoginDAO;
+import dao.NotificationDAO;
 import dao.ParentDAO;
 import dao.TeacherDAO;
 import model.Teacher;
@@ -10,6 +11,8 @@ import javax.servlet.*;
 import javax.servlet.http.*;
 import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
+import java.util.List;
+import model.Notification;
 
 @WebServlet("/LoginServlet")
 public class LoginServlet extends HttpServlet {
@@ -68,6 +71,11 @@ public class LoginServlet extends HttpServlet {
 
                     session.setAttribute("isGuruKelas", teacher.getIsGuruKelas());
                     session.setAttribute("teacherClass", teacher.getKelas());
+
+                    NotificationDAO notificationDAO = new NotificationDAO();
+                    List<Notification> notifications = notificationDAO.getNotificationsByUserIdAndRole(teacher.getId(), role.toLowerCase());
+                    session.setAttribute("notifications", notifications);  // ✅ Store in session like for parents
+
                 } else {
                     System.out.println("[LoginServlet] Teacher details not found for: " + email);
                     response.sendRedirect(request.getContextPath() + "/login.jsp?error=teacherNotFound");
@@ -86,6 +94,10 @@ public class LoginServlet extends HttpServlet {
                         response.sendRedirect(request.getContextPath() + "/login.jsp?error=wrongPassword");
                         return;
                     }
+                    // ✅ Load notifications for parent
+                    NotificationDAO notificationDAO = new NotificationDAO();
+                    List<Notification> notifications = notificationDAO.getNotificationsByUserIdAndRole(parent.getId(), "parent");
+                    session.setAttribute("notifications", notifications);
                 } else {
                     System.out.println("[LoginServlet] Parent details not found.");
                     response.sendRedirect(request.getContextPath() + "/login.jsp?error=parentNotFound");

@@ -21,9 +21,13 @@
 <%@page import="java.sql.SQLException"%>
 <%
     String lang = request.getParameter("lang");
-    if (lang != null) session.setAttribute("lang", lang);
+    if (lang != null) {
+        session.setAttribute("lang", lang);
+    }
     String currentLang = (String) session.getAttribute("lang");
-    if (currentLang == null) currentLang = "ms";
+    if (currentLang == null) {
+        currentLang = "ms";
+    }
     java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("messages", new java.util.Locale(currentLang));
 %>
 
@@ -345,7 +349,7 @@
                     </div>
                     <!-- Select Academic Year -->
                     <form method="get" action="">
-                        <label for="year"><%= bundle.getString("welcome_to") %></label>
+                        <label for="year"><%= bundle.getString("welcome_to")%></label>
                         <select name="selectedYear" id="year" onchange="this.form.submit()" class="form-control" style="width: 200px;">
                             <% for (String y : years) {%>
                             <option value="<%= y%>" <%= y.equals(selectedYear) ? "selected" : ""%>><%= y%></option>
@@ -365,16 +369,16 @@
                         <div class="col-12 grid-margin">
                             <div class="card">
                                 <div class="card-body">
-                                    <h4 class="card-title"><%= bundle.getString("teacher_list") %> - <%= selectedYear%></h4>
+                                    <h4 class="card-title"><%= bundle.getString("teacher_list")%> - <%= selectedYear%></h4>
                                     <div class="table-responsive">
                                         <table class="table">
                                             <thead>
                                                 <tr>
-                                                    <th><%= bundle.getString("name") %></th>
-                                                    <th><%= bundle.getString("email") %></th>
-                                                    <th><%= bundle.getString("contact_number") %></th>
-                                                    <th><%= bundle.getString("class_year") %></th>
-                                                    <th><%= bundle.getString("actions") %></th>
+                                                    <th><%= bundle.getString("name")%></th>
+                                                    <th><%= bundle.getString("email")%></th>
+                                                    <th><%= bundle.getString("contact_number")%></th>
+                                                    <th><%= bundle.getString("class_year")%></th>
+                                                    <th><%= bundle.getString("actions")%></th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -392,6 +396,12 @@
                                                     </td>
                                                     <td>
                                                         <div style="display: flex; gap: 5px;">
+                                                            <% int currentYear = java.time.Year.now().getValue();
+                                                                boolean isFutureYear = Integer.parseInt(selectedYear) > currentYear;
+                                                                boolean isClassEmpty = (t.getKelas() == null || t.getKelas().trim().isEmpty());
+
+                                                                if (isFutureYear && isClassEmpty) {
+                                                            %>
                                                             <!-- Update Class Form -->
                                                             <form action="<%= request.getContextPath()%>/ManageTeacherServlet" method="post">
                                                                 <input type="hidden" name="action" value="update">
@@ -399,27 +409,28 @@
                                                                 <input type="hidden" name="selectedYear" value="<%= selectedYear%>">
 
                                                                 <select class="form-control" name="kelas">
-                                                                    <option value=""><%= bundle.getString("assign_class") %></option>
+                                                                    <option value=""><%= bundle.getString("assign_class")%></option>
                                                                     <% for (String className : allClasses) {
                                                                             boolean isAssigned = assignedClassesThisYear.contains(className);
-                                                                            boolean isAssignedToCurrentTeacher = className.equals(currentTeacherClass);
-                                                                            String disabled = (isAssigned && !isAssignedToCurrentTeacher) ? "disabled" : "";
-                                                                            String selected = isAssignedToCurrentTeacher ? "selected" : "";
+                                                                            String disabled = isAssigned ? "disabled" : "";
                                                                     %>
-                                                                    <option value="<%= className%>" <%= selected%> <%= disabled%>>
-                                                                        <%= className%> <%= (isAssigned && !isAssignedToCurrentTeacher) ? "(Assigned)" : ""%>
+                                                                    <option value="<%= className%>" <%= disabled%>>
+                                                                        <%= className%> <%= (isAssigned ? "(Assigned)" : "")%>
                                                                     </option>
                                                                     <% }%>
                                                                 </select>
-                                                                <button type="submit" class="btn btn-gradient-primary btn-sm"><%= bundle.getString("update") %></button>
+                                                                <button type="submit" class="btn btn-gradient-primary btn-sm"><%= bundle.getString("update")%></button>
                                                             </form>
+                                                            <% } else { %>
+                                                            <span class="text-muted">Locked</span>
+                                                            <% }%>
 
                                                             <!-- Delete Teacher Form -->
                                                             <form action="<%= request.getContextPath()%>/ManageTeacherServlet" method="post">
                                                                 <input type="hidden" name="action" value="delete">
                                                                 <input type="hidden" name="teacherId" value="<%= t.getId()%>">
                                                                 <button type="submit" class="btn btn-gradient-danger btn-sm"
-                                                                        onclick="return confirm('<%= bundle.getString("confirm_delete_teacher") %>')"><%= bundle.getString("delete") %></button>
+                                                                        onclick="return confirm('<%= bundle.getString("confirm_delete_teacher")%>')"><%= bundle.getString("delete")%></button>
                                                             </form>
                                                         </div>
                                                     </td>

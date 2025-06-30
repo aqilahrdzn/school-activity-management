@@ -17,6 +17,16 @@
 <%@page import="java.sql.Connection"%>
 <%@page import="java.sql.SQLException"%>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%
+    String lang = request.getParameter("lang");
+    if (lang != null) {
+        session.setAttribute("lang", lang);
+    }
+    String currentLang = (String) session.getAttribute("lang");
+    if (currentLang == null) currentLang = "ms"; // Default: BM
+
+    java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("messages", new java.util.Locale(currentLang));
+%>
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -336,19 +346,19 @@
                         <div class="col-12 grid-margin">
                             <div class="card">
                                 <div class="card-body">
-                                    <h4 class="card-title">Parent Approval List</h4>
+                                    <h4 class="card-title"><%= bundle.getString("parent_approval_list") %></h4>
                                     <div class="table-responsive">
                                         <table class="table">
                                             <thead>
                                                 <tr>
-                                                    <th>Student Name</th>
-                                                    <th>Student IC</th>
-                                                    <th>Class</th>
-                                                    <th>Status</th>
-                                                    <th>Reason</th>
-                                                    <th>Approved At</th>
-                                                    <th>Disqualified</th>
-                                                    <th>Resit File</th>
+                                                    <th><%= bundle.getString("student_name") %></th>
+                                                    <th><%= bundle.getString("student_ic") %></th>
+                                                    <th><%= bundle.getString("classroom_name") %></th>
+                                                    <th><%= bundle.getString("status") %></th>
+                                                    <th><%= bundle.getString("reason") %></th>
+                                                    <th><%= bundle.getString("approved_at") %></th>
+                                                    <th><%= bundle.getString("disqualified") %></th>
+                                                    <th><%= bundle.getString("resit_file") %></th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -368,13 +378,13 @@
                                                     <td><%= row.get("class") %></td>
                                                     <td>
                                                         <% if ("Approved".equalsIgnoreCase(status)) { %>
-                                                        <span class="badge bg-success">Approved</span>
+                                                        <span class="badge bg-success"><%= bundle.getString("approved") %></span>
                                                         <% } else if ("Rejected".equalsIgnoreCase(status)) { %>
-                                                        <span class="badge bg-warning text-dark">Rejected</span>
+                                                        <span class="badge bg-warning text-dark"><%= bundle.getString("rejected") %></span>
                                                         <% } else if ("Disqualified".equalsIgnoreCase(status) || "true".equalsIgnoreCase(disqualified)) { %>
-                                                        <span class="badge bg-danger">Disqualified</span>
+                                                        <span class="badge bg-danger"><%= bundle.getString("disqualified") %></span>
                                                         <% } else { %>
-                                                        <span class="badge bg-secondary">Pending</span>
+                                                        <span class="badge bg-secondary"><%= bundle.getString("pending") %></span>
                                                         <% } %>
                                                     </td>
                                                     <td><%= row.get("reason") != null ? row.get("reason") : "-" %></td>
@@ -385,11 +395,11 @@
                                                             String resitPath = row.get("resit_file");
                                                             if (resitPath != null && !resitPath.trim().isEmpty()) {
                                                         %>
-                                                        <a href="<%= request.getContextPath() %>/ViewResitServlet?event_id=<%= row.get("event_id") %>&parent_id=<%= row.get("parent_id") %>" target="_blank">View Resit</a>
+                                                        <a href="<%= request.getContextPath() %>/ViewResitServlet?event_id=<%= row.get("event_id") %>&parent_id=<%= row.get("parent_id") %>" target="_blank"><%= bundle.getString("view_resit") %></a>
                                                         <%
                                                             } else {
                                                         %>
-                                                        No file
+                                                        <%= bundle.getString("no_file") %>
                                                         <%
                                                             }
                                                         %>
@@ -399,7 +409,7 @@
                                                         }
                                                     } else {
                                                 %>
-                                                <tr><td colspan="10">No approvals found for this event.</td></tr>
+                                                <tr><td colspan="10"><%= bundle.getString("no_approval_found") %></td></tr>
                                                 <%
                                                     }
                                                 %>

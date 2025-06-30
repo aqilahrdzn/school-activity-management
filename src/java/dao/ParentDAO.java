@@ -32,31 +32,29 @@ public class ParentDAO {
     }
 
     public Parent getParentByEmail(String email) {
-    Parent parent = null;
-    String query = "SELECT id, name, email, contact_number, profile_picture, password FROM parent WHERE email = ?";
+        Parent parent = null;
+        String query = "SELECT id, name, email, contact_number, profile_picture, password FROM parent WHERE email = ?";
 
-    try (Connection connection = DBConfig.getConnection();
-         PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+        try (Connection connection = DBConfig.getConnection(); PreparedStatement preparedStatement = connection.prepareStatement(query)) {
 
-        preparedStatement.setString(1, email);
-        ResultSet resultSet = preparedStatement.executeQuery();
+            preparedStatement.setString(1, email);
+            ResultSet resultSet = preparedStatement.executeQuery();
 
-        if (resultSet.next()) {
-            parent = new Parent();
-            parent.setId(resultSet.getInt("id"));
-            parent.setName(resultSet.getString("name"));
-            parent.setEmail(resultSet.getString("email"));
-            parent.setContactNumber(resultSet.getString("contact_number"));
-            parent.setProfilePicture(resultSet.getString("profile_picture"));
-            parent.setPassword(resultSet.getString("password")); // ✅ Add this line
+            if (resultSet.next()) {
+                parent = new Parent();
+                parent.setId(resultSet.getInt("id"));
+                parent.setName(resultSet.getString("name"));
+                parent.setEmail(resultSet.getString("email"));
+                parent.setContactNumber(resultSet.getString("contact_number"));
+                parent.setProfilePicture(resultSet.getString("profile_picture"));
+                parent.setPassword(resultSet.getString("password")); // ✅ Add this line
+            }
+        } catch (SQLException e) {
+            System.err.println("SQL error in getParentByEmail: " + e.getMessage());
+            e.printStackTrace();
         }
-    } catch (SQLException e) {
-        System.err.println("SQL error in getParentByEmail: " + e.getMessage());
-        e.printStackTrace();
+        return parent;
     }
-    return parent;
-}
-
 
     public List<Student> getChildrenByParentEmail(String email) {
         List<Student> children = new ArrayList<>();
@@ -166,7 +164,7 @@ public class ParentDAO {
                     Map<String, String> event = new HashMap<>();
                     event.put("title", rs.getString("title"));
                     event.put("surat_pengesahan", rs.getString("surat_pengesahan"));
-                    event.put("id", rs.getString("eventId")); 
+                    event.put("id", rs.getString("eventId"));
 
                     // Replace computeIfAbsent with this:
                     List<Map<String, String>> events = result.get(student);
@@ -180,15 +178,42 @@ public class ParentDAO {
         }
         return result;
     }
+
     public Parent getParentByStudentIc(String studentIc) {
-    Parent parent = null;
-    String sql = "SELECT p.* FROM parent p " +
-                 "JOIN student s ON p.id = s.parent_id " +
-                 "WHERE s.ic_number = ?";
-    try (Connection conn = DBConfig.getConnection();
-         PreparedStatement stmt = conn.prepareStatement(sql)) {
-        stmt.setString(1, studentIc);
-        try (ResultSet rs = stmt.executeQuery()) {
+        Parent parent = null;
+        String sql = "SELECT p.* FROM parent p "
+                + "JOIN student s ON p.id = s.parent_id "
+                + "WHERE s.ic_number = ?";
+        try (Connection conn = DBConfig.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, studentIc);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    parent = new Parent();
+                    parent.setId(rs.getInt("id"));
+                    parent.setName(rs.getString("name"));
+                    parent.setEmail(rs.getString("email"));
+                    parent.setPassword(rs.getString("password"));
+                    parent.setContactNumber(rs.getString("contact_number"));
+                    parent.setIcNumber(rs.getString("ic_number"));
+                    parent.setProfilePicture(rs.getString("profile_picture"));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return parent;
+    }
+
+    public Parent getParentByStudentId(int studentId) {
+        Parent parent = null;
+        String sql = "SELECT p.* FROM parent p "
+                + "JOIN student s ON p.id = s.parent_id "
+                + "WHERE s.id = ?";
+
+        try (Connection conn = DBConfig.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, studentId);
+            ResultSet rs = ps.executeQuery();
+
             if (rs.next()) {
                 parent = new Parent();
                 parent.setId(rs.getInt("id"));
@@ -199,11 +224,12 @@ public class ParentDAO {
                 parent.setIcNumber(rs.getString("ic_number"));
                 parent.setProfilePicture(rs.getString("profile_picture"));
             }
+
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-    } catch (SQLException e) {
-        e.printStackTrace();
+
+        return parent;
     }
-    return parent;
-}
 
 }

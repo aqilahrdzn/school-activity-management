@@ -3,7 +3,8 @@
     Created on : May 6, 2025, 8:36:45 PM
     Author     : Lenovo
 --%>
-
+<%@page import="java.util.List"%>
+<%@page import="model.Notification"%>
 <%@page import="model.Teacher"%>
 <%@page import="dao.TeacherDAO"%>
 <%@page import="java.sql.SQLException"%>
@@ -68,7 +69,7 @@
         <%
             int totalTeachers = 0;
             int totalStudents = 0;
-            int totalParents =0;
+            int totalParents = 0;
 
             try (Connection conn = DBConfig.getConnection()) {
                 // Get total teachers
@@ -174,6 +175,8 @@
                                 <h6 class="p-3 mb-0 text-center">4 new messages</h6>
                             </div>
                         </li>
+                        <% List<Notification> notifications = (List<Notification>) request.getAttribute("notifications"); %>
+
                         <li class="nav-item dropdown">
                             <a class="nav-link count-indicator dropdown-toggle" id="notificationDropdown" href="#" data-bs-toggle="dropdown">
                                 <i class="mdi mdi-bell-outline"></i>
@@ -182,45 +185,30 @@
                             <div class="dropdown-menu dropdown-menu-end navbar-dropdown preview-list" aria-labelledby="notificationDropdown">
                                 <h6 class="p-3 mb-0">Notifications</h6>
                                 <div class="dropdown-divider"></div>
+
+                                <% if (notifications != null && !notifications.isEmpty()) {
+                for (Notification note : notifications) {%>
                                 <a class="dropdown-item preview-item">
                                     <div class="preview-thumbnail">
-                                        <div class="preview-icon bg-success">
-                                            <i class="mdi mdi-calendar"></i>
+                                        <div class="preview-icon bg-primary">
+                                            <i class="mdi mdi-file-document-box"></i>
                                         </div>
                                     </div>
                                     <div class="preview-item-content d-flex align-items-start flex-column justify-content-center">
-                                        <h6 class="preview-subject font-weight-normal mb-1">Event today</h6>
-                                        <p class="text-gray ellipsis mb-0"> Just a reminder that you have an event today </p>
+                                        <h6 class="preview-subject font-weight-normal mb-1">Notification</h6>
+                                        <p class="text-gray ellipsis mb-0"><%= note.getMessage()%></p>
                                     </div>
                                 </a>
                                 <div class="dropdown-divider"></div>
-                                <a class="dropdown-item preview-item">
-                                    <div class="preview-thumbnail">
-                                        <div class="preview-icon bg-warning">
-                                            <i class="mdi mdi-cog"></i>
-                                        </div>
-                                    </div>
-                                    <div class="preview-item-content d-flex align-items-start flex-column justify-content-center">
-                                        <h6 class="preview-subject font-weight-normal mb-1">Settings</h6>
-                                        <p class="text-gray ellipsis mb-0"> Update dashboard </p>
-                                    </div>
-                                </a>
-                                <div class="dropdown-divider"></div>
-                                <a class="dropdown-item preview-item">
-                                    <div class="preview-thumbnail">
-                                        <div class="preview-icon bg-info">
-                                            <i class="mdi mdi-link-variant"></i>
-                                        </div>
-                                    </div>
-                                    <div class="preview-item-content d-flex align-items-start flex-column justify-content-center">
-                                        <h6 class="preview-subject font-weight-normal mb-1">Launch Admin</h6>
-                                        <p class="text-gray ellipsis mb-0"> New admin wow! </p>
-                                    </div>
-                                </a>
-                                <div class="dropdown-divider"></div>
+                                <%  }
+        } else { %>
+                                <p class="text-center">No notifications</p>
+                                <% }%>
+
                                 <h6 class="p-3 mb-0 text-center">See all notifications</h6>
                             </div>
                         </li>
+
                         <li class="nav-item nav-logout d-none d-lg-block">
                             <a class="nav-link" href="../login.jsp">
                                 <i class="mdi mdi-power"></i>
@@ -256,7 +244,7 @@
                         <!--            dashboard-->
                         <li class="nav-item">
                             <a class="nav-link" href="hmdashboard.jsp">
-                                <span class="menu-title">Dashboard</span>
+                                <span class="menu-title"><%= bundle.getString("dashboard")%></span>
                                 <i class="mdi mdi-home menu-icon"></i>
                             </a>
                         </li>
@@ -264,22 +252,22 @@
 
                         <li class="nav-item">
                             <a class="nav-link" data-bs-toggle="collapse" href="#forms" aria-expanded="false" aria-controls="forms">
-                                <span class="menu-title">Forms</span>
+                                <span class="menu-title"><%= bundle.getString("forms")%></span>
                                 <i class="mdi mdi-format-list-bulleted menu-icon"></i>
                             </a>
                             <div class="collapse" id="forms">
                                 <ul class="nav flex-column sub-menu">
                                     <li class="nav-item">
-                                        <a class="nav-link" href="reportList.jsp">View Report</a>
-                                        <a class="nav-link" href="updateAccHm.jsp">Update Account</a>
-                                        <a class="nav-link" href="reportViewer.jsp">Report</a>
+                                        <a class="nav-link" href="reportList.jsp"><%= bundle.getString("report_list")%></a>
+                                        <a class="nav-link" href="updateAccHm.jsp"><%= bundle.getString("update_account")%></a>
+
                                     </li>
                                 </ul>
                             </div>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" data-bs-toggle="collapse" href="#charts" aria-expanded="false" aria-controls="charts">
-                                <span class="menu-title">Charts</span>
+                                <span class="menu-title"><%= bundle.getString("list")%></span>
                                 <i class="mdi mdi-chart-bar menu-icon"></i>
                             </a>
                             <div class="collapse" id="charts">
@@ -300,12 +288,12 @@
                             <h3 class="page-title">
                                 <span class="page-title-icon bg-gradient-primary text-white me-2">
                                     <i class="mdi mdi-home"></i>
-                                </span> Dashboard
+                                </span> <%= bundle.getString("dashboard")%>
                             </h3>
                             <nav aria-label="breadcrumb">
                                 <ul class="breadcrumb">
                                     <li class="breadcrumb-item active" aria-current="page">
-                                        <span></span>Overview <i class="mdi mdi-alert-circle-outline icon-sm text-primary align-middle"></i>
+                                        <span></span><%= bundle.getString("overview")%> <i class="mdi mdi-alert-circle-outline icon-sm text-primary align-middle"></i>
                                     </li>
                                 </ul>
                             </nav>
@@ -314,32 +302,27 @@
                             <div class="col-md-4 stretch-card grid-margin">
                                 <div class="card bg-gradient-danger card-img-holder text-white">
                                     <div class="card-body">
-                                        
-                                        <h4 class="font-weight-normal mb-3">Total Teachers <i class="mdi mdi-account-multiple mdi-24px float-end"></i></h4>
-                                        <h2 class="mb-5"><%= totalTeachers%> Teachers</h2>
-                                        <h6 class="card-text">Updated in real-time</h6>
+                                        <h4 class="font-weight-normal mb-3"><%= bundle.getString("total_teachers")%> <i class="mdi mdi-account-multiple mdi-24px float-end"></i></h4>
+                                        <h2 class="mb-5"><%= totalTeachers%> <%= bundle.getString("teachers_label")%></h2>
+                                        <h6 class="card-text"><%= bundle.getString("updated_realtime")%></h6>
                                     </div>
                                 </div>
                             </div>
-                            <!--                            total teacher-->
                             <div class="col-md-4 stretch-card grid-margin">
                                 <div class="card bg-gradient-info card-img-holder text-white">
                                     <div class="card-body">
-                                        
-                                        <h4 class="font-weight-normal mb-3">Total Students <i class="mdi mdi-account-multiple mdi-24px float-end"></i></h4>
-                                        <h2 class="mb-5"><%= totalStudents%> Students</h2>
-                                        <h6 class="card-text">Updated in real-time</h6>
+                                        <h4 class="font-weight-normal mb-3"><%= bundle.getString("total_students")%> <i class="mdi mdi-account-multiple mdi-24px float-end"></i></h4>
+                                        <h2 class="mb-5"><%= totalStudents%> <%= bundle.getString("student")%></h2>
+                                        <h6 class="card-text"><%= bundle.getString("updated_realtime")%></h6>
                                     </div>
                                 </div>
                             </div>
                             <div class="col-md-4 stretch-card grid-margin">
                                 <div class="card bg-gradient-success card-img-holder text-white">
                                     <div class="card-body">
-                                        
-                                        <h4 class="font-weight-normal mb-3">Total Registered Parents<i class="mdi mdi-account-multiple mdi-24px float-end"></i>
-                                        </h4>
-                                        <h2 class="mb-5"><%= totalParents%> Parents</h2>
-                                        <h6 class="card-text">Updated in real-time</h6>
+                                        <h4 class="font-weight-normal mb-3"><%= bundle.getString("total_registered_parents")%> <i class="mdi mdi-account-multiple mdi-24px float-end"></i></h4>
+                                        <h2 class="mb-5"><%= totalParents%> <%= bundle.getString("parent")%></h2>
+                                        <h6 class="card-text"><%= bundle.getString("updated_realtime")%></h6>
                                     </div>
                                 </div>
                             </div>
@@ -348,7 +331,7 @@
                             <div class="col-lg-6 grid-margin stretch-card">
                                 <div class="card">
                                     <div class="card-body">
-                                        <h4 class="card-title">Event Created per Month</h4>
+                                        <h4 class="card-title"><%= bundle.getString("event_created_per_month")%></h4>
                                         <canvas id="barChart" style="height:300px"></canvas>
                                     </div>
                                 </div>
@@ -357,7 +340,7 @@
                             <div class="col-md-5 grid-margin stretch-card">
                                 <div class="card">
                                     <div class="card-body">
-                                        <h4 class="card-title">Traffic Sources</h4>
+                                        <h4 class="card-title"><%= bundle.getString("traffic_sources")%></h4>
                                         <div class="doughnutjs-wrapper d-flex justify-content-center">
                                             <canvas id="traffic-chart"></canvas>
                                         </div>
@@ -365,43 +348,43 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
 
-                    </div>
-                    <!-- content-wrapper ends -->
-                    <!-- partial:partials/_footer.html -->
-                    <footer class="footer">
-                        <div class="d-sm-flex justify-content-center justify-content-sm-between">
-                            <span class="text-muted text-center text-sm-left d-block d-sm-inline-block">Copyright © 2023 <a href="https://www.bootstrapdash.com/" target="_blank">BootstrapDash</a>. All rights reserved.</span>
-                            <span class="float-none float-sm-right d-block mt-1 mt-sm-0 text-center">Hand-crafted & made with <i class="mdi mdi-heart text-danger"></i></span>
+
                         </div>
-                    </footer>
-                    <!-- partial -->
+                        <!-- content-wrapper ends -->
+                        <!-- partial:partials/_footer.html -->
+                        <footer class="footer">
+                            <div class="d-sm-flex justify-content-center justify-content-sm-between">
+                                <span class="text-muted text-center text-sm-left d-block d-sm-inline-block">Copyright © 2023 <a href="https://www.bootstrapdash.com/" target="_blank">BootstrapDash</a>. All rights reserved.</span>
+                                <span class="float-none float-sm-right d-block mt-1 mt-sm-0 text-center">Hand-crafted & made with <i class="mdi mdi-heart text-danger"></i></span>
+                            </div>
+                        </footer>
+                        <!-- partial -->
+                    </div>
+                    <!-- main-panel ends -->
                 </div>
-                <!-- main-panel ends -->
+                <!-- page-body-wrapper ends -->
             </div>
-            <!-- page-body-wrapper ends -->
-        </div>
-        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-        <script src="<%= request.getContextPath()%>/assets/js/chart.js"></script>
-        <!-- plugins:js -->
-        <script src="../assets/vendors/js/vendor.bundle.base.js"></script>
-        <!-- endinject -->
-        <!-- Plugin js for this page -->
-        <script src="../assets/vendors/chart.js/chart.umd.js"></script>
-        <script src="../assets/vendors/bootstrap-datepicker/bootstrap-datepicker.min.js"></script>
-        <!-- End plugin js for this page -->
-        <!-- inject:js -->
-        <script src="../assets/js/off-canvas.js"></script>
-        <script src="../assets/js/misc.js"></script>
-        <script src="../assets/js/settings.js"></script>
-        <script src="../assets/js/todolist.js"></script>
-        <script src="../assets/js/jquery.cookie.js"></script>
-        <!-- endinject -->
-        <!-- Custom js for this page -->
-        <script src="../assets/js/dashboard.js"></script>
-        <!-- End custom js for this page -->
+            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+            <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+            <script src="<%= request.getContextPath()%>/assets/js/chart.js"></script>
+            <!-- plugins:js -->
+            <script src="../assets/vendors/js/vendor.bundle.base.js"></script>
+            <!-- endinject -->
+            <!-- Plugin js for this page -->
+            <script src="../assets/vendors/chart.js/chart.umd.js"></script>
+            <script src="../assets/vendors/bootstrap-datepicker/bootstrap-datepicker.min.js"></script>
+            <!-- End plugin js for this page -->
+            <!-- inject:js -->
+            <script src="../assets/js/off-canvas.js"></script>
+            <script src="../assets/js/misc.js"></script>
+            <script src="../assets/js/settings.js"></script>
+            <script src="../assets/js/todolist.js"></script>
+            <script src="../assets/js/jquery.cookie.js"></script>
+            <!-- endinject -->
+            <!-- Custom js for this page -->
+            <script src="../assets/js/dashboard.js"></script>
+            <!-- End custom js for this page -->
     </body>
 </html>
 

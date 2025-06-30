@@ -5,37 +5,49 @@
             <url>web/teacher/createEvent.jsp</url>
             <bookmark id="1">
                 <name/>
-                <line>272</line>
+                <line>282</line>
                 <key/>
             </bookmark>
         </file>
     </editor-bookmarks>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/src/java/dao/LoginDAO.java</file>
-            <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/web/headmaster/teacherReport.jsp</file>
             <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/src/java/controller/SubmitApprovalServlet.java</file>
-            <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/web/headmaster/reportList.jsp</file>
+            <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/src/java/controller/LoginServlet.java</file>
+            <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/web/teacher/updateAccTc.jsp</file>
+            <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/web/teacher/teacherdashboard.jsp</file>
+            <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/src/java/dao/NotificationDAO.java</file>
+            <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/web/WEB-INF/classes/messages_ms.properties</file>
+            <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/src/java/model/Notification.java</file>
+            <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/web/parent/parentdashboard.jsp</file>
+            <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/web/teacher/editStudent.jsp</file>
+            <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/web/teacher/parentApprovals.jsp</file>
+            <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/web/clerk/clerkdashboard.jsp</file>
+            <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/src/java/controller/ViewParentApprovalServlet.java</file>
+            <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/web/teacher/createEvent.jsp</file>
+            <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/src/java/controller/SendConfirmationLetterController.java</file>
+            <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/web/teacher/editEvent.jsp</file>
+            <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/web/teacher/updateStudent.jsp</file>
+            <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/web/headmaster/viewReport.jsp</file>
             <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/src/java/dao/ParentDAO.java</file>
-            <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/web/headmaster/studentReport.jsp</file>
-            <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/src/java/controller/TableStructureServlet.java</file>
-            <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/src/java/dao/EventDAO.java</file>
-            <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/src/java/model/Event.java</file>
+            <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/src/java/controller/UploadSuratServlet.java</file>
+            <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/web/teacher/eventDetails.jsp</file>
+            <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/web/teacher/viewOPR.jsp</file>
+            <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/web/teacher/editParent.jsp</file>
             <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/src/java/dao/StudentDAO.java</file>
-            <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/src/java/dao/TeacherDAO.java</file>
-            <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/web/headmaster/parentReport.jsp</file>
-            <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/src/java/dao/EventParticipantDAO.java</file>
-            <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/web/headmaster/eventParticipant.jsp</file>
+            <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/web/teacher/eventList.jsp</file>
+            <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/web/teacher/studentList.jsp</file>
+            <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/web/teacher/studentRegistration.jsp</file>
+            <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/web/teacher/bookingClass.jsp</file>
             <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/web/teacher/sendApproval.jsp</file>
             <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/src/java/model/Student.java</file>
-            <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/web/headmaster/reportViewer.jsp</file>
+            <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/src/java/controller/UploadEventFileServlet.java</file>
             <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/web/parent/approvalParent.jsp</file>
-            <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/src/java/dao/PosterDAO.java</file>
-            <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/src/java/util/DBConfig.java</file>
-            <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/web/login.jsp</file>
-            <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/src/java/dao/ClassroomDAO.java</file>
+            <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/web/WEB-INF/classes/messages_en.properties</file>
+            <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/web/teacher/editEventDetails.jsp</file>
+            <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/web/index.jsp</file>
+            <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/src/java/controller/ParentDashboardServlet.java</file>
             <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/web/headmaster/hmdashboard.jsp</file>
-            <file>file:/C:/PITA%202024/SchoolActivityManagementSystem/web/headmaster/eventReport.jsp</file>
         </group>
     </open-files>
 </project-private>

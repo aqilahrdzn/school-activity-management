@@ -31,12 +31,12 @@
     <body>
 
         <div class="container mt-5">
-            <h3>👨‍👩‍👧 Parent List by Child's Class</h3>
+            <h3><%= bundle.getString("event_report") %></h3>
 
             <form method="get" class="form-inline mb-4">
-                <label class="mr-2">Select Class:</label>
+                <label class="mr-2"><%= bundle.getString("select_class") %></label>
                 <select name="classFilter" class="form-control mr-2" onchange="this.form.submit()">
-                    <option value="">-- All Classes --</option>
+                    <option value=""><%= bundle.getString("event_report") %></option>
                     <%
                         String[] classes = {"1 Makkah", "1 Madinah", "2 Makkah", "2 Madinah", "3 Makkah"};
                         String classFilter = request.getParameter("classFilter");
@@ -55,11 +55,11 @@
                 <thead class="thead-light">
                     <tr>
                         <th>#</th>
-                        <th>Parent Name</th>
-                        <th>Email</th>
-                        <th>Phone</th>
-                        <th>IC Number</th>
-                        <th>Child(ren)</th>
+                        <th><%= bundle.getString("parent_name") %></th>
+                        <th><%= bundle.getString("email") %></th>
+                        <th><%= bundle.getString("contact_number") %></th>
+                        <th><%= bundle.getString("ic_number") %></th>
+                        <th><%= bundle.getString("children") %></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -114,7 +114,7 @@
 
                         if (parentMap.isEmpty()) {
                     %>
-                    <tr><td colspan="6" class="text-center">No parents found for this class.</td></tr>
+                    <tr><td colspan="6" class="text-center"><%= bundle.getString("no_parent") %>.</td></tr>
                     <%
                         }
                     %>

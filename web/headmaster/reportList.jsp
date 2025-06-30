@@ -284,32 +284,32 @@
 
                     </div>
                     <div class="container mt-4">
-                        <h3 class="mb-4 text-center">📊 Headmaster Report Center</h3>
+                        <h3 class="mb-4 text-center"><%= bundle.getString("headmaster_report_center")%></h3>
 
                         <ul class="nav nav-tabs mb-3">
                             <li class="nav-item">
-                                <a class="nav-link" id="parentTab-tab" href="#" onclick="showTab('parentTab')">Parent Report</a>
+                                <a class="nav-link" id="parentTab-tab" href="#" onclick="showTab('parentTab')"><%= bundle.getString("parent_report")%></a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" id="studentTab-tab" href="#" onclick="showTab('studentTab')">Student Report</a>
+                                <a class="nav-link" id="studentTab-tab" href="#" onclick="showTab('studentTab')"><%= bundle.getString("student_report")%></a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" id="teacherTab-tab" href="#" onclick="showTab('teacherTab')">Teacher Report</a>
+                                <a class="nav-link" id="teacherTab-tab" href="#" onclick="showTab('teacherTab')"><%= bundle.getString("teacher_report")%></a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" id="eventTab-tab" href="#" onclick="showTab('eventTab')">Event Report</a>
+                                <a class="nav-link" id="eventTab-tab" href="#" onclick="showTab('eventTab')"><%= bundle.getString("event_report")%></a>
                             </li>
 
                         </ul>
 
                         <div class="report-tab" id="parentTab" style="display:none;">
-                            <h4>Parent List by Child's Class</h4>
+                            <h4><%= bundle.getString("parent_list_by_class")%></h4>
 
                             <form method="get" action="reportList.jsp" class="form-inline mb-3">
                                 <input type="hidden" name="tab" value="parentTab" />
-                                <label class="mr-2">Select Class:</label>
+                                <label class="mr-2"><%= bundle.getString("select_class")%>:</label>
                                 <select name="classFilter" class="form-control mr-2" onchange="this.form.submit()">
-                                    <option value="">-- All Classes --</option>
+                                    <option value=""><%= bundle.getString("all_classes")%></option>
                                     <%
                                         String[] classes = {"1 Makkah", "1 Madinah", "2 Makkah", "2 Madinah", "3 Makkah"};
                                         String classFilter = request.getParameter("classFilter");
@@ -317,7 +317,7 @@
                                             String selected = c.equals(classFilter) ? "selected" : "";
                                     %>
                                     <option value="<%= c%>" <%= selected%>><%= c%></option>
-                                    <% } %>
+                                    <% }%>
                                 </select>
                             </form>
                             <div class="table-responsive"> 
@@ -325,11 +325,11 @@
                                     <thead class="thead-light">
                                         <tr>
                                             <th>#</th>
-                                            <th>Parent Name</th>
-                                            <th>Email</th>
-                                            <th>Phone</th>
-                                            <th>IC Number</th>
-                                            <th>Child(ren)</th>
+                                            <th><%= bundle.getString("parent_name")%></th>
+                                            <th><%= bundle.getString("email")%></th>
+                                            <th><%= bundle.getString("contact_number")%></th>
+                                            <th><%= bundle.getString("ic_number")%></th>
+                                            <th><%= bundle.getString("children")%></th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -375,8 +375,8 @@
                                             </td>
                                         </tr>
                                         <% }
-                                            if (parentMap.isEmpty()) { %>
-                                        <tr><td colspan="6" class="text-center">No parents found for this class.</td></tr>
+                                            if (parentMap.isEmpty()) {%>
+                                        <tr><td colspan="6" class="text-center"><%= bundle.getString("no_parent")%>.</td></tr>
                                         <% }%>
                                     </tbody>
                                 </table>
@@ -384,119 +384,92 @@
                             <form method="get" action="parentReport.jsp" target="_blank" class="mb-3">
                                 <input type="hidden" name="classFilter" value="<%= classFilter != null ? classFilter : ""%>">
                                 <button type="submit" class="btn btn-outline-primary">
-                                    🖨️ Print Full Report
+                                    <%= bundle.getString("print_record")%>
                                 </button>
                             </form>
                         </div>
 
                         <div class="report-tab" id="studentTab" style="display:none;">
                             <div class="container">
-                                <h4>Student List by Class</h4>
+                                <h4><%= bundle.getString("student_list_by_class")%>/h4>
 
-                                <form method="get" action="studentReport.jsp" target="_blank" class="mb-3">
-                                    <input type="hidden" name="selectedClass" value="<%= request.getParameter("selectedClass") != null ? request.getParameter("selectedClass") : ""%>">
-                                    <button type="submit" class="btn btn-outline-primary">🖨️ Print Full Report</button>
-                                </form>
+                                    <form method="get" action="studentReport.jsp" target="_blank" class="mb-3">
+                                        <input type="hidden" name="selectedClass" value="<%= request.getParameter("selectedClass") != null ? request.getParameter("selectedClass") : ""%>">
+                                        <button type="submit" class="btn btn-outline-primary">🖨️ Print Full Report</button>
+                                    </form>
 
-                                <form method="get" action="reportList.jsp" class="form-inline mb-3">
-                                    <input type="hidden" name="tab" value="studentTab" />
-                                    <label class="mr-2">Select Class:</label>
-                                    <select name="selectedClass" class="form-control mr-2" onchange="this.form.submit()">
-                                        <option value="">-- All Classes --</option>
-                                        <%
-                                            String[] studentClasses = {"1 Makkah", "1 Madinah", "2 Makkah", "2 Madinah", "3 Makkah"};
-                                            String selectedClass = request.getParameter("selectedClass");
-                                            for (String c : studentClasses) {
-                                                String selected = c.equals(selectedClass) ? "selected" : "";
-                                        %>
-                                        <option value="<%= c%>" <%= selected%>><%= c%></option>
-                                        <% } %>
-                                    </select>
-                                </form>
-                                <div class="table-responsive"> 
-                                    <table class="table table-bordered">
-                                        <thead class="thead-light">
-                                            <tr>
-                                                <th>#</th>
-                                                <th>Student Name</th>
-                                                <th>IC Number</th>
-                                                <th>Sport Team</th>
-                                                <th>Uniform Unit</th>
-                                                <th>Parent Details</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
+                                    <form method="get" action="reportList.jsp" class="form-inline mb-3">
+                                        <input type="hidden" name="tab" value="studentTab" />
+                                        <label class="mr-2"><%= bundle.getString("select_class")%></label>
+                                        <select name="selectedClass" class="form-control mr-2" onchange="this.form.submit()">
+                                            <option value=""><%= bundle.getString("all_classes")%></option>
                                             <%
-                                                dao.StudentDAO studentDAO_std = new dao.StudentDAO();
-                                                dao.ParentDAO parentDAO_std = new dao.ParentDAO();
-                                                List<model.Student> students = selectedClass != null && !selectedClass.isEmpty()
-                                                        ? studentDAO_std.getStudentsByClass(selectedClass)
-                                                        : new ArrayList<model.Student>();
-
-                                                int studentCount = 1;
-                                                for (model.Student s : students) {
-                                                    model.Parent parent = parentDAO_std.getParentByStudentIc(s.getIcNumber());
+                                                String[] studentClasses = {"1 Makkah", "1 Madinah", "2 Makkah", "2 Madinah", "3 Makkah"};
+                                                String selectedClass = request.getParameter("selectedClass");
+                                                for (String c : studentClasses) {
+                                                    String selected = c.equals(selectedClass) ? "selected" : "";
                                             %>
-                                            <tr>
-                                                <td><%= studentCount++%></td>
-                                                <td><%= s.getStudentName()%></td>
-                                                <td><%= s.getIcNumber()%></td>
-                                                <td><%= s.getSportTeam()%></td>
-                                                <td><%= s.getUniformUnit()%></td>
-                                                <td>
-                                                    <% if (parent != null) {%>
-                                                    <button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#parentModal<%= s.getId()%>">
-                                                        View Parent
-                                                    </button>
-
-                                                    <div class="modal fade" id="parentModal<%= s.getId()%>" tabindex="-1" role="dialog" aria-labelledby="modalLabel<%= s.getId()%>" aria-hidden="true">
-                                                        <div class="modal-dialog" role="document">
-                                                            <div class="modal-content">
-                                                                <div class="modal-header">
-                                                                    <h5 class="modal-title" id="modalLabel<%= s.getId()%>">👨‍👩‍👧 Parent Details</h5>
-                                                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                                                        <span aria-hidden="true">&times;</span>
-                                                                    </button>
-                                                                </div>
-                                                                <div class="modal-body">
-                                                                    <p><strong>Name:</strong> <%= parent.getName()%></p>
-                                                                    <p><strong>Email:</strong> <%= parent.getEmail()%></p>
-                                                                    <p><strong>Phone:</strong> <%= parent.getContactNumber()%></p>
-                                                                    <p><strong>IC Number:</strong> <%= parent.getIcNumber()%></p>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <% } else { %>
-                                                    <span class="text-danger">No parent linked</span>
-                                                    <% } %>
-                                                </td>
-                                            </tr>
-                                            <% }
-                                            if (students.isEmpty()) { %>
-                                            <tr><td colspan="6" class="text-center">No students found for selected class.</td></tr>
+                                            <option value="<%= c%>" <%= selected%>><%= c%></option>
                                             <% }%>
-                                        </tbody>
-                                    </table>
-                                </div>
+                                        </select>
+                                    </form>
+                                    <div class="table-responsive"> 
+                                        <table class="table table-bordered">
+                                            <thead class="thead-light">
+                                                <tr>
+                                                    <th>#</th>
+                                                    <th><%= bundle.getString("name")%></th>
+                                                    <th><%= bundle.getString("ic_number")%></th>
+                                                    <th><%= bundle.getString("sport_team")%></th>
+                                                    <th><%= bundle.getString("uniform_unit")%></th>
+                                                    
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <%
+                                                    dao.StudentDAO studentDAO_std = new dao.StudentDAO();
+                                                    dao.ParentDAO parentDAO_std = new dao.ParentDAO();
+                                                    List<model.Student> students = selectedClass != null && !selectedClass.isEmpty()
+                                                            ? studentDAO_std.getStudentsByClass(selectedClass)
+                                                            : new ArrayList<model.Student>();
+
+                                                    int studentCount = 1;
+                                                    for (model.Student s : students) {
+                                                        model.Parent parent = parentDAO_std.getParentByStudentIc(s.getIcNumber());
+                                                %>
+                                                <tr>
+                                                    <td><%= studentCount++%></td>
+                                                    <td><%= s.getStudentName()%></td>
+                                                    <td><%= s.getIcNumber()%></td>
+                                                    <td><%= s.getSportTeam()%></td>
+                                                    <td><%= s.getUniformUnit()%></td>
+                                                    
+                                                </tr>
+                                                <% }
+                                                if (students.isEmpty()) {%>
+                                                <tr><td colspan="6" class="text-center"><%= bundle.getString("no_parent")%></td></tr>
+                                                    <% }%>
+                                            </tbody>
+                                        </table>
+                                    </div>
                             </div>
                         </div>
 
 
                         <div class="report-tab" id="teacherTab" style="display:none;">
                             <div class="container">
-                                <h4>Teacher List by Class</h4>
+                                <h4><%= bundle.getString("teacher_list_by_class")%></h4>
 
                                 <form method="get" action="teacherReport.jsp" target="_blank" class="mb-3">
                                     <input type="hidden" name="classFilter" value="<%= request.getParameter("classFilter") != null ? request.getParameter("classFilter") : ""%>">
-                                    <button type="submit" class="btn btn-outline-primary">🖨️ Print Full Report</button>
+                                    <button type="submit" class="btn btn-outline-primary"><%= bundle.getString("print_record")%></button>
                                 </form>
 
                                 <form method="get" action="reportList.jsp" class="form-inline mb-3">
                                     <input type="hidden" name="tab" value="teacherTab" />
-                                    <label class="mr-2">Filter by Class:</label>
+                                    <label class="mr-2"><%= bundle.getString("filter_by_class")%></label>
                                     <select name="classFilter" class="form-control mr-2" onchange="this.form.submit()">
-                                        <option value="">-- All Classes --</option>
+                                        <option value=""><%= bundle.getString("all_classes")%></option>
                                         <%
                                             dao.TeacherDAO teacherDAO = new dao.TeacherDAO();
                                             List<String> assignedClasses = teacherDAO.getAssignedClasses();
@@ -506,7 +479,7 @@
                                                 String selected = cls.equals(selectedTeacherClass) ? "selected" : "";
                                         %>
                                         <option value="<%= cls%>" <%= selected%>><%= cls%></option>
-                                        <% } %>
+                                        <% }%>
                                     </select>
                                 </form>
                                 <div class="table-responsive"> 
@@ -514,12 +487,12 @@
                                         <thead class="thead-light">
                                             <tr>
                                                 <th>#</th>
-                                                <th>Teacher Name</th>
-                                                <th>Email</th>
-                                                <th>Contact Number</th>
-                                                <th>Role</th>
-                                                <th>Class Assigned</th>
-                                                <th>Guru Kelas</th>
+                                                <th><%= bundle.getString("name")%></th>
+                                                <th><%= bundle.getString("email")%></th>
+                                                <th><%= bundle.getString("contact_number")%></th>
+                                                <th><%= bundle.getString("role")%></th>
+                                                <th><%= bundle.getString("class_assigned")%></th>
+                                                <th><%= bundle.getString("guru_kelas")%></th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -549,8 +522,8 @@
                                                 <td><%= "Yes".equalsIgnoreCase(t.getIsGuruKelas()) ? "Yes" : "No"%></td>
                                             </tr>
                                             <% }
-                                            if (teachers.isEmpty()) { %>
-                                            <tr><td colspan="7" class="text-center">No teacher found for this class.</td></tr>
+                                                if (teachers.isEmpty()) {%>
+                                            <tr><td colspan="7" class="text-center"><%= bundle.getString("no_teacher")%>.</td></tr>
                                             <% }%>
                                         </tbody>
                                     </table>
@@ -560,19 +533,19 @@
 
                         <div class="report-tab" id="eventTab" style="display:none;">
                             <div class="container">
-                                <h4>Event Report</h4>
+                                <h4><%= bundle.getString("event_report")%></h4>
 
                                 <form method="get" action="eventReport.jsp" target="_blank" class="mb-3">
                                     <input type="hidden" name="category" value="<%= request.getParameter("category") != null ? request.getParameter("category") : ""%>">
                                     <input type="hidden" name="filterMonthYear" value="<%= request.getParameter("filterMonthYear") != null ? request.getParameter("filterMonthYear") : ""%>">
-                                    <button type="submit" class="btn btn-outline-primary">🖨️ Print Full Report</button>
+                                    <button type="submit" class="btn btn-outline-primary"><%= bundle.getString("print_record")%></button>
                                 </form>
 
                                 <form class="form-inline mb-3" method="get" action="reportList.jsp">
                                     <input type="hidden" name="tab" value="eventTab" />
-                                    <label class="mr-2">Filter by Category:</label>
+                                    <label class="mr-2"><%= bundle.getString("filter_by_category")%>:</label>
                                     <select name="category" class="form-control mr-3" onchange="this.form.submit()">
-                                        <option value="">All</option>
+                                        <option value=""><%= bundle.getString("all")%></option>
                                         <%
                                             String[] categories = {"School", "External", "Payment"};
                                             String selectedCat = request.getParameter("category");
@@ -583,7 +556,7 @@
                                         <% }%>
                                     </select>
 
-                                    <label class="mr-2">Filter by Month:</label>
+                                    <label class="mr-2"><%= bundle.getString("filter_by_month")%>:</label>
                                     <input type="month" class="form-control" name="filterMonthYear"
                                            value="<%= request.getParameter("filterMonthYear") != null ? request.getParameter("filterMonthYear") : ""%>"
                                            onchange="this.form.submit()">
@@ -593,13 +566,15 @@
                                         <thead class="thead-light">
                                             <tr>
                                                 <th>#</th>
-                                                <th>Title</th>
-                                                <th>Category</th>
-                                                <th>Start</th>
-                                                <th>End</th>
-                                                <th>Created By</th>
-                                                <th>Payment (RM)</th>
-                                                <th>Participants</th>
+                                                <th><%= bundle.getString("event_title")%></th>
+                                                <th><%= bundle.getString("category")%></th>
+                                                <th><%= bundle.getString("start_date")%></th>
+                                                <th><%= bundle.getString("end_date")%></th>
+                                                <th><%= bundle.getString("created_by")%></th>
+                                                <th><%= bundle.getString("payment")%> (RM)</th>
+                                                <th><%= bundle.getString("participant")%></th>
+                                                <th><%= bundle.getString("view_opr")%></th>
+
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -648,12 +623,16 @@
                                                 <td><%= ev.getCreatedBy()%></td>
                                                 <td><%= ev.getPaymentAmount() > 0 ? String.format("%.2f", ev.getPaymentAmount()) : "-"%></td>
                                                 <td>
-                                                    <a href="eventParticipant.jsp?eventId=<%= eventId%>" class="btn btn-info btn-sm" target="_blank">View Participants</a>
+                                                    <a href="eventParticipant.jsp?eventId=<%= eventId%>" class="btn btn-info btn-sm" target="_blank"><%= bundle.getString("view_participant")%></a>
                                                 </td>
+                                                <td>
+                                                    <a href="viewReport.jsp?eventId=<%= eventId%>" class="btn btn-outline-secondary btn-sm" target="_blank"><%= bundle.getString("no_parent")%></a>
+                                                </td>
+
                                             </tr>
                                             <% }
-                                            if (eventCount == 1) { %>
-                                            <tr><td colspan="8" class="text-center">No events found.</td></tr>
+                                                if (eventCount == 1) {%>
+                                            <tr><td colspan="8" class="text-center"><%= bundle.getString("no_event")%>.</td></tr>
                                             <% }%>
                                         </tbody>
                                     </table>
@@ -665,7 +644,7 @@
 
                         <!-- Back -->
                         <div class="mt-4">
-                            <a href="hmdashboard.jsp" class="btn btn-secondary">← Back to Dashboard</a>
+                            <a href="hmdashboard.jsp" class="btn btn-secondary"><%= bundle.getString("no_parent")%></a>
                         </div>
                     </div>             <!-- content-wrapper ends -->
                     <!-- partial:../../partials/_footer.html -->

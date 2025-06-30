@@ -4,6 +4,8 @@
     Author     : Lenovo
 --%>
 
+<%@page import="model.Student"%>
+<%@page import="dao.StudentDAO"%>
 <%@page import="java.sql.SQLException"%>
 <%@page import="java.sql.ResultSet"%>
 <%@page import="java.sql.PreparedStatement"%>
@@ -12,6 +14,16 @@
 <%@page import="dao.TeacherDAO"%>
 <%@page import="model.Teacher"%>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%
+    String lang = request.getParameter("lang");
+    if (lang != null) {
+        session.setAttribute("lang", lang);
+    }
+    String currentLang = (String) session.getAttribute("lang");
+    if (currentLang == null) currentLang = "ms"; // Default: BM
+
+    java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("messages", new java.util.Locale(currentLang));
+%>
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -286,8 +298,8 @@
                     <div class="col-12 grid-margin stretch-card">
                         <div class="card">
                             <div class="card-body">
-                                <h4 class="card-title">Editing Student: <%= student.getStudentName() %></h4>
-                                <p class="card-description"> Update the form below with the student's correct details. </p>
+                                <h4 class="card-title"><%= bundle.getString("editing_student_title") %>: <%= student.getStudentName() %></h4>
+                                <p class="card-description"> <%= bundle.getString("edit_student_instruction") %>. </p>
                                 
                                 <%-- This form should submit to a servlet (e.g., UpdateStudentServlet) --%>
                                 <%-- The servlet will read these parameters, create a Student object, and call studentDAO.updateStudent(student) --%>
@@ -296,15 +308,15 @@
                                     <input type="hidden" name="id" value="<%= student.getId() %>">
 
                                     <div class="form-group">
-                                        <label for="studentName">Student Name</label>
+                                        <label for="studentName"><%= bundle.getString("student_name_label") %></label>
                                         <input type="text" class="form-control" id="studentName" name="studentName" value="<%= student.getStudentName() %>" readonly>
                                     </div>
                                     <div class="form-group">
-                                        <label for="icNumber">IC Number</label>
+                                        <label for="icNumber"><%= bundle.getString("ic_number") %></label>
                                         <input type="text" class="form-control" id="icNumber" name="icNumber" value="<%= student.getIcNumber() %>" readonly>
                                     </div>
                                     <div class="form-group">
-                                        <label for="studentClass">Class</label>
+                                        <label for="studentClass"><%= bundle.getString("class_label") %></label>
                                         <select class="form-control" id="studentClass" name="studentClass" required>
                                             <% 
                                                 String currentStudentClass = student.getStudentClass();
@@ -318,16 +330,16 @@
                                         </select>
                                     </div>
                                     <div class="form-group">
-                                        <label for="sportTeam">Sport Team</label>
+                                        <label for="sportTeam"><%= bundle.getString("sport_team") %></label>
                                         <input type="text" class="form-control" id="sportTeam" name="sportTeam" value="<%= student.getSportTeam() %>" readonly=>
                                     </div>
                                     <div class="form-group">
-                                        <label for="uniformUnit">Uniform Unit</label>
+                                        <label for="uniformUnit"><%= bundle.getString("uniform_unit") %></label>
                                         <input type="text" class="form-control" id="uniformUnit" name="uniformUnit" value="<%= student.getUniformUnit() %>" readonly>
                                     </div>
                                     
-                                    <button type="submit" class="btn btn-primary me-2">Update Student</button>
-                                    <a href="studentList.jsp" class="btn btn-light">Cancel</a>
+                                    <button type="submit" class="btn btn-primary me-2"><%= bundle.getString("update_student_button") %></button>
+                                    <a href="studentList.jsp" class="btn btn-light"><%= bundle.getString("cancel_update_button") %></a>
                                 </form>
                             </div>
                         </div>

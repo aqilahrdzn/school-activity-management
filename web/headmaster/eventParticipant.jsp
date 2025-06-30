@@ -11,16 +11,27 @@
 <%@page import="dao.StudentDAO"%>
 <%@page import="dao.EventParticipantDAO"%>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%
+    String lang = request.getParameter("lang");
+    if (lang != null) {
+        session.setAttribute("lang", lang);
+    }
+    String currentLang = (String) session.getAttribute("lang");
+    if (currentLang == null) {
+        currentLang = "ms";
+    }
+    java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("messages", new java.util.Locale(currentLang));
+%>
 <!DOCTYPE html>
 <html>
     <head>
         <meta charset="UTF-8">
-        <title>Event Participants</title>
+        <title><%= bundle.getString("event_participant") %></title>
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     </head>
     <body>
         <div class="container mt-4">
-            <h3>👥 Participants List</h3>
+            <h3><%= bundle.getString("event_participant_list") %></h3>
             <%
                 String eventIdParam = request.getParameter("eventId");
                 int eventId = -1;
@@ -39,9 +50,9 @@
             <table class="table table-bordered">
                 <thead class="thead-light">
                     <tr>
-                        <th>Name</th>
-                        <th>IC Number</th>
-                        <th>Approval Status</th>
+                        <th><%= bundle.getString("name") %></th>
+                        <th><%= bundle.getString("ic_number") %></th>
+                        <th><%= bundle.getString("approval_status") %></th>
                     </tr>
                 </thead>
                 <tbody>

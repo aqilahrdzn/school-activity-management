@@ -17,6 +17,16 @@
 <%@page import="util.DBConfig"%>
 <%@page import="java.sql.Connection"%>
 <%@page import="java.sql.SQLException"%>
+<%
+    String lang = request.getParameter("lang");
+    if (lang != null) {
+        session.setAttribute("lang", lang);
+    }
+    String currentLang = (String) session.getAttribute("lang");
+    if (currentLang == null) currentLang = "ms"; // Default: BM
+
+    java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("messages", new java.util.Locale(currentLang));
+%>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -343,14 +353,14 @@
                         <div class="col-12 grid-margin">
                             <div class="card">
                                 <div class="card-body">
-                                    <h4 class="card-title">Student List</h4>
+                                    <h4 class="card-title"><%= bundle.getString("student_list_title") %></h4>
 
                                     <form id="studentClassForm">
                                         <div class="form-group row">
-                                            <label for="studentClass" class="col-sm-2 col-form-label">Select Class:</label>
+                                            <label for="studentClass" class="col-sm-2 col-form-label"><%= bundle.getString("select_class_label") %>:</label>
                                             <div class="col-sm-6">
                                                 <select class="form-control" name="studentClass" id="studentClass" required>
-                                                    <option value="">-- Select Class --</option>
+                                                    <option value=""><%= bundle.getString("select_class_placeholder") %></option>
                                                     <% String[] classes = {"1 Makkah", "1 Madinah", "2 Makkah", "2 Madinah", "3 Makkah", "3 Madinah", "4 Makkah", "4 Madinah", "5 Makkah", "5 Madinah", "6 Makkah", "6 Madinah"};
                                                         for (String cls : classes) {%>
                                                     <option value="<%= cls%>"><%= cls%></option>
@@ -358,7 +368,7 @@
                                                 </select>
                                             </div>
                                             <div class="col-sm-2">
-                                                <button type="submit" class="btn btn-primary">View</button>
+                                                <button type="submit" class="btn btn-primary"><%= bundle.getString("submit") %></button>
                                             </div>
                                         </div>
                                     </form>
@@ -367,18 +377,18 @@
                                         <table class="table">
                                             <thead>
                                                 <tr>
-                                                    <th> Name </th>
-                                                    <th> IC Number </th>
-                                                    <th> Sport Team </th>
-                                                    <th> Uniform Unit </th>
+                                                    <th> <%= bundle.getString("student_name_header") %> </th>
+                                                    <th> <%= bundle.getString("student_ic_header") %> </th>
+                                                    <th> <%= bundle.getString("sport_team_header") %> </th>
+                                                    <th> <%= bundle.getString("uniform_unit_header") %> </th>
                                                         <% if (isCurrentUserGuruKelas) { %>
-                                                    <th> Actions </th>
-                                                    <th> Parent Details </th>
+                                                    <th> <%= bundle.getString("actions_header") %> </th>
+                                                    <th> <%= bundle.getString("parent_details_header") %> </th>
                                                         <% }%>
                                                 </tr>
                                             </thead>
                                             <tbody id="studentTableBody">
-                                                <tr><td colspan="6">Please select a class to view students.</td></tr>
+                                                <tr><td colspan="6"><%= bundle.getString("please_select_class_msg") %></td></tr>
                                             </tbody>
                                         </table>
                                     </div>

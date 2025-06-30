@@ -85,4 +85,16 @@ public class EventParticipantDAO {
         }
         return studentICs;
     }
+    public boolean removeParticipantsByEventId(int eventId) {
+        String sql = "DELETE FROM event_participants WHERE event_id = ?";
+        try (Connection conn = DBConfig.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, eventId);
+            stmt.executeUpdate();
+            return true;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
 }

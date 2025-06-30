@@ -1,21 +1,32 @@
-<%--
-    Document   : editParent
-    Created on : Jun 25, 2025, 9:45:00 PM
+<%-- 
+    Document   : viewCalendar
+    Created on : Jun 29, 2025, 1:18:43 AM
     Author     : Lenovo
 --%>
-<%@page import="model.Parent"%>
-<%@page import="dao.ParentDAO"%>
-<%@page import="model.Student"%>
-<%@page import="dao.StudentDAO"%>
-<%@page import="model.Teacher"%>
 
-<%@page import="java.sql.SQLException"%>
+<%@page import="dao.NotificationDAO"%>
+<%@page import="model.Notification"%>
 <%@page import="java.sql.ResultSet"%>
-<%@page import="java.sql.PreparedStatement"%>
 <%@page import="util.DBConfig"%>
 <%@page import="java.sql.Connection"%>
 <%@page import="dao.TeacherDAO"%>
 <%@page import="model.Teacher"%>
+<%@page import="java.sql.PreparedStatement"%>
+<%@page import="java.sql.PreparedStatement"%>
+<%@page import="java.sql.SQLException"%>
+<%@page import="java.sql.SQLException"%>
+
+<%@page import="model.Parent"%>
+<%@page import="java.sql.ResultSet"%>
+<%@page import="java.sql.PreparedStatement"%>
+<%@page import="java.sql.Connection"%>
+
+<%@page import="model.Student"%>
+<%@page import="java.util.List"%>
+
+
+<%@page import="util.DBConfig"%>
+
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%
     String lang = request.getParameter("lang");
@@ -23,10 +34,12 @@
         session.setAttribute("lang", lang);
     }
     String currentLang = (String) session.getAttribute("lang");
-    if (currentLang == null) currentLang = "ms"; // Default: BM
-
+    if (currentLang == null) {
+        currentLang = "ms";
+    }
     java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("messages", new java.util.Locale(currentLang));
 %>
+
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -52,53 +65,38 @@
         <link rel="shortcut icon" href="../assets/images/favicon.png" />
     </head>
     <body>
+<%
+            Parent loggedInParent = (Parent) session.getAttribute("parent");
+            List<Notification> notifications = null;
+            int unreadCount = 0;
+
+            if (loggedInParent != null) {
+                NotificationDAO notificationDAO = new NotificationDAO();
+                notifications = notificationDAO.getNotificationsByUserIdAndRole(loggedInParent.getId(), "parent");
+
+                for (Notification note : notifications) {
+                    if (note.getIsRead() == 0) {
+                        unreadCount++;
+                    }
+                }
+            }
+        %>
         <%
-            // Retrieve teacher from session
-            Teacher teacher = (Teacher) session.getAttribute("teacher");
-            if (teacher == null) {
-                response.sendRedirect(request.getContextPath() + "/login.jsp?errorMessage=Please log in first.");
-                return;
-            }
-
-            // Get student IC from request parameter
-            String studentIc = request.getParameter("studentIc");
-            if (studentIc == null || studentIc.trim().isEmpty()) {
-                response.sendRedirect("studentList.jsp?errorMessage=Student IC not provided.");
-                return;
-            }
-
-            // Fetch student to display their name and verify class
-            StudentDAO studentDAO = new StudentDAO();
-            Student student = studentDAO.getStudentByIC(studentIc);
-            if (student == null) {
-                response.sendRedirect("studentList.jsp?errorMessage=Associated student not found.");
-                return;
-            }
-
-            // Authorization check
-            boolean isCurrentUserGuruKelas = "Yes".equals(teacher.getIsGuruKelas());
-            if (!isCurrentUserGuruKelas || !teacher.getKelas().equals(student.getStudentClass())) {
-                response.sendRedirect("studentList.jsp?errorMessage=You are not authorized to edit parent details for this student.");
-                return;
-            }
-
-            // Fetch parent details using the new required DAO method
-            ParentDAO parentDAO = new ParentDAO();
-            Parent parent = parentDAO.getParentByStudentIc(studentIc);
-
-            boolean isNewParent = false;
+            Parent parent = (Parent) session.getAttribute("parent");
             if (parent == null) {
-                parent = new Parent(); // Create an empty object for the form
-                isNewParent = true;
+                response.sendRedirect("../login.jsp");
+                return;
             }
+
+            boolean success = "true".equals(request.getParameter("success"));
         %>
 
         <div class="container-scroller">
             <!-- partial:../../partials/_navbar.html -->
             <nav class="navbar default-layout-navbar col-lg-12 col-12 p-0 fixed-top d-flex flex-row">
                 <div class="text-center navbar-brand-wrapper d-flex align-items-center justify-content-start">
-                    <a class="navbar-brand brand-logo" href="teacherdashboard.jsp"><img src="../assets/images/skkj_logo.jpg" width="1000" height="50" alt="logo" /></a>
-                    <a class="navbar-brand brand-logo-mini" href="index.jsp"><img src="../assets/images/logo-mini.svg" alt="logo" /></a>
+                    <a class="navbar-brand brand-logo" href="parentdashboard.jsp"><img src="../assets/images/skkj_logo.jpg" width="1000" height="50" alt="logo" /></a>
+                    <a class="navbar-brand brand-logo-mini" href="../../index.html"><img src="../../assets/images/logo-mini.svg" alt="logo" /></a>
                 </div>
                 <div class="navbar-menu-wrapper d-flex align-items-stretch">
                     <button class="navbar-toggler navbar-toggler align-self-center" type="button" data-toggle="minimize">
@@ -118,7 +116,7 @@
                         <li class="nav-item nav-profile dropdown">
                             <a class="nav-link dropdown-toggle" id="profileDropdown" href="#" data-bs-toggle="dropdown" aria-expanded="false">
                                 <div class="nav-profile-text">
-                                    <p class="mb-1 text-black"><%= teacher.getName()%></p>
+                                    <p class="mb-1 text-black"><%= parent.getName()%></p>
                                 </div>
                             </a>
                             <div class="dropdown-menu navbar-dropdown" aria-labelledby="profileDropdown">
@@ -172,53 +170,41 @@
                                 <h6 class="p-3 mb-0 text-center">4 new messages</h6>
                             </div>
                         </li>
-                        <li class="nav-item dropdown">
-                            <a class="nav-link count-indicator dropdown-toggle" id="notificationDropdown" href="#" data-bs-toggle="dropdown">
-                                <i class="mdi mdi-bell-outline"></i>
-                                <span class="count-symbol bg-danger"></span>
-                            </a>
-                            <div class="dropdown-menu dropdown-menu-end navbar-dropdown preview-list" aria-labelledby="notificationDropdown">
-                                <h6 class="p-3 mb-0">Notifications</h6>
-                                <div class="dropdown-divider"></div>
-                                <a class="dropdown-item preview-item">
-                                    <div class="preview-thumbnail">
-                                        <div class="preview-icon bg-success">
-                                            <i class="mdi mdi-calendar"></i>
-                                        </div>
-                                    </div>
-                                    <div class="preview-item-content d-flex align-items-start flex-column justify-content-center">
-                                        <h6 class="preview-subject font-weight-normal mb-1">Event today</h6>
-                                        <p class="text-gray ellipsis mb-0"> Just a reminder that you have an event today </p>
-                                    </div>
-                                </a>
-                                <div class="dropdown-divider"></div>
-                                <a class="dropdown-item preview-item">
-                                    <div class="preview-thumbnail">
-                                        <div class="preview-icon bg-warning">
-                                            <i class="mdi mdi-cog"></i>
-                                        </div>
-                                    </div>
-                                    <div class="preview-item-content d-flex align-items-start flex-column justify-content-center">
-                                        <h6 class="preview-subject font-weight-normal mb-1">Settings</h6>
-                                        <p class="text-gray ellipsis mb-0"> Update dashboard </p>
-                                    </div>
-                                </a>
-                                <div class="dropdown-divider"></div>
-                                <a class="dropdown-item preview-item">
-                                    <div class="preview-thumbnail">
-                                        <div class="preview-icon bg-info">
-                                            <i class="mdi mdi-link-variant"></i>
-                                        </div>
-                                    </div>
-                                    <div class="preview-item-content d-flex align-items-start flex-column justify-content-center">
-                                        <h6 class="preview-subject font-weight-normal mb-1">Launch Admin</h6>
-                                        <p class="text-gray ellipsis mb-0"> New admin wow! </p>
-                                    </div>
-                                </a>
-                                <div class="dropdown-divider"></div>
-                                <h6 class="p-3 mb-0 text-center">See all notifications</h6>
-                            </div>
-                        </li>
+                         <li class="nav-item dropdown">
+    <a class="nav-link count-indicator dropdown-toggle" id="notificationDropdown" href="#" data-bs-toggle="dropdown">
+        <i class="mdi mdi-bell-outline"></i>
+        <% if (unreadCount > 0) { %>
+            <span class="count-symbol bg-danger"><%= unreadCount %></span>
+        <% } %>
+    </a>
+    <div class="dropdown-menu dropdown-menu-end navbar-dropdown preview-list" aria-labelledby="notificationDropdown">
+        <h6 class="p-3 mb-0">Notifications</h6>
+        <div class="dropdown-divider"></div>
+
+        <% if (notifications != null && !notifications.isEmpty()) {
+            for (Notification note : notifications) { %>
+            <a href="../MarkNotificationRead?id=<%= note.getId() %>" class="dropdown-item preview-item">
+                <div class="preview-thumbnail">
+                    <div class="preview-icon <%= note.getIsRead() == 0 ? "bg-info" : "bg-secondary" %>">
+                        <i class="mdi mdi-information-outline"></i>
+                    </div>
+                </div>
+                <div class="preview-item-content d-flex align-items-start flex-column justify-content-center">
+                    <h6 class="preview-subject font-weight-normal mb-1">
+                        <%= note.getIsRead() == 0 ? "New Notification" : "Notification" %>
+                    </h6>
+                    <p class="text-gray ellipsis mb-0"><%= note.getMessage() %></p>
+                </div>
+            </a>
+            <div class="dropdown-divider"></div>
+        <% }} else { %>
+            <p class="text-center">No notifications</p>
+        <% } %>
+
+        <h6 class="p-3 mb-0 text-center">See all notifications</h6>
+    </div>
+</li>
+
                         <li class="nav-item nav-logout d-none d-lg-block">
                             <a class="nav-link" href="../login.jsp">
                                 <i class="mdi mdi-power"></i>
@@ -239,16 +225,15 @@
                         <li class="nav-item nav-profile">
                             <a href="#" class="nav-link">
                                 <div class="nav-profile-image">
-                                    <img src="<%= (teacher != null && teacher.getProfilePicture() != null) ? "../profile_pics/" + teacher.getProfilePicture() : "../assets/images/faces/default.jpg"%>" alt="profile" />
-
+                                    <img src="<%= (parent != null && parent.getProfilePicture() != null) ? "../profile_pics/" + parent.getProfilePicture() : "../assets/images/faces/default.jpg"%>" alt="profile" />
                                     <span class="login-status online"></span>
                                 </div>
 
                                 <div class="nav-profile-text d-flex flex-column">
-                                    <span class="font-weight-bold mb-2"><%= teacher.getName()%></span>
-                                    <span class="text-secondary text-small"><%= teacher.getRole()%></span>
+                                    <span class="font-weight-bold mb-2"><%= parent != null ? parent.getName() : "Parent"%></span>
+                                    <span class="text-secondary text-small">Parent</span>
                                 </div>
-                                <i class="mdi mdi-bookmark-check text-success nav-profile-badge"></i>
+                                <i class="mdi mdi-account-check text-info nav-profile-badge"></i>
                             </a>
                         </li>
                         <li class="nav-item">
@@ -266,10 +251,8 @@
                             <div class="collapse" id="forms">
                                 <ul class="nav flex-column sub-menu">
                                     <li class="nav-item">
-                                        <a class="nav-link" href="teacherRegistration.jsp">Teacher Registration</a>
-                                        <a class="nav-link" href="addVenue.jsp">Add New Venue</a>
-                                        <a class="nav-link" href="updateVenue.jsp">Update Venue Condition</a>
-                                        <a class="nav-link" href="updateAccCk.jsp">Update Account</a>
+                                        <a class="nav-link" href="updateAccPr.jsp"><%= bundle.getString("update_account")%></a>
+                                        <a class="nav-link" href="studentEvent.jsp"><%= bundle.getString("student_event_list")%></a>
 
                                     </li>
                                 </ul>
@@ -277,18 +260,18 @@
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" data-bs-toggle="collapse" href="#charts" aria-expanded="false" aria-controls="charts">
-                                <span class="menu-title">List</span>
+                                <span class="menu-title">Charts</span>
                                 <i class="mdi mdi-chart-bar menu-icon"></i>
                             </a>
                             <div class="collapse" id="charts">
                                 <ul class="nav flex-column sub-menu">
                                     <li class="nav-item">
-                                        <a class="nav-link" href="studentListCk.jsp">Student List</a>
-                                        <a class="nav-link" href="teacherList.jsp">Teacher List</a>
+                                        <a class="nav-link" href="../../pages/charts/chartjs.html">ChartJs</a>
                                     </li>
                                 </ul>
                             </div>
                         </li>
+
                     </ul>
                 </nav>
                 <!-- partial -->
@@ -303,47 +286,28 @@
                                 </ol>
                             </nav>
                         </div>
+
+
+
                         <div class="row">
-                            <div class="col-12 grid-margin stretch-card">
+                            <div class="col-md-6 grid-margin stretch-card">
                                 <div class="card">
                                     <div class="card-body">
-                                        <h4 class="card-title"><%= bundle.getString("parent_of") %>: <%= student.getStudentName()%> (<%= student.getIcNumber()%>)</h4>
-                                        <p class="card-description">
-                                            <%= isNewParent ? "No parent record found. Enter details to create and link a new parent." : "Update the parent/guardian's information."%>
-                                        </p>
-
-                                        <%-- This form submits to a servlet that can handle both creating and updating a parent --%>
-                                        <form class="forms-sample" action="<%= request.getContextPath()%>/UpdateParentServlet" method="post">
-
-                                            <input type="hidden" name="studentIc" value="<%= studentIc%>">
-                                            <input type="hidden" name="parentId" value="<%= parent.getId()%>">
-                                            <input type="hidden" name="isNew" value="<%= isNewParent%>">
-
-                                            <div class="form-group">
-                                                <label for="name"><%= bundle.getString("parent_name_label") %></label>
-                                                <input type="text" class="form-control" id="name" name="name" value="<%= parent.getName() != null ? parent.getName() : ""%>" readonly>
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="icNumber"><%= bundle.getString("parent_ic_label") %></label>
-                                                <input type="text" class="form-control" id="icNumber" name="icNumber" value="<%= parent.getIcNumber() != null ? parent.getIcNumber() : ""%>" readonly>
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="email"><%= bundle.getString("email_label") %></label>
-                                                <input type="email" class="form-control" id="email" name="email" value="<%= parent.getEmail() != null ? parent.getEmail() : ""%>" required>
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="contactNumber"><%= bundle.getString("phone_label") %></label>
-                                                <input type="tel" class="form-control" id="contactNumber" name="contactNumber" value="<%= parent.getContactNumber() != null ? parent.getContactNumber() : ""%>" required>
-                                            </div>
-
-                                            <button type="submit" class="btn btn-primary me-2"><%= bundle.getString("save_details_button") %></button>
-                                            <a href="studentList.jsp" class="btn btn-light"><%= bundle.getString("cancel_button") %></a>
-                                        </form>
+                                        <h4 class="card-title">Create New Event/Activity</h4>
+                                        <h2>Google Calendar</h2>
+                                        <div class="iframe-container">
+                                            <iframe 
+                                                src="https://calendar.google.com/calendar/embed?src=aqilah031103060404%40gmail.com&ctz=Asia%2FKuala_Lumpur" 
+                                                style="border:0; width: 1000px; height: 500px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);" 
+                                                frameborder="0" 
+                                                scrolling="no">
+                                            </iframe>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
 
+                        </div>
                     </div>
                     <!-- content-wrapper ends -->
                     <!-- partial:../../partials/_footer.html -->
@@ -378,8 +342,10 @@
         <script src="../assets/js/file-upload.js"></script>
         <script src="../assets/js/typeahead.js"></script>
         <script src="../assets/js/select2.js"></script>
+
+
+
         <!-- End custom js for this page -->
     </body>
 </html>
-
 
