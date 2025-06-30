@@ -422,7 +422,7 @@
                                                     <th><%= bundle.getString("ic_number")%></th>
                                                     <th><%= bundle.getString("sport_team")%></th>
                                                     <th><%= bundle.getString("uniform_unit")%></th>
-                                                    
+
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -443,10 +443,10 @@
                                                     <td><%= s.getIcNumber()%></td>
                                                     <td><%= s.getSportTeam()%></td>
                                                     <td><%= s.getUniformUnit()%></td>
-                                                    
+
                                                 </tr>
                                                 <% }
-                                                if (students.isEmpty()) {%>
+                                                    if (students.isEmpty()) {%>
                                                 <tr><td colspan="6" class="text-center"><%= bundle.getString("no_parent")%></td></tr>
                                                     <% }%>
                                             </tbody>
@@ -626,7 +626,8 @@
                                                     <a href="eventParticipant.jsp?eventId=<%= eventId%>" class="btn btn-info btn-sm" target="_blank"><%= bundle.getString("view_participant")%></a>
                                                 </td>
                                                 <td>
-                                                    <a href="viewReport.jsp?eventId=<%= eventId%>" class="btn btn-outline-secondary btn-sm" target="_blank"><%= bundle.getString("no_parent")%></a>
+                                                    <a href="<%= request.getContextPath()%>/GenerateOPRServlet?eventId=<%= eventId%>" 
+                                                       target="_blank" class="btn btn-gradient-info"><%= bundle.getString("view_opr_button")%></a>
                                                 </td>
 
                                             </tr>

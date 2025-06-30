@@ -16,8 +16,9 @@
         session.setAttribute("lang", lang);
     }
     String currentLang = (String) session.getAttribute("lang");
-    if (currentLang == null) currentLang = "ms"; // Default: BM
-
+    if (currentLang == null) {
+        currentLang = "ms"; // Default: BM
+    }
     java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("messages", new java.util.Locale(currentLang));
 %>
 <!DOCTYPE html>
@@ -245,23 +246,22 @@
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="teacherdashboard.jsp">
-                                <span class="menu-title">Dashboard</span>
+                                <span class="menu-title"><%= bundle.getString("dashboard")%></span>
                                 <i class="mdi mdi-home menu-icon"></i>
                             </a>
                         </li>
 
                         <li class="nav-item">
                             <a class="nav-link" data-bs-toggle="collapse" href="#forms" aria-expanded="false" aria-controls="forms">
-                                <span class="menu-title">Forms</span>
+                                <span class="menu-title"><%= bundle.getString("forms")%></span>
                                 <i class="mdi mdi-format-list-bulleted menu-icon"></i>
                             </a>
                             <div class="collapse" id="forms">
                                 <ul class="nav flex-column sub-menu">
                                     <li class="nav-item">
-                                        <a class="nav-link" href="studentRegistration.jsp">Student Registration</a>
-                                        <a class="nav-link" href="createEvent.jsp">Create Event/Activity</a>
-                                        <a class="nav-link" href="bookingClass.jsp">Booking Event Venue</a>
-                                        <a class="nav-link" href="updateAccTc.jsp">Update Account</a>
+                                        <a class="nav-link" href="studentRegistration.jsp"><%= bundle.getString("student_register_nav")%></a>
+                                        <a class="nav-link" href="createEvent.jsp"><%= bundle.getString("create_event_nav")%></a>
+                                        <a class="nav-link" href="updateAccTc.jsp"><%= bundle.getString("update_account_nav")%></a>
 
                                     </li>
                                 </ul>
@@ -269,14 +269,14 @@
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" data-bs-toggle="collapse" href="#charts" aria-expanded="false" aria-controls="charts">
-                                <span class="menu-title">List</span>
+                                <span class="menu-title"><%= bundle.getString("list")%></span>
                                 <i class="mdi mdi-chart-bar menu-icon"></i>
                             </a>
                             <div class="collapse" id="charts">
                                 <ul class="nav flex-column sub-menu">
                                     <li class="nav-item">
-                                        <a class="nav-link" href="studentList.jsp">Student List</a>
-                                        <a class="nav-link" href="eventList.jsp">Event List</a>
+                                        <a class="nav-link" href="studentList.jsp"><%= bundle.getString("student_list")%></a>
+                                        <a class="nav-link" href="eventList.jsp"><%= bundle.getString("event_list")%></a>
                                     </li>
                                 </ul>
                             </div>
@@ -298,147 +298,160 @@
                         </div>
 
                     </div>
+                    <%@ page import="java.sql.*" %>
+                    <%@ page import="util.DBConfig" %>
+
+                    <%
+                        String eventId = request.getParameter("eventId");
+                        String eventTitle = "";
+                        String eventStartTime = "";
+                        String eventEndTime = "";
+                        String uploadedDescription = "";
+                        boolean hasUploadedFiles = false;
+
+                        if (eventId != null && !eventId.isEmpty()) {
+                            String query = "SELECT e.title, e.start_time, e.end_time, eu.description "
+                                    + "FROM events e LEFT JOIN event_uploads eu ON e.id = eu.event_id WHERE e.id = ?";
+                            try (Connection conn = DBConfig.getConnection(); PreparedStatement stmt = conn.prepareStatement(query)) {
+                                stmt.setInt(1, Integer.parseInt(eventId));
+                                try (ResultSet rs = stmt.executeQuery()) {
+                                    if (rs.next()) {
+                                        eventTitle = rs.getString("title");
+                                        eventStartTime = rs.getString("start_time");
+                                        eventEndTime = rs.getString("end_time");
+                                        uploadedDescription = rs.getString("description") != null ? rs.getString("description") : "";
+                                    }
+                                }
+
+                                // Check if any upload exists
+                                try (PreparedStatement checkStmt = conn.prepareStatement("SELECT COUNT(*) FROM event_uploads WHERE event_id = ?")) {
+                                    checkStmt.setInt(1, Integer.parseInt(eventId));
+                                    try (ResultSet rs = checkStmt.executeQuery()) {
+                                        if (rs.next() && rs.getInt(1) > 0) {
+                                            hasUploadedFiles = true;
+                                        }
+                                    }
+                                }
+
+                            } catch (SQLException e) {
+                                out.println("Error: " + e.getMessage());
+                            }
+                        }
+
+                        String message = (String) request.getAttribute("message");
+                        if (message == null && request.getSession().getAttribute("message") != null) {
+                            message = (String) request.getSession().getAttribute("message");
+                            request.getSession().removeAttribute("message");
+                        }
+                    %>
+
                     <div class="col-12 grid-margin stretch-card">
                         <div class="card">
                             <div class="card-body">
-                                <h4 class="card-title"><%= bundle.getString("event_details_title") %></h4>
-                                <p class="card-description"> <%= bundle.getString("event_description_upload") %> </p>
-                                <%@ page import="java.sql.*" %>
-                                <%@ page import="util.DBConfig" %>
-                                <%
-                                    String eventId = request.getParameter("eventId");
-                                    String eventTitle = "";
-                                    String eventStartTime = "";
-                                    String eventEndTime = "";
-                                    // We'll no longer display a single uploadedFileName here, as there can be many.
-                                    // String uploadedFileName = "";
-                                    String uploadedDescription = ""; // To display the previously uploaded description
+                                <h4 class="card-title"><%= bundle.getString("event_details_title")%></h4>
+                                <p class="card-description"><%= bundle.getString("event_description_upload")%></p>
 
-                                    if (eventId != null && !eventId.isEmpty()) {
-                                        String query = "SELECT e.title, e.start_time, e.end_time, eu.description "
-                                                + "FROM events e LEFT JOIN event_uploads eu ON e.id = eu.event_id WHERE e.id = ?";
-                                        try (Connection connection = DBConfig.getConnection(); PreparedStatement stmt = connection.prepareStatement(query)) {
-
-                                            stmt.setInt(1, Integer.parseInt(eventId));
-                                            try (ResultSet rs = stmt.executeQuery()) {
-                                                if (rs.next()) {
-                                                    eventTitle = rs.getString("title");
-                                                    eventStartTime = rs.getString("start_time");
-                                                    eventEndTime = rs.getString("end_time");
-                                                    // uploadedFileName = rs.getString("file_name"); // No longer relevant for a single display
-                                                    uploadedDescription = (rs.getString("description") == null) ? "" : rs.getString("description"); // Get existing description
-                                                }
-                                            }
-                                        } catch (SQLException e) {
-                                            out.println("Error fetching event details: " + e.getMessage());
-                                        }
-                                    }
-
-                                    // Get message attribute from servlet redirect
-                                    String message = (String) request.getAttribute("message");
-                                    if (message == null && request.getSession().getAttribute("message") != null) {
-                                        message = (String) request.getSession().getAttribute("message");
-                                        request.getSession().removeAttribute("message"); // Clear message after displaying
-                                    }
-                                %>
-
-                                <%-- Display messages --%>
                                 <% if (message != null) {%>
-                                <div class="alert alert-info">
-                                    <%= message%>
-                                </div>
-                                <% }%>
+                                <div class="alert alert-info"><%= message%></div>
+                                <% } %>
 
+                                <% if (!hasUploadedFiles) {%>
                                 <form class="forms-sample" method="post" action="<%= request.getContextPath()%>/UploadEventFileServlet" enctype="multipart/form-data">
                                     <input type="hidden" name="eventId" value="<%= eventId != null ? eventId : ""%>">
 
                                     <div class="form-group">
-                                        <label><%= bundle.getString("event_title_label") %></label>
+                                        <label><%= bundle.getString("event_title_label")%></label>
                                         <input type="text" class="form-control" value="<%= eventTitle%>" readonly>
                                     </div>
 
                                     <div class="form-group">
-                                        <label><%= bundle.getString("event_datetime_label") %></label>
+                                        <label><%= bundle.getString("event_datetime_label")%></label>
                                         <input type="text" class="form-control" value="<%= eventStartTime%> - <%= eventEndTime%>" readonly>
                                     </div>
 
                                     <div class="form-group">
-                                        <label><%= bundle.getString("upload_files_label") %></label>
-                                        <input type="file" name="eventFile" class="form-control" multiple required>
-                                        <small class="form-text text-muted"><%= bundle.getString("upload_files_hint") %></small>
+                                        <label><%= bundle.getString("upload_files_label")%> 1</label>
+                                        <input type="file" name="eventFile1" class="form-control" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label><%= bundle.getString("upload_files_label")%> 2</label>
+                                        <input type="file" name="eventFile2" class="form-control" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label><%= bundle.getString("upload_files_label")%> 3</label>
+                                        <input type="file" name="eventFile3" class="form-control" required>
                                     </div>
 
                                     <div class="form-group">
-                                        <label><%= bundle.getString("description_label") %></label>
-                                        <textarea name="description" class="form-control" rows="4"><%= uploadedDescription%></textarea>
+                                        <label><%= bundle.getString("description_label")%></label>
+                                        <textarea name="description" class="form-control" rows="4" required><%= uploadedDescription%></textarea>
                                     </div>
 
-                                    <button type="submit" class="btn btn-gradient-primary"><%= bundle.getString("submit_button") %></button>
-
-                                    <%-- The "View OPR" button logic should now consider if *any* file has been uploaded --%>
-                                    <%
-                                        boolean hasUploadedFiles = false;
-                                        if (eventId != null && !eventId.isEmpty()) {
-                                            String checkFilesQuery = "SELECT COUNT(*) FROM event_uploads WHERE event_id = ?";
-                                            try (Connection conn = DBConfig.getConnection(); PreparedStatement stmt = conn.prepareStatement(checkFilesQuery)) {
-                                                stmt.setInt(1, Integer.parseInt(eventId));
-                                                try (ResultSet rs = stmt.executeQuery()) {
-                                                    if (rs.next() && rs.getInt(1) > 0) {
-                                                        hasUploadedFiles = true;
-                                                    }
-                                                }
-                                            } catch (SQLException e) {
-                                                // Log or handle the error
-                                            }
-                                        }
-                                    %>
-
-                                    <% if (eventId != null && !eventId.isEmpty() && hasUploadedFiles) {%>
-                                    <a href="<%= request.getContextPath()%>/teacher/viewOPR.jsp?eventId=<%= eventId%>" target="_blank" class="btn btn-gradient-info ml-2"><%= bundle.getString("view_opr_button") %></a>
-                                    <% } else if (eventId != null && !eventId.isEmpty()) { %>
-                                    <p class="mt-3 text-info"><%= bundle.getString("view_opr_button") %></p>
-                                    <% }%>
-                                    <a href="editEventDetails.jsp?eventId=<%= eventId%>" class="btn btn-warning ml-2"><%= bundle.getString("edit_event_details_button") %></a>
-
+                                    <button type="submit" class="btn btn-gradient-primary"><%= bundle.getString("submit_button")%></button>
                                 </form>
+                                <% } else {%>
 
+                                <div class="form-group">
+                                    <label><%= bundle.getString("event_title_label")%></label>
+                                    <input type="text" class="form-control" value="<%= eventTitle%>" readonly>
+                                </div>
+
+                                <div class="form-group">
+                                    <label><%= bundle.getString("event_datetime_label")%></label>
+                                    <input type="text" class="form-control" value="<%= eventStartTime%> - <%= eventEndTime%>" readonly>
+                                </div>
+
+                                <div class="form-group">
+                                    <label><%= bundle.getString("description_label")%></label>
+                                    <textarea class="form-control" rows="4" readonly><%= uploadedDescription%></textarea>
+                                </div>
+
+                                <a href="<%= request.getContextPath()%>/GenerateOPRServlet?eventId=<%= eventId%>" 
+                                   target="_blank" class="btn btn-gradient-info"><%= bundle.getString("view_opr_button")%></a>
+
+                                <a href="editEventDetails.jsp?eventId=<%= eventId%>" 
+                                   class="btn btn-warning ml-2"><%= bundle.getString("edit_event_details_button")%></a>
+
+                                <% }%>
                             </div>
                         </div>
-                        <!-- content-wrapper ends -->
-                        <!-- partial:../../partials/_footer.html -->
-                        <footer class="footer">
-                            <div class="d-sm-flex justify-content-center justify-content-sm-between">
-                                <span class="text-muted text-center text-sm-left d-block d-sm-inline-block">Copyright © 2023 <a href="https://www.bootstrapdash.com/" target="_blank">BootstrapDash</a>. All rights reserved.</span>
-                                <span class="float-none float-sm-right d-block mt-1 mt-sm-0 text-center">Hand-crafted & made with <i class="mdi mdi-heart text-danger"></i></span>
-                            </div>
-                        </footer>
-                        <!-- partial -->
                     </div>
-                    <!-- main-panel ends -->
-                </div>
-                <!-- page-body-wrapper ends -->
-            </div>
-            <!-- container-scroller -->
-            <!-- plugins:js -->
-            <script src="../assets/vendors/js/vendor.bundle.base.js"></script>
-            <!-- endinject -->
-            <!-- Plugin js for this page -->
-            <script src="../assets/vendors/select2/select2.min.js"></script>
-            <script src="../assets/vendors/typeahead.js/typeahead.bundle.min.js"></script>
-            <!-- End plugin js for this page -->
-            <!-- inject:js -->
-            <script src="../assets/js/off-canvas.js"></script>
-            <script src="../assets/js/misc.js"></script>
-            <script src="../assets/js/settings.js"></script>
-            <script src="../assets/js/todolist.js"></script>
-            <script src="../assets/js/jquery.cookie.js"></script>
-            <!-- endinject -->
-            <!-- Custom js for this page -->
-            <script src="../assets/js/file-upload.js"></script>
-            <script src="../assets/js/typeahead.js"></script>
-            <script src="../assets/js/select2.js"></script>
 
-            <!-- End custom js for this page -->
+                    <!-- content-wrapper ends -->
+                    <!-- partial:../../partials/_footer.html -->
+                    <footer class="footer">
+                        <div class="d-sm-flex justify-content-center justify-content-sm-between">
+                            <span class="text-muted text-center text-sm-left d-block d-sm-inline-block">Copyright © 2023 <a href="https://www.bootstrapdash.com/" target="_blank">BootstrapDash</a>. All rights reserved.</span>
+                            <span class="float-none float-sm-right d-block mt-1 mt-sm-0 text-center">Hand-crafted & made with <i class="mdi mdi-heart text-danger"></i></span>
+                        </div>
+                    </footer>
+                    <!-- partial -->
+                </div>
+                <!-- main-panel ends -->
+            </div>
+            <!-- page-body-wrapper ends -->
+        </div>
+        <!-- container-scroller -->
+        <!-- plugins:js -->
+        <script src="../assets/vendors/js/vendor.bundle.base.js"></script>
+        <!-- endinject -->
+        <!-- Plugin js for this page -->
+        <script src="../assets/vendors/select2/select2.min.js"></script>
+        <script src="../assets/vendors/typeahead.js/typeahead.bundle.min.js"></script>
+        <!-- End plugin js for this page -->
+        <!-- inject:js -->
+        <script src="../assets/js/off-canvas.js"></script>
+        <script src="../assets/js/misc.js"></script>
+        <script src="../assets/js/settings.js"></script>
+        <script src="../assets/js/todolist.js"></script>
+        <script src="../assets/js/jquery.cookie.js"></script>
+        <!-- endinject -->
+        <!-- Custom js for this page -->
+        <script src="../assets/js/file-upload.js"></script>
+        <script src="../assets/js/typeahead.js"></script>
+        <script src="../assets/js/select2.js"></script>
+
+        <!-- End custom js for this page -->
     </body>
 </html>
 

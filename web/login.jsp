@@ -42,7 +42,7 @@
                         <div class="col-lg-4 mx-auto">
                             <div class="auth-form-light text-left p-5">
                                 <div class="brand-logo">
-                                    <img src="assets/images/skkj_logo.jpg">
+                                    <img src="assets/images/skkj logo.jpg">
                                 </div>
                                 <h4>Sekolah Kebangsaan Kerayong Jaya</h4>
                                 <h6 class="font-weight-light"><%= bundle.getString("sign_in_continue") %></h6>

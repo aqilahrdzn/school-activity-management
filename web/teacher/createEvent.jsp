@@ -14,13 +14,24 @@
 <%@page import="java.sql.SQLException"%>
 <%@page import="java.sql.SQLException"%>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%
+    String lang = request.getParameter("lang");
+    if (lang != null) {
+        session.setAttribute("lang", lang);
+    }
+    String currentLang = (String) session.getAttribute("lang");
+    if (currentLang == null) {
+        currentLang = "ms";
+    }
+    java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("messages", new java.util.Locale(currentLang));
+%>
 <!DOCTYPE html>
 <html lang="en">
     <head>
         <!-- Required meta tags -->
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-        <title>Purple Admin</title>
+        <title>School Activity Management System</title>
         <!-- plugins:css -->
         <link rel="stylesheet" href="../assets/vendors/mdi/css/materialdesignicons.min.css">
         <link rel="stylesheet" href="../assets/vendors/ti-icons/css/themify-icons.css">
@@ -217,23 +228,22 @@
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="teacherdashboard.jsp">
-                                <span class="menu-title">Dashboard</span>
+                                <span class="menu-title"><%= bundle.getString("dashboard")%></span>
                                 <i class="mdi mdi-home menu-icon"></i>
                             </a>
                         </li>
 
                         <li class="nav-item">
                             <a class="nav-link" data-bs-toggle="collapse" href="#forms" aria-expanded="false" aria-controls="forms">
-                                <span class="menu-title">Forms</span>
+                                <span class="menu-title"><%= bundle.getString("forms")%></span>
                                 <i class="mdi mdi-format-list-bulleted menu-icon"></i>
                             </a>
                             <div class="collapse" id="forms">
                                 <ul class="nav flex-column sub-menu">
                                     <li class="nav-item">
-                                        <a class="nav-link" href="studentRegistration.jsp">Student Registration</a>
-                                        <a class="nav-link" href="createEvent.jsp">Create Event/Activity</a>
-                                        <a class="nav-link" href="bookingClass.jsp">Booking Event Venue</a>
-                                        <a class="nav-link" href="updateAccTc.jsp">Update Account</a>
+                                        <a class="nav-link" href="studentRegistration.jsp"><%= bundle.getString("student_register_nav")%></a>
+                                        <a class="nav-link" href="createEvent.jsp"><%= bundle.getString("create_event_nav")%></a>
+                                        <a class="nav-link" href="updateAccTc.jsp"><%= bundle.getString("update_account_nav")%></a>
 
                                     </li>
                                 </ul>
@@ -241,14 +251,14 @@
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" data-bs-toggle="collapse" href="#charts" aria-expanded="false" aria-controls="charts">
-                                <span class="menu-title">List</span>
+                                <span class="menu-title"><%= bundle.getString("list")%></span>
                                 <i class="mdi mdi-chart-bar menu-icon"></i>
                             </a>
                             <div class="collapse" id="charts">
                                 <ul class="nav flex-column sub-menu">
                                     <li class="nav-item">
-                                        <a class="nav-link" href="studentList.jsp">Student List</a>
-                                        <a class="nav-link" href="eventList.jsp">Event List</a>
+                                        <a class="nav-link" href="studentList.jsp"><%= bundle.getString("student_list")%></a>
+                                        <a class="nav-link" href="eventList.jsp"><%= bundle.getString("event_list")%></a>
                                     </li>
                                 </ul>
                             </div>
@@ -260,10 +270,10 @@
                 <div class="main-panel">
                     <div class="content-wrapper">
                         <div class="page-header">
-                            <h3 class="page-title"> Form elements </h3>
+                            <h3 class="page-title"> <%= bundle.getString("parent_approval")%></h3>
                             <nav aria-label="breadcrumb">
                                 <ol class="breadcrumb">
-                                    <li class="breadcrumb-item"><a href="#">Forms</a></li>
+                                    <li class="breadcrumb-item"><a href="#"><%= bundle.getString("forms")%></a></li>
                                     <li class="breadcrumb-item active" aria-current="page">Form elements</li>
                                 </ol>
                             </nav>
@@ -275,8 +285,8 @@
                             <div class="card">
                                 <div class="card-body">
 
-                                    <h4 class="card-title">Create New Event/Activity</h4>
-                                    <h2>Google Calendar</h2>
+                                    <h4 class="card-title"><%= bundle.getString("create_event_title")%></h4>
+                                    <h2><%= bundle.getString("google_calendar_title")%></h2>
                                     <div class="iframe-container">
                                         <iframe 
                                             src="https://calendar.google.com/calendar/embed?src=aqilah031103060404%40gmail.com&ctz=Asia%2FKuala_Lumpur" 
@@ -288,61 +298,61 @@
 
                                     <form class="forms-sample" action="<%= request.getContextPath() %>/EventController" method="post" onsubmit="return confirmSubmission()">
                                         <div class="form-group">
-                                            <label for="category">Event Category:</label>
+                                            <label for="category"><%= bundle.getString("event_category_label")%></label>
                                             <select id="event-category" name="event-category">
-                                                <option value="">Select a category</option>
-                                                <option value="school">School-Based Event</option>
-                                                <option value="external">External/Off-School Event</option>
-                                                <option value="payment">Payment-Required Event</option>
+                                                <option value=""><%= bundle.getString("select_category_placeholder")%></option>
+                                                <option value="school"><%= bundle.getString("school_event")%></option>
+                                                <option value="external"><%= bundle.getString("external_event")%></option>
+                                                <option value="payment"><%= bundle.getString("payment_event")%></option>
                                             </select>
                                         </div>
                                         <div class="form-group" id="payment-amount-section">
-                                            <label for="paymentAmount">Payment Amount (RM):</label>
-                                            <input type="number" id="paymentAmount" name="paymentAmount" step="0.01" min="0" placeholder="e.g., 10.50">
+                                            <label for="paymentAmount"><%= bundle.getString("payment_amount_label")%>:</label>
+                                            <input type="number" id="paymentAmount" name="paymentAmount" step="0.01" min="0" placeholder="<%= bundle.getString("payment_amount_placeholder")%>">
                                         </div>
 
                                         <div class="form-group">
-                                            <label for="title">Event Title:</label>
+                                            <label for="title"><%= bundle.getString("event_title_label")%>:</label>
                                             <input type="text" id="title" name="title" required>
                                         </div>
                                         <div class="form-group">
-                                            <label for="description">Event Description:</label>
+                                            <label for="description"><%= bundle.getString("event_description_label")%>:</label>
                                             <textarea id="description" name="description" rows="4" cols="50"></textarea>
                                         </div>
                                         <div class="form-group">
-                                            <label for="startTime">Start Time:</label>
+                                            <label for="startTime"><%= bundle.getString("start_time_label")%>:</label>
                                             <input type="datetime-local" id="startTime" name="startTime" required min="<%= java.time.LocalDateTime.now().toString().substring(0, 16)%>">
-                                            <small>Format: YYYY-MM-DDTHH:mm (Browser will auto-format)</small>
+                                            <small><%= bundle.getString("parent_approval")%>: YYYY-MM-DDTHH:mm (<%= bundle.getString("parent_approval")%>)</small>
                                         </div>
 
                                         <div class="form-group">
-                                            <label for="endTime">End Time:</label>
+                                            <label for="endTime"><%= bundle.getString("end_time_label")%>:</label>
                                             <input type="datetime-local" id="endTime" name="endTime" required min="<%= java.time.LocalDateTime.now().toString().substring(0, 16)%>">
-                                            <small>Format: YYYY-MM-DDTHH:mm (Browser will auto-format)</small>
+                                            <small><%= bundle.getString("parent_approval")%>: YYYY-MM-DDTHH:mm (<%= bundle.getString("parent_approval")%>)</small>
                                         </div>
 
                                         <div class="form-group">
-                                            <label for="timeZone">Time Zone:</label>
+                                            <label for="timeZone"><%= bundle.getString("time_zone_label")%>:</label>
                                             <input type="text" id="timeZone" name="timeZone" value="Asia/Kuala_Lumpur" required>
                                         </div>
                                         <div class="form-group">
                                             <input type="radio" id="selectByClass" name="selectType" value="class" onclick="toggleSelection()" checked>
-                                            <label for="selectByClass">Select by Class</label>
+                                            <label for="selectByClass"><%= bundle.getString("select_by_class")%></label>
                                         </div>
                                         <div class="form-group">
                                             <input type="radio" id="selectIndividually" name="selectType" value="individual" onclick="toggleSelection()">
-                                            <label for="selectIndividually">Select Individually</label>
+                                            <label for="selectIndividually"><%= bundle.getString("select_individually")%></label>
                                         </div>
                                         <div class="form-group">
                                             <input type="radio" id="selectBySport" name="selectType" value="sport" onclick="toggleSelection()">
-                                            <label for="selectBySport">Select by Sport Team</label>
+                                            <label for="selectBySport"><%= bundle.getString("select_by_sport")%></label>
                                         </div>
                                         <div class="form-group">
                                             <input type="radio" id="selectByUniform" name="selectType" value="uniform" onclick="toggleSelection()">
-                                            <label for="selectByUniform">Select by Uniform Unit</label>
+                                            <label for="selectByUniform"><%= bundle.getString("select_by_uniform")%></label>
                                         </div>
                                         <div id="class-selection" style="margin-top:10px;">
-                                            <label>Choose Class(es):</label>
+                                            <label><%= bundle.getString("choose_class")%>:</label>
                                             <div class="checkbox-grid">
                                                 <label><input type="checkbox" name="classDropdown" value="1 Makkah"> 1 Makkah</label><br>
                                                 <label><input type="checkbox" name="classDropdown" value="1 Madinah"> 1 Madinah</label><br>
@@ -359,29 +369,29 @@
                                             </div>
                                         </div>
                                         <div id="individual-selection" style="display:none; margin-top:10px;">
-                                            <label for="icInput">Student IC Number:</label>
-                                            <input type="text" id="icInput" name="icInput" placeholder="Enter IC number">
-                                            <button type="button" onclick="addStudentByIC()">Add Student</button>
+                                            <label for="icInput"><%= bundle.getString("ic_number")%>:</label>
+                                            <input type="text" id="icInput" name="icInput" placeholder="<%= bundle.getString("student_ic_placeholder")%>">
+                                            <button type="button" onclick="addStudentByIC()"><%= bundle.getString("add_student_button")%></button>
                                             <div id="selected-students" style="color: black">
-                                                <p>No students selected.</p>
+                                                <p><%= bundle.getString("no_student_selected")%>.</p>
                                             </div>
                                         </div>
 
                                         <div id="sport-selection" style="display:none; margin-top:10px;">
-                                            <label for="sportDropdown">Choose Sport Team:</label>
+                                            <label for="sportDropdown"><%= bundle.getString("choose_sport_team")%>:</label>
                                             <select id="sportDropdown" name="sportDropdown">
-                                                <option value="">-- Select Team --</option>
-                                                <option value="Red Team">Red Team</option>
-                                                <option value="Yellow Team">Yellow Team</option>
-                                                <option value="Green Team">Green Team</option>
-                                                <option value="Blue Team">Blue Team</option>
+                                                <option value=""><%= bundle.getString("choose_sport_team")%></option>
+                                                <option value="Red Team"><%= bundle.getString("red_team")%></option>
+                                                <option value="Yellow Team"><%= bundle.getString("yellow_team")%></option>
+                                                <option value="Green Team">G<%= bundle.getString("green_team")%></option>
+                                                <option value="Blue Team"><%= bundle.getString("blue_team")%></option>
                                             </select>
                                         </div>
 
                                         <div id="uniform-selection" style="display:none; margin-top:10px;">
-                                            <label for="uniformDropdown">Choose Uniform Unit:</label>
+                                            <label for="uniformDropdown"><%= bundle.getString("choose_uniform_unit")%>:</label>
                                             <select id="uniformDropdown" name="uniformDropdown">
-                                                <option value="">-- Select Unit --</option>
+                                                <option value=""><%= bundle.getString("choose_uniform_unit")%></option>
                                                 <option value="Tunas Puteri">Tunas Puteri</option>
                                                 <option value="Puteri Islam">Puteri Islam</option>
                                                 <option value="Tunas Kadet Remaja Sekolah">Tunas Kadet Remaja Sekolah</option>
@@ -405,7 +415,7 @@
                                                 // Clear individual selection list when switching modes
                                                 if (selectionType !== "individual") {
                                                     selectedStudents.clear();
-                                                    document.getElementById("selected-students").innerHTML = "<p>No students selected.</p>";
+                                                    document.getElementById("selected-students").innerHTML = "<p><%= bundle.getString("no_student_selected")%></p>";
                                                     // Remove all hidden IC inputs
                                                     document.querySelectorAll('.hidden-ic-input').forEach(input => input.remove());
                                                 }
@@ -567,7 +577,7 @@
                                             }
                                         </script>
 
-                                        <button type="submit" class="btn btn-gradient-primary me-2">Submit</button>
+                                        <button type="submit" class="btn btn-gradient-primary me-2"><%= bundle.getString("submit")%></button>
                                     </form>
                                 </div>
                             </div>

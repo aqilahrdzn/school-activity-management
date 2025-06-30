@@ -278,42 +278,42 @@
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="teacherdashboard.jsp">
-                                <span class="menu-title">Dashboard</span>
+                                <span class="menu-title"><%= bundle.getString("dashboard")%></span>
                                 <i class="mdi mdi-home menu-icon"></i>
                             </a>
                         </li>
 
                         <li class="nav-item">
                             <a class="nav-link" data-bs-toggle="collapse" href="#forms" aria-expanded="false" aria-controls="forms">
-                                <span class="menu-title">Forms</span>
+                                <span class="menu-title"><%= bundle.getString("forms")%></span>
                                 <i class="mdi mdi-format-list-bulleted menu-icon"></i>
                             </a>
                             <div class="collapse" id="forms">
                                 <ul class="nav flex-column sub-menu">
                                     <li class="nav-item">
-                                        <a class="nav-link" href="studentRegistration.jsp">Student Registration</a>
-                                        <a class="nav-link" href="createEvent.jsp">Create Event/Activity</a>
-                                        <a class="nav-link" href="bookingClass.jsp">Booking Event Venue</a>
-                                        <a class="nav-link" href="updateAccTc.jsp">Update Account</a>
-                                       
+                                        <a class="nav-link" href="studentRegistration.jsp"><%= bundle.getString("student_register_nav")%></a>
+                                        <a class="nav-link" href="createEvent.jsp"><%= bundle.getString("create_event_nav")%></a>
+                                        <a class="nav-link" href="updateAccTc.jsp"><%= bundle.getString("update_account_nav")%></a>
+
                                     </li>
                                 </ul>
                             </div>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" data-bs-toggle="collapse" href="#charts" aria-expanded="false" aria-controls="charts">
-                                <span class="menu-title">List</span>
+                                <span class="menu-title"><%= bundle.getString("list")%></span>
                                 <i class="mdi mdi-chart-bar menu-icon"></i>
                             </a>
                             <div class="collapse" id="charts">
                                 <ul class="nav flex-column sub-menu">
                                     <li class="nav-item">
-                                        <a class="nav-link" href="studentList.jsp">Student List</a>
-                                        <a class="nav-link" href="eventList.jsp">Event List</a>
+                                        <a class="nav-link" href="studentList.jsp"><%= bundle.getString("student_list")%></a>
+                                        <a class="nav-link" href="eventList.jsp"><%= bundle.getString("event_list")%></a>
                                     </li>
                                 </ul>
                             </div>
                         </li>
+
 
                     </ul>
                 </nav>

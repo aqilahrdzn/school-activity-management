@@ -244,7 +244,7 @@
                                 <div class="dropdown-divider"></div>
 
                                 <% if (notifications != null && !notifications.isEmpty()) {
-                for (Notification note : notifications) {%>
+                                        for (Notification note : notifications) {%>
                                 <a href="../MarkNotificationRead?id=<%= note.getId()%>" class="dropdown-item preview-item">
                                     <div class="preview-thumbnail">
                                         <div class="preview-icon <%= note.getIsRead() == 0 ? "bg-info" : "bg-secondary"%>">
@@ -260,7 +260,7 @@
                                 </a>
                                 <div class="dropdown-divider"></div>
                                 <% }
-        } else { %>
+                                } else { %>
                                 <p class="text-center">No notifications</p>
                                 <% }%>
 
@@ -357,12 +357,20 @@
                         <div class="card">
                             <div class="card-body">
                                 <h4 class="card-title"><%= bundle.getString("parent_approval")%></h4>
+
                                 <% if (alreadySubmitted) {%>
                                 <p class="text-success"><%= bundle.getString("approval_submitted")%></p>
                                 <a href="editApproval.jsp?eventId=<%= eventId%>&parentId=<%= parentId%>&eventTitle=<%= java.net.URLEncoder.encode(eventTitle, "UTF-8")%>&studentIc=<%= studentIc%>" class="btn btn-warning"><%= bundle.getString("edit_approval")%></a>
-
                                 <% } else {%>
                                 <p class="card-description"><%= bundle.getString("enter_details")%></p>
+
+                                <%-- Show bank account details only for "payment" events --%>
+                                <% if ("payment".equalsIgnoreCase(eventCategory)) { %>
+                                <div class="alert alert-info">
+                                    <strong>Bank Account:</strong> 123-456-7890 (ABC Bank)<br>
+                                    <small>Please make the payment before submitting the approval.</small>
+                                </div>
+                                <% }%>
 
                                 <form class="forms-sample" method="post" action="<%= request.getContextPath()%>/SubmitApprovalServlet" enctype="multipart/form-data">
                                     <input type="hidden" name="event_category" value="<%= eventCategory%>">

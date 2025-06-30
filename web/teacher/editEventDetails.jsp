@@ -3,12 +3,6 @@
     Created on : Jun 27, 2025, 1:27:59 AM
     Author     : Lenovo
 --%>
-<%-- 
-    Document   : updateAccTc
-    Created on : May 23, 2025, 12:26:30 AM
-    Author     : Lenovo
---%>
-
 
 <%@page import="java.sql.SQLException"%>
 <%@page import="java.sql.ResultSet"%>
@@ -24,8 +18,9 @@
         session.setAttribute("lang", lang);
     }
     String currentLang = (String) session.getAttribute("lang");
-    if (currentLang == null) currentLang = "ms"; // Default: BM
-
+    if (currentLang == null) {
+        currentLang = "ms"; // Default: BM
+    }
     java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("messages", new java.util.Locale(currentLang));
 %>
 <!DOCTYPE html>
@@ -275,23 +270,22 @@
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="teacherdashboard.jsp">
-                                <span class="menu-title">Dashboard</span>
+                                <span class="menu-title"><%= bundle.getString("dashboard")%></span>
                                 <i class="mdi mdi-home menu-icon"></i>
                             </a>
                         </li>
 
                         <li class="nav-item">
                             <a class="nav-link" data-bs-toggle="collapse" href="#forms" aria-expanded="false" aria-controls="forms">
-                                <span class="menu-title">Forms</span>
+                                <span class="menu-title"><%= bundle.getString("forms")%></span>
                                 <i class="mdi mdi-format-list-bulleted menu-icon"></i>
                             </a>
                             <div class="collapse" id="forms">
                                 <ul class="nav flex-column sub-menu">
                                     <li class="nav-item">
-                                        <a class="nav-link" href="studentRegistration.jsp">Student Registration</a>
-                                        <a class="nav-link" href="createEvent.jsp">Create Event/Activity</a>
-                                        <a class="nav-link" href="bookingClass.jsp">Booking Event Venue</a>
-                                        <a class="nav-link" href="updateAccTc.jsp">Update Account</a>
+                                        <a class="nav-link" href="studentRegistration.jsp"><%= bundle.getString("student_register_nav")%></a>
+                                        <a class="nav-link" href="createEvent.jsp"><%= bundle.getString("create_event_nav")%></a>
+                                        <a class="nav-link" href="updateAccTc.jsp"><%= bundle.getString("update_account_nav")%></a>
 
                                     </li>
                                 </ul>
@@ -299,18 +293,19 @@
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" data-bs-toggle="collapse" href="#charts" aria-expanded="false" aria-controls="charts">
-                                <span class="menu-title">List</span>
+                                <span class="menu-title"><%= bundle.getString("list")%></span>
                                 <i class="mdi mdi-chart-bar menu-icon"></i>
                             </a>
                             <div class="collapse" id="charts">
                                 <ul class="nav flex-column sub-menu">
                                     <li class="nav-item">
-                                        <a class="nav-link" href="studentList.jsp">Student List</a>
-                                        <a class="nav-link" href="eventList.jsp">Event List</a>
+                                        <a class="nav-link" href="studentList.jsp"><%= bundle.getString("student_list")%></a>
+                                        <a class="nav-link" href="eventList.jsp"><%= bundle.getString("event_list")%></a>
                                     </li>
                                 </ul>
                             </div>
                         </li>
+
                     </ul>
                 </nav>
                 <!-- partial -->
@@ -327,29 +322,39 @@
                         </div>
                         <div class="card">
                             <div class="card-body">
-                                <h4 class="card-title"><%= bundle.getString("edit_event_details") %></h4>
+                                <h4 class="card-title"><%= bundle.getString("edit_event_details")%></h4>
 
                                 <form class="forms-sample" method="post" action="<%= request.getContextPath()%>/UploadEventFileServlet" enctype="multipart/form-data">
                                     <input type="hidden" name="eventId" value="<%= eventId%>">
 
                                     <div class="form-group">
-                                        <label><%= bundle.getString("event_title_field") %></label>
+                                        <label><%= bundle.getString("event_title_field")%></label>
                                         <input type="text" class="form-control" value="<%= eventTitle%>" readonly>
                                     </div>
 
                                     <div class="form-group">
-                                        <label><%= bundle.getString("replace_uploaded_files") %></label>
-                                        <input type="file" name="eventFile" class="form-control" multiple>
-                                        <small class="form-text text-muted"><%= bundle.getString("leave_blank_to_keep") %>.</small>
+                                        <label>File 1 (JPEG/PNG only)</label>
+                                        <input type="file" name="eventFile1" class="form-control">
                                     </div>
 
                                     <div class="form-group">
-                                        <label><%= bundle.getString("edit_description") %></label>
+                                        <label>File 2 (JPEG/PNG only)</label>
+                                        <input type="file" name="eventFile2" class="form-control">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>File 3 (JPEG/PNG only)</label>
+                                        <input type="file" name="eventFile3" class="form-control">
+                                        <small class="form-text text-muted"><%= bundle.getString("leave_blank_to_keep")%>.</small>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label><%= bundle.getString("edit_description")%></label>
                                         <textarea name="description" class="form-control" rows="4"><%= uploadedDescription%></textarea>
                                     </div>
 
-                                    <button type="submit" class="btn btn-gradient-primary"><%= bundle.getString("update_button") %></button>
-                                    <a href="eventDetails.jsp?eventId=<%= eventId%>" class="btn btn-light"><%= bundle.getString("cancel_button") %></a>
+                                    <button type="submit" class="btn btn-gradient-primary"><%= bundle.getString("update_button")%></button>
+                                    <a href="eventDetails.jsp?eventId=<%= eventId%>" class="btn btn-light"><%= bundle.getString("cancel_button")%></a>
                                 </form>
                             </div>
                         </div>
