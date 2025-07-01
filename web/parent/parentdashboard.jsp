@@ -286,7 +286,6 @@
                                     <li class="nav-item">
                                         <a class="nav-link" href="updateAccPr.jsp"><%= bundle.getString("update_account")%></a>
                                         <a class="nav-link" href="studentEvent.jsp"><%= bundle.getString("student_event_list")%></a>
-                                        <a class="nav-link" href="viewCalendar.jsp"><%= bundle.getString("student_event_list")%></a>
 
                                     </li>
                                 </ul>

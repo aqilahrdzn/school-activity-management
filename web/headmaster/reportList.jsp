@@ -313,7 +313,7 @@
                                 <select name="classFilter" class="form-control mr-2" onchange="this.form.submit()">
                                     <option value=""><%= bundle.getString("all_classes")%></option>
                                     <%
-                                        String[] classes = {"1 Makkah", "1 Madinah", "2 Makkah", "2 Madinah", "3 Makkah"};
+                                        String[] classes = {"1 Makkah", "1 Madinah", "2 Makkah", "2 Madinah", "3 Makkah", "3 Madinah", "4 Makkah", "4 Madinah", "5 Makkah", "5 Madinah", "6 Makkah", "6 Madinah"};
                                         String classFilter = request.getParameter("classFilter");
                                         for (String c : classes) {
                                             String selected = c.equals(classFilter) ? "selected" : "";
@@ -391,7 +391,7 @@
 
                         <div class="report-tab" id="studentTab" style="display:none;">
                             <div class="container">
-                                <h4><%= bundle.getString("student_list_by_class")%>/h4>
+                                <h4><%= bundle.getString("student_list_by_class")%></h4>
 
                                     <form method="get" action="studentReport.jsp" target="_blank" class="mb-3">
                                         <input type="hidden" name="selectedClass" value="<%= request.getParameter("selectedClass") != null ? request.getParameter("selectedClass") : ""%>">
@@ -404,7 +404,7 @@
                                         <select name="selectedClass" class="form-control mr-2" onchange="this.form.submit()">
                                             <option value=""><%= bundle.getString("all_classes")%></option>
                                             <%
-                                                String[] studentClasses = {"1 Makkah", "1 Madinah", "2 Makkah", "2 Madinah", "3 Makkah"};
+                                                String[] studentClasses = {"1 Makkah", "1 Madinah", "2 Makkah", "2 Madinah", "3 Makkah", "3 Madinah", "4 Makkah", "4 Madinah", "5 Makkah", "5 Madinah", "6 Makkah", "6 Madinah"};
                                                 String selectedClass = request.getParameter("selectedClass");
                                                 for (String c : studentClasses) {
                                                     String selected = c.equals(selectedClass) ? "selected" : "";

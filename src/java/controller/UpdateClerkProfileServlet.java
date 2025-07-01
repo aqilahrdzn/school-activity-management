@@ -48,7 +48,7 @@ public class UpdateClerkProfileServlet extends HttpServlet {
         // ✅ STEP 1: Check password early
         if (!isEmpty(oldPassword) || !isEmpty(newPassword) || !isEmpty(confirmPassword)) {
             if (isEmpty(oldPassword) || isEmpty(newPassword) || isEmpty(confirmPassword)) {
-                response.sendRedirect(request.getContextPath() + "clerk/updateAccTc.jsp?error=All password fields are required.");
+                response.sendRedirect(request.getContextPath() + "/clerk/updateAccTc.jsp?error=All password fields are required.");
                 return;
             }
 
@@ -58,7 +58,7 @@ public class UpdateClerkProfileServlet extends HttpServlet {
             }
 
             if (!newPassword.equals(confirmPassword)) {
-                response.sendRedirect(request.getContextPath() + "clerk/updateAccCk.jsp?error=New password and confirmation do not match.");
+                response.sendRedirect(request.getContextPath() + "/clerk/updateAccCk.jsp?error=New password and confirmation do not match.");
                 return;
             }
 
@@ -119,11 +119,11 @@ public class UpdateClerkProfileServlet extends HttpServlet {
             if (updatePassword) teacher.setPassword(newPassword);
             session.setAttribute("teacher", teacher);
 
-            response.sendRedirect(request.getContextPath() + "clerk/updateAccCk.jsp?success=true");
+            response.sendRedirect(request.getContextPath() + "/clerk/updateAccCk.jsp?success=true");
 
         } catch (Exception e) {
             e.printStackTrace();
-            response.sendRedirect(request.getContextPath() + "clerk/updateAccCk.jsp?error=Update failed. Please try again.");
+            response.sendRedirect(request.getContextPath() + "/clerk/updateAccCk.jsp?error=Update failed. Please try again.");
         }
     }
 

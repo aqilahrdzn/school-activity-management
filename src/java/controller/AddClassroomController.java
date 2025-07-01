@@ -30,11 +30,11 @@ public class AddClassroomController extends HttpServlet {
         try {
             ClassroomDAO dao = new ClassroomDAO();
             dao.addClassroom(newClassroom);
-            response.sendRedirect(request.getContextPath() + "clerk/addVenue.jsp?success=1");
+            response.sendRedirect(request.getContextPath() + "/clerk/addVenue.jsp?success=1");
 
         } catch (SQLException e) {
             e.printStackTrace();
-            response.sendRedirect(request.getContextPath() + "clerk/addVenue.jsp?status=error");
+            response.sendRedirect(request.getContextPath() + "/clerk/addVenue.jsp?status=error");
         }
     }
 }

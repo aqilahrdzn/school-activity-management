@@ -23,10 +23,10 @@ public class UpdateClassroomStatusController extends HttpServlet {
 
         try {
             dao.updateClassroomStatus(classroomId, status);
-            response.sendRedirect(request.getContextPath() + "update_class.jsp?updated=true");
+            response.sendRedirect(request.getContextPath() + "/clerk/updateVenue.jsp?updated=true");
         } catch (Exception e) {
             e.printStackTrace();
-            response.sendRedirect(request.getContextPath() + "update_class.jsp?updated=false");
+            response.sendRedirect(request.getContextPath() + "/clerk/updateVenue.jsp?updated=false");
         }
     }
 }

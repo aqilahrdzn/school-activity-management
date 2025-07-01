@@ -365,8 +365,12 @@ public class StudentDAO {
     public boolean promoteStudents() {
         String selectQuery = "SELECT id, class FROM student";
         String updateQuery = "UPDATE student SET class = ? WHERE id = ?";
+        String archiveQuery = "UPDATE student SET status = 'archived' WHERE id = ?";  // Query to archive Year 6 students
+
         try (
-                Connection conn = DBConfig.getConnection(); PreparedStatement selectStmt = conn.prepareStatement(selectQuery); PreparedStatement updateStmt = conn.prepareStatement(updateQuery); ResultSet rs = selectStmt.executeQuery()) {
+                Connection conn = DBConfig.getConnection(); PreparedStatement selectStmt = conn.prepareStatement(selectQuery); PreparedStatement updateStmt = conn.prepareStatement(updateQuery); PreparedStatement archiveStmt = conn.prepareStatement(archiveQuery); // PreparedStatement for archiving
+                 ResultSet rs = selectStmt.executeQuery()) {
+
             conn.setAutoCommit(false); // Start transaction
 
             while (rs.next()) {
@@ -387,15 +391,20 @@ public class StudentDAO {
                             updateStmt.setString(1, newClass);
                             updateStmt.setInt(2, id);
                             updateStmt.addBatch();
+                        } else if (year == 6) {  // Archive students in Year 6
+                            archiveStmt.setInt(1, id);
+                            archiveStmt.addBatch();
                         }
-                        // Students in Year 6 are not promoted (they "graduate")
                     } catch (NumberFormatException e) {
                         // Skip if the class format is incorrect (e.g., "Tadika")
                         continue;
                     }
                 }
             }
+
+            // Execute all the batch operations
             updateStmt.executeBatch();
+            archiveStmt.executeBatch();  // Execute the archive batch
             conn.commit(); // Commit transaction
             return true;
         } catch (Exception e) {
@@ -404,7 +413,8 @@ public class StudentDAO {
             return false;
         }
     }
-     public boolean archiveStudent(String icNumber) throws SQLException {
+
+    public boolean archiveStudent(String icNumber) throws SQLException {
         String sql = "UPDATE student SET status = 'archived' WHERE ic_number = ?";
         Connection conn = null;
         PreparedStatement ps = null;
@@ -419,11 +429,15 @@ public class StudentDAO {
             e.printStackTrace(); // Log the error
             throw e; // Re-throw to be handled by the servlet
         } finally {
-            if (ps != null) ps.close();
-            if (conn != null) conn.close();
+            if (ps != null) {
+                ps.close();
+            }
+            if (conn != null) {
+                conn.close();
+            }
         }
 
         return rowsAffected > 0;
-    
+
     }
 }

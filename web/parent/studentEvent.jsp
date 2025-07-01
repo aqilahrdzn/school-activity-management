@@ -258,15 +258,16 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="teacherdashboard.jsp">
-                                <span class="menu-title">Dashboard</span>
+                            <a class="nav-link" href="parentdashboard.jsp">
+                                <span class="menu-title"><%= bundle.getString("dashboard")%></span>
                                 <i class="mdi mdi-home menu-icon"></i>
                             </a>
                         </li>
 
+
                         <li class="nav-item">
                             <a class="nav-link" data-bs-toggle="collapse" href="#forms" aria-expanded="false" aria-controls="forms">
-                                <span class="menu-title">Forms</span>
+                                <span class="menu-title"><%= bundle.getString("forms")%></span>
                                 <i class="mdi mdi-format-list-bulleted menu-icon"></i>
                             </a>
                             <div class="collapse" id="forms">
@@ -281,19 +282,17 @@
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" data-bs-toggle="collapse" href="#charts" aria-expanded="false" aria-controls="charts">
-                                <span class="menu-title">Charts</span>
+                                <span class="menu-title"><%= bundle.getString("list")%></span>
                                 <i class="mdi mdi-chart-bar menu-icon"></i>
                             </a>
                             <div class="collapse" id="charts">
                                 <ul class="nav flex-column sub-menu">
                                     <li class="nav-item">
-                                        <a class="nav-link" href="../../pages/charts/chartjs.html">ChartJs</a>
+                                        <a class="nav-link" href="../pages/charts/chartjs.html">ChartJs</a>
                                     </li>
                                 </ul>
                             </div>
                         </li>
-
-
                     </ul>
                 </nav>
                 <!-- partial -->
@@ -313,6 +312,14 @@
                     <div class="row"> 
                         <div class="col-12 grid-margin">
                             <div class="card">
+                                <div class="iframe-container">
+                                            <iframe 
+                                                src="https://calendar.google.com/calendar/embed?src=aqilah031103060404%40gmail.com&ctz=Asia%2FKuala_Lumpur" 
+                                                style="border:0; width: 1000px; height: 500px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);" 
+                                                frameborder="0" 
+                                                scrolling="no">
+                                            </iframe>
+                                        </div>
                                 <div class="card-body">
                                     <% if ("true".equals(request.getParameter("success"))) {%>
                                     <div class="alert alert-success" role="alert">
