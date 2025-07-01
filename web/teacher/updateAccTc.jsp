@@ -19,8 +19,9 @@
         session.setAttribute("lang", lang);
     }
     String currentLang = (String) session.getAttribute("lang");
-    if (currentLang == null) currentLang = "ms"; // Default: BM
-
+    if (currentLang == null) {
+        currentLang = "ms"; // Default: BM
+    }
     java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("messages", new java.util.Locale(currentLang));
 %>
 <!DOCTYPE html>
@@ -29,7 +30,7 @@
         <!-- Required meta tags -->
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-        <title>Purple Admin</title>
+        <title>School Activity Management System</title>
         <!-- plugins:css -->
         <link rel="stylesheet" href="../assets/vendors/mdi/css/materialdesignicons.min.css">
         <link rel="stylesheet" href="../assets/vendors/ti-icons/css/themify-icons.css">
@@ -300,73 +301,73 @@
                             </nav>
                         </div>
                         <div class="row">
-    <div class="col-md-6 grid-margin stretch-card">
-        <div class="card">
-            <div class="card-body">
-                <% if (request.getParameter("success") != null) { %>
-                    <p style="color: green;"><%= bundle.getString("profile_updated_message") %></p>
-                <% } else if (request.getParameter("error") != null) { %>
-                    <p style="color: red;"><%= request.getParameter("error") %></p>
-                <% } %>
+                            <div class="col-md-6 grid-margin stretch-card">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <% if (request.getParameter("success") != null) {%>
+                                        <p style="color: green;"><%= bundle.getString("profile_updated_message")%></p>
+                                        <% } else if (request.getParameter("error") != null) {%>
+                                        <p style="color: red;"><%= request.getParameter("error")%></p>
+                                        <% }%>
 
-                <h4 class="card-title"><%= bundle.getString("update_account_title") %></h4>
-                <form class="forms-sample" action="<%= request.getContextPath() %>/UpdateTeacherProfileServlet" method="post" enctype="multipart/form-data" autocomplete="off">
+                                        <h4 class="card-title"><%= bundle.getString("update_account_title")%></h4>
+                                        <form class="forms-sample" action="<%= request.getContextPath()%>/UpdateTeacherProfileServlet" method="post" enctype="multipart/form-data" autocomplete="off">
 
-                    <!-- View-only Name -->
-                    <div class="form-group">
-                        <label for="name"><%= bundle.getString("name_label") %>:</label>
-                        <input type="text" class="form-control" id="name" name="name" value="<%= teacher.getName() %>" readonly>
-                    </div>
+                                            <!-- View-only Name -->
+                                            <div class="form-group">
+                                                <label for="name"><%= bundle.getString("name_label")%>:</label>
+                                                <input type="text" class="form-control" id="name" name="name" value="<%= teacher.getName()%>" readonly>
+                                            </div>
 
-                    <!-- Editable Phone Number -->
-                    <div class="form-group">
-                        <label for="phone"><%= bundle.getString("phone_number_label") %>:</label>
-                        <input type="text" class="form-control" id="phone" name="phone" value="<%= teacher.getContactNumber() %>" required>
-                    </div>
+                                            <!-- Editable Phone Number -->
+                                            <div class="form-group">
+                                                <label for="phone"><%= bundle.getString("phone_number_label")%>:</label>
+                                                <input type="text" class="form-control" id="phone" name="phone" value="<%= teacher.getContactNumber()%>" required>
+                                            </div>
 
-                    <!-- Editable Email -->
-                    <div class="form-group">
-                        <label for="email"><%= bundle.getString("email") %>:</label>
-                        <input type="email" class="form-control" id="email" name="email" value="<%= teacher.getEmail() %>" required>
-                    </div>
+                                            <!-- Editable Email -->
+                                            <div class="form-group">
+                                                <label for="email"><%= bundle.getString("email")%>:</label>
+                                                <input type="email" class="form-control" id="email" name="email" value="<%= teacher.getEmail()%>" required>
+                                            </div>
 
-                    <!-- Old Password (required if new password is filled) -->
-                    <div class="form-group">
-                        <label for="oldPassword"><%= bundle.getString("old_password_label") %>:</label>
-                        <input type="password" class="form-control" id="oldPassword" name="oldPassword" placeholder="<%= bundle.getString("old_password_placeholder") %>">
-                    </div>
+                                            <!-- Old Password (required if new password is filled) -->
+                                            <div class="form-group">
+                                                <label for="oldPassword"><%= bundle.getString("old_password_label")%>:</label>
+                                                <input type="password" class="form-control" id="oldPassword" name="oldPassword" placeholder="<%= bundle.getString("old_password_placeholder")%>">
+                                            </div>
 
-                    <!-- New Password -->
-                    <div class="form-group">
-                        <label for="newPassword"><%= bundle.getString("new_password_label") %>:</label>
-                        <input type="password" class="form-control" id="newPassword" name="newPassword" placeholder="<%= bundle.getString("new_password_placeholder") %>">
-                    </div>
+                                            <!-- New Password -->
+                                            <div class="form-group">
+                                                <label for="newPassword"><%= bundle.getString("new_password_label")%>:</label>
+                                                <input type="password" class="form-control" id="newPassword" name="newPassword" placeholder="<%= bundle.getString("new_password_placeholder")%>">
+                                            </div>
 
-                    <!-- Confirm New Password -->
-                    <div class="form-group">
-                        <label for="confirmPassword"><%= bundle.getString("confirm_password_label") %>:</label>
-                        <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" placeholder="<%= bundle.getString("confirm_password_placeholder") %>">
-                    </div>
+                                            <!-- Confirm New Password -->
+                                            <div class="form-group">
+                                                <label for="confirmPassword"><%= bundle.getString("confirm_password_label")%>:</label>
+                                                <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" placeholder="<%= bundle.getString("confirm_password_placeholder")%>">
+                                            </div>
 
-                    <!-- Profile Picture Upload -->
-                    <div class="form-group">
-                        <label for="profilePic"><%= bundle.getString("profile_picture_label") %>:</label>
-                        <input type="file" class="form-control" id="profilePic" name="profilePic" accept="image/*">
-                    </div>
+                                            <!-- Profile Picture Upload -->
+                                            <div class="form-group">
+                                                <label for="profilePic"><%= bundle.getString("profile_picture_label")%>:</label>
+                                                <input type="file" class="form-control" id="profilePic" name="profilePic" accept="image/*">
+                                            </div>
 
-                    <!-- Show Existing Picture -->
-                    <% if (teacher.getProfilePicture() != null) { %>
-                        <img src="profile_pics/<%= teacher.getProfilePicture() %>" width="100" height="100" alt="Profile Picture" />
-                    <% } else { %>
-                        <img src="assets/images/faces/default.jpg" width="100" height="100" alt="Default Picture" />
-                    <% } %>
+                                            <!-- Show Existing Picture -->
+                                            <% if (teacher.getProfilePicture() != null) {%>
+                                            <img src="profile_pics/<%= teacher.getProfilePicture()%>" width="100" height="100" alt="Profile Picture" />
+                                            <% } else { %>
+                                            <img src="assets/images/faces/default.jpg" width="100" height="100" alt="Default Picture" />
+                                            <% }%>
 
-                    <button type="submit" class="btn btn-gradient-primary me-2"><%= bundle.getString("update_account_button") %></button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
+                                            <button type="submit" class="btn btn-gradient-primary me-2"><%= bundle.getString("update_account_button")%></button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
 
                     </div>
