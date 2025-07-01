@@ -19,8 +19,9 @@
         session.setAttribute("lang", lang);
     }
     String currentLang = (String) session.getAttribute("lang");
-    if (currentLang == null) currentLang = "ms"; // Default: BM
-
+    if (currentLang == null) {
+        currentLang = "ms"; // Default: BM
+    }
     java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("messages", new java.util.Locale(currentLang));
 %>
 <!DOCTYPE html>
@@ -305,53 +306,56 @@
                             String isGuruKelas = (String) session.getAttribute("isGuruKelas");
                             String assignedClass = (String) session.getAttribute("teacherClass");
                         %>
-                        
+
                         <div class="row">
                             <div class="col-md-6 grid-margin stretch-card">
                                 <div class="card">
                                     <div class="card-body">
-                                       
+
                                         <c:if test="${not empty sessionScope.successMessage}">
                                             <div class="alert alert-success">${sessionScope.successMessage}</div>
                                             <c:remove var="successMessage" scope="session" />
                                         </c:if>
 
-                                        <h4 class="card-title"><%= bundle.getString("student_registration_title") %></h4>
+                                        <h4 class="card-title"><%= bundle.getString("student_registration_title")%></h4>
 
                                         <% if ("Yes".equalsIgnoreCase(isGuruKelas) && assignedClass != null && !assignedClass.isEmpty()) {%>
 
-                                        <form class="forms-sample" action="<%= request.getContextPath() %>/StudentRegistrationServlet" method="post">
+                                        <form class="forms-sample" action="<%= request.getContextPath()%>/StudentRegistrationServlet" method="post">
 
                                             <div class="form-group">
-                                                <label for="class"><%= bundle.getString("student_class_label") %></label>
+                                                <label for="class"><%= bundle.getString("student_class_label")%></label>
                                                 <input type="text" class="form-control" id="class" name="class" value="<%= assignedClass%>" readonly>
                                             </div>
 
                                             <div class="form-group">
-                                                <label for="studentname"><%= bundle.getString("student_name") %></label>
+                                                <label for="studentname"><%= bundle.getString("student_name")%></label>
                                                 <input type="text" class="form-control" id="studentname" name="studentname" required>
                                             </div>
 
                                             <div class="form-group">
-                                                <label for="ic"><%= bundle.getString("ic_number_label") %></label>
-                                                <input type="text" class="form-control" id="ic" name="ic" placeholder="<%= bundle.getString("ic_number_placeholder") %>" required>
+                                                <label for="ic"><%= bundle.getString("ic_number_label")%></label>
+                                                <input type="text" class="form-control" id="ic" name="ic" placeholder="<%= bundle.getString("ic_number_placeholder")%>" 
+                                                       pattern="^\d{12}$" title="IC number must be exactly 12 digits" maxlength="12" oninput="validateIC()" required>
                                             </div>
 
+
+
                                             <div class="form-group">
-                                                <label for="sport_team"><%= bundle.getString("select_sport_team") %></label>
+                                                <label for="sport_team"><%= bundle.getString("select_sport_team")%></label>
                                                 <select class="form-control" id="sport_team" name="sport_team">
-                                                    <option value=""><%= bundle.getString("select_sport_team") %></option>
-                                                    <option value="Red Team"><%= bundle.getString("red_team") %></option>
-                                                    <option value="Green Team"><%= bundle.getString("green_team") %></option>
-                                                    <option value="Yellow Team"><%= bundle.getString("yellow_team") %></option>
-                                                    <option value="Blue Team"><%= bundle.getString("blue_team") %></option>
+                                                    <option value=""><%= bundle.getString("select_sport_team")%></option>
+                                                    <option value="Red Team"><%= bundle.getString("red_team")%></option>
+                                                    <option value="Green Team"><%= bundle.getString("green_team")%></option>
+                                                    <option value="Yellow Team"><%= bundle.getString("yellow_team")%></option>
+                                                    <option value="Blue Team"><%= bundle.getString("blue_team")%></option>
                                                 </select><br>
                                             </div>
 
                                             <div class="form-group">
-                                                <label for="uniform_unit"><%= bundle.getString("select_uniform_unit") %>t</label>
+                                                <label for="uniform_unit"><%= bundle.getString("select_uniform_unit")%>t</label>
                                                 <select class="form-control" id="uniform_unit" name="uniform_unit">
-                                                    <option value=""><%= bundle.getString("select_uniform_unit") %></option>
+                                                    <option value=""><%= bundle.getString("select_uniform_unit")%></option>
                                                     <option value="Tunas Puteri">Tunas Puteri</option>
                                                     <option value="Puteri Islam">Puteri Islam</option>
                                                     <option value="Tunas Kadet Remaja Sekolah">Tunas Kadet Remaja Sekolah</option>
@@ -359,14 +363,14 @@
                                                 </select><br>
                                             </div>
 
-                                            <button type="submit" class="btn btn-gradient-primary me-2"><%= bundle.getString("submit") %></button>
+                                            <button type="submit" class="btn btn-gradient-primary me-2"><%= bundle.getString("submit")%></button>
 
                                         </form>
 
-                                        <% } else { %>
+                                        <% } else {%>
 
                                         <div class="alert alert-warning mt-3">
-                                            <%= bundle.getString("not_authorized_message") %>
+                                            <%= bundle.getString("not_authorized_message")%>
                                         </div>
 
                                         <% }%>
@@ -374,7 +378,6 @@
                                 </div>
                             </div>
                         </div>
-
 
                     </div>
                     <!-- content-wrapper ends -->
@@ -391,6 +394,23 @@
             </div>
             <!-- page-body-wrapper ends -->
         </div>
+        <script>
+            function validateIC() {
+                var icInput = document.getElementById('ic');
+                var icValue = icInput.value;
+
+                // Ensure input is only digits (remove any non-digit characters)
+                icValue = icValue.replace(/\D/g, '');
+
+                // Ensure the length of input doesn't exceed 12
+                if (icValue.length > 12) {
+                    icValue = icValue.slice(0, 12);
+                }
+
+                // Set the input value back to the valid IC number
+                icInput.value = icValue;
+            }
+        </script>
         <!-- container-scroller -->
         <!-- plugins:js -->
         <script src="../assets/vendors/js/vendor.bundle.base.js"></script>

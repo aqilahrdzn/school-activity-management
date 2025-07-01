@@ -1,6 +1,7 @@
 package model;
 
 public class Event {
+
     private String id;  // Added id attribute
     private String category;
     private String title;
@@ -13,15 +14,15 @@ public class Event {
     private String suratPengesahan;
     private String createdBy;
     private double paymentAmount;
+    private String venue;
 
-public String getCreatedBy() {
-    return createdBy;
-}
+    public String getCreatedBy() {
+        return createdBy;
+    }
 
-public void setCreatedBy(String createdBy) {
-    this.createdBy = createdBy;
-}
-
+    public void setCreatedBy(String createdBy) {
+        this.createdBy = createdBy;
+    }
 
     // Getter and setter for id
     public String getId() {
@@ -31,7 +32,6 @@ public void setCreatedBy(String createdBy) {
     public void setId(String id) {
         this.id = id;
     }
-    
 
     // Getter and setter for title
     public String getTitle() {
@@ -136,5 +136,19 @@ public void setCreatedBy(String createdBy) {
      */
     public void setPaymentAmount(double paymentAmount) {
         this.paymentAmount = paymentAmount;
+    }
+
+    /**
+     * @return the venue
+     */
+    public String getVenue() {
+        return venue;
+    }
+
+    /**
+     * @param venue the venue to set
+     */
+    public void setVenue(String venue) {
+        this.venue = venue;
     }
 }

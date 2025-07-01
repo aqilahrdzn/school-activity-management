@@ -91,9 +91,9 @@ public class SendConfirmationLetterController extends HttpServlet {
                     Parent parent = parentDAO.getParentByStudentId(student.getId()); // fixed method
                     if (parent != null) {
                         notificationDAO.insertNotification(
-                            parent.getId(),
-                            "parent",
-                            "Surat kebenaran telah diterima. Sila semak surat lampiran."
+                                parent.getId(),
+                                "parent",
+                                "Surat kebenaran telah diterima. Sila semak surat lampiran."
                         );
                     }
                 }
@@ -189,6 +189,9 @@ public class SendConfirmationLetterController extends HttpServlet {
             document.add(new Paragraph("\nBUTIRAN ACARA:", headerFont));
             document.add(new Paragraph("Tajuk Acara: " + event.getTitle(), bodyFont));
             document.add(new Paragraph("Keterangan: " + event.getDescription(), bodyFont));
+            Font simpleFont = FontFactory.getFont(FontFactory.HELVETICA, 12, BaseColor.BLACK);
+            document.add(new Paragraph("Lokasi Acara: " + event.getVenue(), simpleFont));  // Use simple font for testing
+
             document.add(new Paragraph("Tarikh Mula: " + startDate, bodyFont));
             document.add(new Paragraph("Masa Mula: " + startTime, bodyFont));
             document.add(new Paragraph("Tarikh Tamat: " + endDate, bodyFont));

@@ -200,6 +200,7 @@ public class EventController extends HttpServlet {
         String startTimeStr = request.getParameter("startTime");
         String endTimeStr = request.getParameter("endTime");
         String timeZone = request.getParameter("timeZone");
+        String venue = request.getParameter("venue"); 
 
         if (startTimeStr.length() == 16) {
             startTimeStr += ":00";
@@ -230,6 +231,7 @@ public class EventController extends HttpServlet {
         event.setTimeZone(timeZone);
         event.setCreatedBy(createdBy);
         event.setPaymentAmount(paymentAmount);
+        event.setVenue(venue); 
 
         int eventId = eventDAO.insertEventAndReturnId(event);
         // Retrieve selection type

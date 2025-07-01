@@ -296,16 +296,21 @@
                                         </iframe>
                                     </div>
 
-                                    <form class="forms-sample" action="<%= request.getContextPath() %>/EventController" method="post" onsubmit="return confirmSubmission()">
+                                    <form class="forms-sample" action="<%= request.getContextPath()%>/EventController" method="post" onsubmit="return confirmSubmission()">
                                         <div class="form-group">
                                             <label for="category"><%= bundle.getString("event_category_label")%></label>
-                                            <select id="event-category" name="event-category">
+                                            <select id="event-category" name="event-category" onchange="toggleVenueField()">
                                                 <option value=""><%= bundle.getString("select_category_placeholder")%></option>
                                                 <option value="school"><%= bundle.getString("school_event")%></option>
                                                 <option value="external"><%= bundle.getString("external_event")%></option>
                                                 <option value="payment"><%= bundle.getString("payment_event")%></option>
                                             </select>
                                         </div>
+                                        <div class="form-group" id="venue-section" style="display:none;">
+                                            <label for="venue"><%= bundle.getString("venue_label")%>:</label>
+                                            <input type="text" id="venue" name="venue" placeholder="<%= bundle.getString("venue_placeholder")%>">
+                                        </div>
+
                                         <div class="form-group" id="payment-amount-section">
                                             <label for="paymentAmount"><%= bundle.getString("payment_amount_label")%>:</label>
                                             <input type="number" id="paymentAmount" name="paymentAmount" step="0.01" min="0" placeholder="<%= bundle.getString("payment_amount_placeholder")%>">
@@ -368,6 +373,7 @@
                                                 <label><input type="checkbox" name="classDropdown" value="6 Madinah"> 6 Madinah</label>
                                             </div>
                                         </div>
+
                                         <div id="individual-selection" style="display:none; margin-top:10px;">
                                             <label for="icInput"><%= bundle.getString("ic_number")%>:</label>
                                             <input type="text" id="icInput" name="icInput" placeholder="<%= bundle.getString("student_ic_placeholder")%>">
@@ -398,7 +404,6 @@
                                                 <option value="Pengakap">Pengakap</option>
                                             </select>
                                         </div>
-
                                         <script>
                                             function toggleSelection() {
                                                 const selectedRadio = document.querySelector('input[name="selectType"]:checked');
@@ -575,7 +580,22 @@
 
                                                 return confirm(confirmationMessage);
                                             }
+
+                                            // Function to toggle Venue field visibility based on event category selection
+                                            function toggleVenueField() {
+                                                const category = document.getElementById('event-category').value;
+                                                const venueSection = document.getElementById('venue-section');
+                                                if (category === 'external' || category === 'payment') {
+                                                    venueSection.style.display = 'block';
+                                                } else {
+                                                    venueSection.style.display = 'none';
+                                                }
+                                            }
+
+                                            // Initialize toggleVenueField on page load
+                                            document.addEventListener('DOMContentLoaded', toggleVenueField);
                                         </script>
+
 
                                         <button type="submit" class="btn btn-gradient-primary me-2"><%= bundle.getString("submit")%></button>
                                     </form>

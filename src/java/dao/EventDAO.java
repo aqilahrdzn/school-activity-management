@@ -24,10 +24,9 @@ public class EventDAO {
      */
     public boolean insertEvent(Event event) {
         boolean isInserted = false;
-        String sql = "INSERT INTO events (category, title, description, start_time, end_time, time_zone, target_class, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO events (category, title, description, start_time, end_time, time_zone, target_class, created_by, venue) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = DBConfig.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-
             // Set parameters for the SQL query
             ps.setString(1, event.getCategory());
             ps.setString(2, event.getTitle());
@@ -37,6 +36,7 @@ public class EventDAO {
             ps.setString(6, event.getTimeZone());
             ps.setString(7, event.getTargetClass());
             ps.setString(8, event.getCreatedBy());
+            ps.setString(9, event.getVenue());  // Added venue
 
             // Execute the query
             int rows = ps.executeUpdate();
@@ -69,6 +69,7 @@ public class EventDAO {
                     event.setEndTime(rs.getString("end_time"));
                     event.setTimeZone(rs.getString("time_zone"));
                     event.setTargetClass(rs.getString("target_class"));
+                    event.setVenue(rs.getString("venue"));  // Retrieve venue from DB
                 }
             }
         } catch (SQLException e) {
@@ -136,7 +137,7 @@ public class EventDAO {
     public List<Map<String, Object>> getAllEventDetails() {
         List<Map<String, Object>> events = new ArrayList<>();
         String sql = "SELECT e.id, e.title, e.category, e.description, e.start_time, e.end_time, "
-                + "e.target_class, e.created_by, c.name AS classroom_name "
+                + "e.target_class, e.created_by, c.name AS classroom_name, e.venue "
                 + "FROM events e LEFT JOIN classroom c ON e.classroom_id = c.id";
 
         try (Connection conn = DBConfig.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -152,15 +153,13 @@ public class EventDAO {
                 map.put("target_class", rs.getString("target_class"));
                 map.put("created_by", rs.getString("created_by"));
                 map.put("classroom_name", rs.getString("classroom_name"));
+                map.put("venue", rs.getString("venue"));  // Add venue to the event details
                 events.add(map);
-                System.out.println("Fetching event list...");
-                System.out.println("Total rows fetched: " + events.size());
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
         return events;
-
     }
 
     public List<Event> getAllEvents() {
@@ -196,11 +195,10 @@ public class EventDAO {
 
     public int insertEventAndReturnId(Event event) {
         // MODIFICATION: Update the SQL query to include the new column
-        String sql = "INSERT INTO events (category, title, description, start_time, end_time, time_zone, created_by, target_class, payment_amount) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO events (category, title, description, start_time, end_time, time_zone, created_by, target_class, payment_amount, venue) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         int eventId = -1;
 
         try (Connection conn = DBConfig.getConnection(); PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-
             ps.setString(1, event.getCategory());
             ps.setString(2, event.getTitle());
             ps.setString(3, event.getDescription());
@@ -210,17 +208,7 @@ public class EventDAO {
             ps.setString(7, event.getCreatedBy());
             ps.setString(8, event.getTargetClass());
             ps.setDouble(9, event.getPaymentAmount());
-
-            // --- MODIFICATION START ---
-            // Set the payment amount. If it's 0.0 (or not a payment event),
-            // you can choose to set it as NULL or 0.0 in the DB.
-            if (event.getPaymentAmount() > 0) {
-                ps.setDouble(9, event.getPaymentAmount());
-            } else {
-                // Sets the database column to NULL if there is no payment amount.
-                ps.setNull(9, java.sql.Types.DECIMAL);
-            }
-            // --- MODIFICATION END ---
+            ps.setString(10, event.getVenue());  // Set the venue field
 
             int affectedRows = ps.executeUpdate();
 
@@ -304,7 +292,7 @@ public class EventDAO {
     }
 
     public boolean updateEvent(Event event) {
-        String sql = "UPDATE events SET category = ?, title = ?, description = ?, start_time = ?, end_time = ?, time_zone = ?, payment_amount = ? WHERE id = ?";
+        String sql = "UPDATE events SET category = ?, title = ?, description = ?, start_time = ?, end_time = ?, time_zone = ?, payment_amount = ?, venue = ? WHERE id = ?";
         try (Connection conn = DBConfig.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, event.getCategory());
@@ -320,9 +308,10 @@ public class EventDAO {
                 stmt.setNull(7, java.sql.Types.DECIMAL);
             }
 
-            stmt.setInt(8, Integer.parseInt(event.getId()));  // assuming getId() returns a String
-            return stmt.executeUpdate() > 0;
+            stmt.setString(8, event.getVenue());  // Set the venue field
+            stmt.setInt(9, Integer.parseInt(event.getId()));  // Assuming getId() returns a String
 
+            return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();
             return false;

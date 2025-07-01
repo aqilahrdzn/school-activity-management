@@ -318,7 +318,7 @@
                         </div>
                         <div class="card">
                             <div class="card-body">
-                                
+
                                 <h2><%= bundle.getString("edit_event")%></h2>
                                 <form method="post" action="<%= request.getContextPath()%>/EventController">
                                     <input type="hidden" name="action" value="update" />
@@ -351,6 +351,10 @@
                                     <div class="mb-3">
                                         <label class="form-label"><%= bundle.getString("payment_amount_field")%></label>
                                         <input type="number" step="0.01" class="form-control" name="paymentAmount" value="<%= event.getPaymentAmount()%>" />
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label"><%= bundle.getString("venue_field")%></label>
+                                        <input type="text" class="form-control" name="venue" value="<%= event.getVenue() %>" />
                                     </div>
 
                                     <button type="submit" class="btn btn-primary"><%= bundle.getString("update_event_button")%></button>
